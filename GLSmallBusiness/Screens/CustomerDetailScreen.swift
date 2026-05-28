@@ -153,7 +153,7 @@ struct CustomerDetailScreen: View {
         let a = customer.address
         let cityLine = [a.city, a.state].filter { !$0.isEmpty }.joined(separator: ", ")
         let cityZip = [cityLine, a.postalCode].filter { !$0.isEmpty }.joined(separator: " ")
-        return [a.street1, a.street2 ?? "", cityZip, a.country]
+        return [a.street1, a.street2 ?? "", cityZip]
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: "\n")
@@ -169,7 +169,7 @@ struct CustomerDetailScreen: View {
                 email: "jane@example.com",
                 phoneNumber: "555-0142",
                 businessName: "Doe Designs",
-                address: Address(street1: "123 Main St", city: "Austin", state: "TX", postalCode: "78701", country: "USA")
+                address: Address(street1: "123 Main St", city: "Austin", state: "TX", postalCode: "78701")
             )
         )
     }

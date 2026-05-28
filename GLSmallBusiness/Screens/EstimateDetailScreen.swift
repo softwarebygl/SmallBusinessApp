@@ -308,7 +308,7 @@ struct EstimateDetailScreen: View {
         let a = estimate.customerAddress
         let cityLine = [a.city, a.state].filter { !$0.isEmpty }.joined(separator: ", ")
         let cityZip = [cityLine, a.postalCode].filter { !$0.isEmpty }.joined(separator: " ")
-        return [a.street1, a.street2 ?? "", cityZip, a.country]
+        return [a.street1, a.street2 ?? "", cityZip]
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: "\n")

@@ -72,21 +72,18 @@ nonisolated struct Address: Codable, Hashable, Sendable {
     var city: String
     var state: String
     var postalCode: String
-    var country: String
 
     init(
         street1: String = "",
         street2: String? = nil,
         city: String = "",
         state: String = "",
-        postalCode: String = "",
-        country: String = ""
+        postalCode: String = ""
     ) {
         self.street1 = street1
         self.street2 = street2
         self.city = city
         self.state = state
         self.postalCode = postalCode
-        self.country = country
     }
 }

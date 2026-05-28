@@ -25,7 +25,6 @@ struct CustomerFormScreen: View {
     @State private var city: String
     @State private var state: String
     @State private var postalCode: String
-    @State private var country: String
 
     init(editing: Customer? = nil) {
         self.editing = editing
@@ -39,7 +38,6 @@ struct CustomerFormScreen: View {
         _city         = State(initialValue: editing?.address.city ?? "")
         _state        = State(initialValue: editing?.address.state ?? "")
         _postalCode   = State(initialValue: editing?.address.postalCode ?? "")
-        _country      = State(initialValue: editing?.address.country ?? "")
     }
 
     private var isValid: Bool {
@@ -89,8 +87,6 @@ struct CustomerFormScreen: View {
                         #if !os(macOS)
                         .keyboardType(.numbersAndPunctuation)
                         #endif
-                    TextField("Country", text: $country)
-                        .textContentType(.countryName)
                 }
             }
             .scrollContentBackground(.hidden)
@@ -122,8 +118,7 @@ struct CustomerFormScreen: View {
             street2: trimmedStreet2.isEmpty ? nil : trimmedStreet2,
             city: trim(city),
             state: trim(state),
-            postalCode: trim(postalCode),
-            country: trim(country)
+            postalCode: trim(postalCode)
         )
         let trimmedBusiness = trim(businessName)
         let business: String? = trimmedBusiness.isEmpty ? nil : trimmedBusiness

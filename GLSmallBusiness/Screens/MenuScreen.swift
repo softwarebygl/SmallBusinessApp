@@ -145,7 +145,7 @@ struct MyCompanyDetailScreen: View {
     private func formattedAddress(_ a: Address) -> String {
         let cityLine = [a.city, a.state].filter { !$0.isEmpty }.joined(separator: ", ")
         let cityZip = [cityLine, a.postalCode].filter { !$0.isEmpty }.joined(separator: " ")
-        return [a.street1, a.street2 ?? "", cityZip, a.country]
+        return [a.street1, a.street2 ?? "", cityZip]
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: "\n")
@@ -167,7 +167,6 @@ struct MyCompanyFormScreen: View {
     @State private var city: String
     @State private var state: String
     @State private var postalCode: String
-    @State private var country: String
     @State private var logoData: Data?
     @State private var logoItem: PhotosPickerItem?
 
@@ -181,7 +180,6 @@ struct MyCompanyFormScreen: View {
         _city = State(initialValue: profile.address.city)
         _state = State(initialValue: profile.address.state)
         _postalCode = State(initialValue: profile.address.postalCode)
-        _country = State(initialValue: profile.address.country)
         _logoData = State(initialValue: profile.logoData)
     }
 
@@ -266,8 +264,6 @@ struct MyCompanyFormScreen: View {
                         #if !os(macOS)
                         .keyboardType(.numbersAndPunctuation)
                         #endif
-                    TextField("Country", text: $country)
-                        .textContentType(.countryName)
                 }
             }
             .scrollContentBackground(.hidden)
@@ -333,7 +329,6 @@ struct MyCompanyFormScreen: View {
         profile.address.city = city.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.state = state.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.postalCode = postalCode.trimmingCharacters(in: .whitespacesAndNewlines)
-        profile.address.country = country.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.logoData = logoData
         dismiss()
     }
