@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import MessageUI
 
 struct EstimateStatusBadge: View {
     let estimate: Estimate
@@ -33,9 +34,18 @@ struct EstimateStatusBadge: View {
 
 struct EstimateDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Query private var businessProfiles: [BusinessProfile]
     let estimate: Estimate
 
     @State private var showingEdit = false
+    @State private var sendAction: SendAction?
+    @State private var pdfURL: URL?
+    @State private var showingProfilePrompt = false
+
+    private enum SendAction: Int, Identifiable {
+        case email, text
+        var id: Int { rawValue }
+    }
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -59,11 +69,72 @@ struct EstimateDetailScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") { showingEdit = true }
+                Menu {
+                    Button {
+                        showingEdit = true
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    Divider()
+                    if let pdfURL {
+                        if !estimate.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
+                            Button {
+                                sendAction = .email
+                            } label: {
+                                Label("Email estimate", systemImage: "envelope")
+                            }
+                        }
+                        if !estimate.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
+                            Button {
+                                sendAction = .text
+                            } label: {
+                                Label("Text estimate", systemImage: "message")
+                            }
+                        }
+                        ShareLink(item: pdfURL) {
+                            Label("Share…", systemImage: "square.and.arrow.up")
+                        }
+                    } else {
+                        Button {
+                            showingProfilePrompt = true
+                        } label: {
+                            Label("Set up business profile to send", systemImage: "exclamationmark.circle")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("More")
             }
+        }
+        .onAppear { regeneratePDF() }
+        .onChange(of: showingEdit) { _, isShowing in
+            if !isShowing { regeneratePDF() }
         }
         .sheet(isPresented: $showingEdit) {
             EstimateFormScreen(editing: estimate)
+        }
+        .sheet(item: $sendAction) { action in
+            switch action {
+            case .email:
+                MailComposeView(
+                    recipients: [estimate.customerEmail],
+                    subject: emailSubject,
+                    body: messageBody,
+                    attachmentURL: pdfURL
+                ) { sendAction = nil }
+            case .text:
+                MessageComposeView(
+                    recipients: [estimate.customerPhone],
+                    body: messageBody,
+                    attachmentURL: pdfURL
+                ) { sendAction = nil }
+            }
+        }
+        .alert("Complete your business profile", isPresented: $showingProfilePrompt) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Add your business name, phone, and email in Menu → My Company before sending an estimate.")
         }
     }
 
@@ -212,6 +283,25 @@ struct EstimateDetailScreen: View {
             Text(amount.formatted(.currency(code: "USD")))
         }
         .fontWeight(bold ? .bold : .regular)
+    }
+
+    private func regeneratePDF() {
+        if let profile = businessProfiles.first, profile.isComplete {
+            pdfURL = EstimatePDF.render(estimate, business: profile)
+        } else {
+            pdfURL = nil
+        }
+    }
+
+    private var emailSubject: String {
+        let company = businessProfiles.first?.businessName ?? ""
+        return company.isEmpty ? "Estimate \(estimate.number)" : "Estimate \(estimate.number) from \(company)"
+    }
+
+    private var messageBody: String {
+        let company = businessProfiles.first?.businessName ?? "us"
+        let name = estimate.customerFirstName.isEmpty ? "there" : estimate.customerFirstName
+        return "Hi \(name), here's your estimate \(estimate.number) from \(company). Thank you!"
     }
 
     private var formattedAddress: String {
