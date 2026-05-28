@@ -34,7 +34,7 @@ final class Customer {
     }
 }
 
-struct Address: Codable, Hashable, Sendable {
+nonisolated struct Address: Codable, Hashable, Sendable {
     var street1: String
     var street2: String?
     var city: String

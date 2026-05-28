@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import CoreText
 #if canImport(UIKit)
 import UIKit
@@ -22,6 +23,7 @@ struct GLSmallBusinessApp: App {
         WindowGroup {
             CustomersScreen()
         }
+        .modelContainer(for: Customer.self)
     }
 
     private func registerBundledFonts() {
