@@ -21,7 +21,7 @@ struct EstimatesListScreen: View {
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     private var estimates: [Estimate] {
-        customer.estimates.sorted { $0.createdAt > $1.createdAt }
+        (customer.estimates ?? []).sorted { $0.createdAt > $1.createdAt }
     }
 
     var body: some View {

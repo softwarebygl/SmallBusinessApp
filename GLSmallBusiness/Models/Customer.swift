@@ -10,17 +10,17 @@ import SwiftData
 
 @Model
 final class Customer {
-    var firstName: String
-    var lastName: String
-    var email: String
-    var phoneNumber: String
+    var firstName: String = ""
+    var lastName: String = ""
+    var email: String = ""
+    var phoneNumber: String = ""
     var businessName: String?
-    var address: Address
+    var address: Address = Address()
     var createdAt: Date = Date.now
     @Attribute(.externalStorage) var profileImageData: Data?
 
     @Relationship(deleteRule: .cascade, inverse: \Estimate.customer)
-    var estimates: [Estimate] = []
+    var estimates: [Estimate]?
 
     init(
         firstName: String = "",

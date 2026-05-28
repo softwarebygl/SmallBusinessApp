@@ -165,8 +165,9 @@ final class Estimate {
     var customerNotes: String = ""
     var terms: String = ""
 
+    // CloudKit requires every relationship (including to-many) to be optional.
     @Relationship(deleteRule: .cascade, inverse: \EstimateGroup.estimate)
-    var groups: [EstimateGroup] = []
+    var groups: [EstimateGroup]?
 
     init(
         number: String = "",
@@ -209,7 +210,7 @@ extension Estimate {
     }
 
     var sortedGroups: [EstimateGroup] {
-        groups.sorted { $0.sortIndex < $1.sortIndex }
+        (groups ?? []).sorted { $0.sortIndex < $1.sortIndex }
     }
 
     var allLineItems: [EstimateLineItem] {
@@ -260,8 +261,9 @@ final class EstimateGroup {
 
     var estimate: Estimate?
 
+    // CloudKit requires every relationship (including to-many) to be optional.
     @Relationship(deleteRule: .cascade, inverse: \EstimateLineItem.group)
-    var lineItems: [EstimateLineItem] = []
+    var lineItems: [EstimateLineItem]?
 
     init(name: String = "", note: String = "", sortIndex: Int = 0) {
         self.name = name
@@ -270,11 +272,11 @@ final class EstimateGroup {
     }
 
     var sortedLineItems: [EstimateLineItem] {
-        lineItems.sorted { $0.sortIndex < $1.sortIndex }
+        (lineItems ?? []).sorted { $0.sortIndex < $1.sortIndex }
     }
 
     var subtotal: Double {
-        lineItems.reduce(0) { $0 + $1.lineTotal }
+        (lineItems ?? []).reduce(0) { $0 + $1.lineTotal }
     }
 }
 

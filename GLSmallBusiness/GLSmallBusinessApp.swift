@@ -14,6 +14,26 @@ import UIKit
 
 @main
 struct GLSmallBusinessApp: App {
+    /// Private-CloudKit-backed store. With `.automatic`, CloudKit sync turns on once the
+    /// iCloud capability is enabled; until then (or with no iCloud account) it stays local.
+    let sharedModelContainer: ModelContainer = {
+        // Versioned schema + migration plan so future model changes upgrade existing
+        // customers' data safely. See GLSchema.swift for the rules before changing any @Model.
+        let schema = Schema(versionedSchema: GLCurrentSchema.self)
+        do {
+            let cloud = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
+            return try ModelContainer(for: schema, migrationPlan: GLMigrationPlan.self, configurations: cloud)
+        } catch {
+            print("⚠️ CloudKit store unavailable — falling back to a local store. \(error)")
+            let local = ModelConfiguration(schema: schema)
+            do {
+                return try ModelContainer(for: schema, migrationPlan: GLMigrationPlan.self, configurations: local)
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
+        }
+    }()
+
     init() {
         registerBundledFonts()
         configureNavigationBarAppearance()
@@ -23,7 +43,7 @@ struct GLSmallBusinessApp: App {
         WindowGroup {
             CustomersScreen()
         }
-        .modelContainer(for: [Customer.self, Estimate.self, BusinessProfile.self])
+        .modelContainer(sharedModelContainer)
     }
 
     private func registerBundledFonts() {

@@ -392,7 +392,7 @@ struct EstimateFormScreen: View {
         let estimate: Estimate
         if let editingEstimate {
             estimate = editingEstimate
-            for group in estimate.groups {
+            for group in estimate.groups ?? [] {
                 modelContext.delete(group)
             }
             estimate.groups = []
