@@ -52,7 +52,7 @@ struct CustomerDetailScreen: View {
     private var header: some View {
         VStack(spacing: 12) {
             PhotosPicker(selection: $photoItem, matching: .images) {
-                avatar
+                CustomerAvatar(customer: customer, size: 110, showsCameraBadge: true)
             }
             .buttonStyle(.plain)
 
@@ -65,31 +65,6 @@ struct CustomerDetailScreen: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
-    }
-
-    private var avatar: some View {
-        ZStack {
-            if let data = customer.profileImageData, let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                gold.opacity(0.2)
-                Text(customer.initials)
-                    .font(.system(size: 40, weight: .semibold))
-                    .foregroundStyle(gold)
-            }
-        }
-        .frame(width: 110, height: 110)
-        .clipShape(Circle())
-        .overlay(Circle().stroke(gold.opacity(0.4), lineWidth: 2))
-        .overlay(alignment: .bottomTrailing) {
-            Image(systemName: "camera.fill")
-                .font(.caption)
-                .foregroundStyle(.white)
-                .padding(8)
-                .background(Circle().fill(gold))
-        }
     }
 
     // MARK: - Info cards
@@ -120,7 +95,12 @@ struct CustomerDetailScreen: View {
         VStack(spacing: 12) {
             ForEach(CustomerDocumentKind.allCases) { kind in
                 NavigationLink {
-                    CustomerDocumentsScreen(customer: customer, kind: kind)
+                    switch kind {
+                    case .estimates:
+                        EstimatesListScreen(customer: customer)
+                    default:
+                        CustomerDocumentsScreen(customer: customer, kind: kind)
+                    }
                 } label: {
                     HStack(spacing: 12) {
                         Image(systemName: kind.systemImage)

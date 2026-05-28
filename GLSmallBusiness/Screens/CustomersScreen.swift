@@ -39,20 +39,32 @@ struct CustomersScreen: View {
                                     .font(.title3)
                                     .foregroundStyle(selection.contains(customer.persistentModelID) ? gold : Color.secondary)
                             }
-                            HStack(spacing: 0) {
-                                Text(customer.listDisplayName)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                    .padding(.vertical, 12)
-                                    .padding(.horizontal, 16)
-                                Spacer(minLength: 0)
+                            ZStack(alignment: .leading) {
+                                HStack(spacing: 8) {
+                                    Spacer(minLength: 0)
+                                    Text(customer.listDisplayName)
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
+                                    if !isEditing {
+                                        Image(systemName: "chevron.right")
+                                            .font(.footnote.weight(.semibold))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                                .padding(.vertical, GLLayout.rowContentVerticalPadding)
+                                .padding(.leading, 74)
+                                .padding(.trailing, GLLayout.rowContentPadding)
+                                .frame(maxWidth: .infinity)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(gold.opacity(0.15))
+                                )
+
+                                CustomerAvatar(customer: customer, size: 60)
+                                    .padding(.leading, 6)
                             }
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(gold.opacity(0.15))
-                            )
                         }
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, GLLayout.rowCardInset)
                         .padding(.vertical, 4)
                         .contentShape(Rectangle())
                     }
@@ -73,15 +85,11 @@ struct CustomersScreen: View {
                 CustomerDetailScreen(customer: customer)
             }
             .toolbar {
-                if isEditing || !customers.isEmpty {
+                if isEditing {
                     ToolbarItem(placement: .topBarLeading) {
-                        Button(isEditing ? "Done" : "Edit") {
-                            toggleEditing()
-                        }
+                        Button("Done") { toggleEditing() }
                     }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    if isEditing {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button(role: .destructive) {
                             deleteSelected()
                         } label: {
@@ -89,13 +97,33 @@ struct CustomersScreen: View {
                         }
                         .tint(.red)
                         .disabled(selection.isEmpty)
-                    } else {
+                    }
+                } else if customers.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button {
                             showingAddSheet = true
                         } label: {
                             Image(systemName: "plus")
                         }
                         .accessibilityLabel("Add Customer")
+                    }
+                } else {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            Button {
+                                showingAddSheet = true
+                            } label: {
+                                Label("New Customer", systemImage: "plus")
+                            }
+                            Button {
+                                toggleEditing()
+                            } label: {
+                                Label("Select", systemImage: "checkmark.circle")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                        }
+                        .accessibilityLabel("More")
                     }
                 }
             }

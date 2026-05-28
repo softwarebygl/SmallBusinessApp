@@ -11,6 +11,7 @@ import SwiftData
 struct CustomerFormScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     let editing: Customer?
 
@@ -91,6 +92,10 @@ struct CustomerFormScreen: View {
                     TextField("Country", text: $country)
                         .textContentType(.countryName)
                 }
+            }
+            .scrollContentBackground(.hidden)
+            .background {
+                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
             }
             .navigationTitle(editing == nil ? "New Customer" : "Edit Customer")
             .toolbarTitleDisplayMode(.inline)

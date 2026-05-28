@@ -23,7 +23,7 @@ struct GLSmallBusinessApp: App {
         WindowGroup {
             CustomersScreen()
         }
-        .modelContainer(for: Customer.self)
+        .modelContainer(for: [Customer.self, Estimate.self])
     }
 
     private func registerBundledFonts() {

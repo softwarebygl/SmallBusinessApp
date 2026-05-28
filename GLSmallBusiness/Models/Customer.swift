@@ -19,6 +19,9 @@ final class Customer {
     var createdAt: Date = Date.now
     @Attribute(.externalStorage) var profileImageData: Data?
 
+    @Relationship(deleteRule: .cascade, inverse: \Estimate.customer)
+    var estimates: [Estimate] = []
+
     init(
         firstName: String = "",
         lastName: String = "",
