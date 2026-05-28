@@ -14,13 +14,30 @@ struct CustomersScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
     private var customers: [Customer]
+    @Query private var businessProfiles: [BusinessProfile]
 
     @State private var showingAddSheet = false
+    @State private var showingMenu = false
     @State private var path: [Customer] = []
     @State private var isEditing = false
     @State private var selection = Set<PersistentIdentifier>()
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
+
+    @ViewBuilder
+    private var menuButtonLabel: some View {
+        if let data = businessProfiles.first?.logoData, let uiImage = UIImage(data: data) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 36, height: 36)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(gold.opacity(0.4), lineWidth: 1))
+                .padding(-7)
+        } else {
+            Image(systemName: "line.3.horizontal")
+        }
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -85,10 +102,19 @@ struct CustomersScreen: View {
                 CustomerDetailScreen(customer: customer)
             }
             .toolbar {
-                if isEditing {
-                    ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .topBarLeading) {
+                    if isEditing {
                         Button("Done") { toggleEditing() }
+                    } else {
+                        Button {
+                            showingMenu = true
+                        } label: {
+                            menuButtonLabel
+                        }
+                        .accessibilityLabel("Menu")
                     }
+                }
+                if isEditing {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(role: .destructive) {
                             deleteSelected()
@@ -129,6 +155,9 @@ struct CustomersScreen: View {
             }
             .sheet(isPresented: $showingAddSheet) {
                 CustomerFormScreen()
+            }
+            .sheet(isPresented: $showingMenu) {
+                MenuScreen()
             }
         }
     }
