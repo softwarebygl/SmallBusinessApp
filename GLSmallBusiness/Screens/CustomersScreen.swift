@@ -16,27 +16,42 @@ struct CustomersScreen: View {
     private var customers: [Customer]
 
     @State private var showingAddSheet = false
-    @State private var editingCustomer: Customer?
+    @State private var path: [Customer] = []
+    @State private var isEditing = false
+    @State private var selection = Set<PersistentIdentifier>()
+
+    private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             List {
                 ForEach(customers) { customer in
                     Button {
-                        editingCustomer = customer
-                    } label: {
-                        HStack(spacing: 0) {
-                            Text(customer.listDisplayName)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .padding(.vertical, 12)
-                                .padding(.horizontal, 16)
-                            Spacer(minLength: 0)
+                        if isEditing {
+                            toggleSelection(customer)
+                        } else {
+                            path.append(customer)
                         }
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(GLColor.gold.render(in: colorScheme).opacity(0.15))
-                        )
+                    } label: {
+                        HStack(spacing: 12) {
+                            if isEditing {
+                                Image(systemName: selection.contains(customer.persistentModelID) ? "checkmark.circle.fill" : "circle")
+                                    .font(.title3)
+                                    .foregroundStyle(selection.contains(customer.persistentModelID) ? gold : Color.secondary)
+                            }
+                            HStack(spacing: 0) {
+                                Text(customer.listDisplayName)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                    .padding(.vertical, 12)
+                                    .padding(.horizontal, 16)
+                                Spacer(minLength: 0)
+                            }
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(gold.opacity(0.15))
+                            )
+                        }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 4)
                         .contentShape(Rectangle())
@@ -54,21 +69,38 @@ struct CustomersScreen: View {
                 PrimaryBackground()
             }
             .navigationTitle("Customers")
+            .navigationDestination(for: Customer.self) { customer in
+                CustomerDetailScreen(customer: customer)
+            }
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingAddSheet = true
-                    } label: {
-                        Image(systemName: "plus")
+                if isEditing || !customers.isEmpty {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(isEditing ? "Done" : "Edit") {
+                            toggleEditing()
+                        }
                     }
-                    .accessibilityLabel("Add Customer")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    if isEditing {
+                        Button(role: .destructive) {
+                            deleteSelected()
+                        } label: {
+                            Text(selection.isEmpty ? "Delete" : "Delete (\(selection.count))")
+                        }
+                        .tint(.red)
+                        .disabled(selection.isEmpty)
+                    } else {
+                        Button {
+                            showingAddSheet = true
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                        .accessibilityLabel("Add Customer")
+                    }
                 }
             }
             .sheet(isPresented: $showingAddSheet) {
                 CustomerFormScreen()
-            }
-            .sheet(item: $editingCustomer) { customer in
-                CustomerFormScreen(editing: customer)
             }
         }
     }
@@ -78,19 +110,30 @@ struct CustomersScreen: View {
             modelContext.delete(customers[index])
         }
     }
-}
 
-private extension Customer {
-    var listDisplayName: String {
-        let first = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let last = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let business = (businessName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    private func toggleSelection(_ customer: Customer) {
+        let id = customer.persistentModelID
+        if selection.contains(id) {
+            selection.remove(id)
+        } else {
+            selection.insert(id)
+        }
+    }
 
-        if !last.isEmpty, !first.isEmpty { return "\(last), \(first)" }
-        if !last.isEmpty { return last }
-        if !first.isEmpty { return first }
-        if !business.isEmpty { return business }
-        return "No name"
+    private func toggleEditing() {
+        withAnimation {
+            isEditing.toggle()
+            if !isEditing { selection.removeAll() }
+        }
+    }
+
+    private func deleteSelected() {
+        withAnimation {
+            for customer in customers where selection.contains(customer.persistentModelID) {
+                modelContext.delete(customer)
+            }
+            selection.removeAll()
+        }
     }
 }
 

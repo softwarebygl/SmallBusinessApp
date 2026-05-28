@@ -16,6 +16,8 @@ final class Customer {
     var phoneNumber: String
     var businessName: String?
     var address: Address
+    var createdAt: Date = Date.now
+    @Attribute(.externalStorage) var profileImageData: Data?
 
     init(
         firstName: String = "",
@@ -23,7 +25,8 @@ final class Customer {
         email: String = "",
         phoneNumber: String = "",
         businessName: String? = nil,
-        address: Address = Address()
+        address: Address = Address(),
+        createdAt: Date = .now
     ) {
         self.firstName = firstName
         self.lastName = lastName
@@ -31,6 +34,32 @@ final class Customer {
         self.phoneNumber = phoneNumber
         self.businessName = businessName
         self.address = address
+        self.createdAt = createdAt
+    }
+}
+
+nonisolated extension Customer {
+    var listDisplayName: String {
+        let first = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let last = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let business = (businessName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !last.isEmpty, !first.isEmpty { return "\(last), \(first)" }
+        if !last.isEmpty { return last }
+        if !first.isEmpty { return first }
+        if !business.isEmpty { return business }
+        return "No name"
+    }
+
+    var initials: String {
+        let first = firstName.trimmingCharacters(in: .whitespacesAndNewlines).first
+        let last = lastName.trimmingCharacters(in: .whitespacesAndNewlines).first
+        let combined = [first, last].compactMap { $0 }.map(String.init).joined().uppercased()
+        if !combined.isEmpty { return combined }
+        if let business = businessName?.trimmingCharacters(in: .whitespacesAndNewlines).first {
+            return String(business).uppercased()
+        }
+        return "?"
     }
 }
 
