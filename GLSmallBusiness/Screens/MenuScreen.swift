@@ -201,12 +201,6 @@ struct MyCompanyFormScreen: View {
         NavigationStack {
             Form {
                 Section {
-                    Text("Optional. Appears on your estimates and invoices.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
                     HStack {
                         Spacer()
                         PhotosPicker(selection: $logoItem, matching: .images) {
@@ -217,20 +211,26 @@ struct MyCompanyFormScreen: View {
                     }
                     .listRowBackground(Color.clear)
                 } header: {
-                    Text("Logo")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Logo")
+                        Text("Optional. Appears on your estimates and invoices.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .textCase(nil)
+                        Text("Customizes the app")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .textCase(nil)
+                    }
                 }
 
-                Section {
+                Section("Business") {
                     HStack {
                         TextField("Business name", text: $businessName)
                             .textContentType(.organizationName)
                         requiredMark
                     }
                     TextField("License number", text: $licenseNumber)
-                } header: {
-                    Text("Business")
-                } footer: {
-                    Text("* Required")
                 }
 
                 Section("Contact") {
