@@ -209,10 +209,7 @@ struct InvoiceFormScreen: View {
 
                 summarySection
             }
-            .scrollContentBackground(.hidden)
-            .background {
-                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
-            }
+            .glFormBackground()
             .navigationTitle(editingInvoice == nil ? "New Invoice" : "Edit Invoice")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {

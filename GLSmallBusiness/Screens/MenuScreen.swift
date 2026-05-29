@@ -333,10 +333,7 @@ struct MyCompanyFormScreen: View {
                         .textCase(nil)
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background {
-                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
-            }
+            .glFormBackground()
             .navigationTitle("My Company")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {

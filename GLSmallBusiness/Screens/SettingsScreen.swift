@@ -61,7 +61,6 @@ extension AppColorScheme {
 }
 
 struct SettingsScreen: View {
-    @Environment(\.colorScheme) private var colorScheme
     @AppStorage(AppColorScheme.storageKey) private var appColorSchemeRaw = AppColorScheme.system.rawValue
 
     private var appearance: Binding<AppColorScheme> {
@@ -85,10 +84,7 @@ struct SettingsScreen: View {
                 Text("Choose Light or Dark, or Auto to follow your device’s setting.")
             }
         }
-        .scrollContentBackground(.hidden)
-        .background {
-            GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
-        }
+        .glFormBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: appColorSchemeRaw) { _, newValue in

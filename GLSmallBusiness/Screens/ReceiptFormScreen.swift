@@ -11,7 +11,6 @@ import SwiftData
 struct ReceiptFormScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
 
     @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
     private var allCustomers: [Customer]
@@ -113,10 +112,7 @@ struct ReceiptFormScreen: View {
                         .lineLimit(2...6)
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background {
-                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
-            }
+            .glFormBackground()
             .navigationTitle(editingReceipt == nil ? "New Receipt" : "Edit Receipt")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {

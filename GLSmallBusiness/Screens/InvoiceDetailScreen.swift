@@ -412,7 +412,6 @@ struct InvoiceDetailScreen: View {
 private struct RecordPaymentSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
     let invoice: Invoice
 
     @State private var amount: Double
@@ -440,10 +439,7 @@ private struct RecordPaymentSheet: View {
                     TextField("Note (optional)", text: $note)
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background {
-                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
-            }
+            .glFormBackground()
             .navigationTitle("Record Payment")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
@@ -479,7 +475,6 @@ private struct RecordPaymentSheet: View {
 
 private struct SetAmountDueSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
     let invoice: Invoice
 
     @State private var amount: Double
@@ -504,10 +499,7 @@ private struct SetAmountDueSheet: View {
                     Text("What you're asking the customer to pay now. Leave at $0 to request the full balance of \(invoice.balanceDue.formatted(.currency(code: "USD"))).")
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background {
-                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
-            }
+            .glFormBackground()
             .navigationTitle("Amount Due")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {

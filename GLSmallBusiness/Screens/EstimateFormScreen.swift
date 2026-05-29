@@ -176,10 +176,7 @@ struct EstimateFormScreen: View {
 
                 summarySection
             }
-            .scrollContentBackground(.hidden)
-            .background {
-                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
-            }
+            .glFormBackground()
             .navigationTitle(editingEstimate == nil ? "New Estimate" : "Edit Estimate")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
