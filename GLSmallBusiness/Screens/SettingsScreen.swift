@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// The app's appearance preference. Stored device-locally in `@AppStorage` (not synced via
 /// CloudKit) since appearance is a per-device UI choice. Applied at the app root with
@@ -32,6 +35,28 @@ enum AppColorScheme: String, CaseIterable, Identifiable {
         case .dark: .dark
         case .system: nil
         }
+    }
+}
+
+extension AppColorScheme {
+    /// Applies this appearance to every window via `overrideUserInterfaceStyle`, which cascades
+    /// into presented sheets too (something `.preferredColorScheme` alone doesn't reach). Call
+    /// this from the view that changes the preference so it takes effect immediately.
+    func applyToWindows() {
+        #if canImport(UIKit)
+        let style: UIUserInterfaceStyle
+        switch self {
+        case .light: style = .light
+        case .dark: style = .dark
+        case .system: style = .unspecified
+        }
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                window.overrideUserInterfaceStyle = style
+            }
+        }
+        #endif
     }
 }
 
@@ -66,6 +91,10 @@ struct SettingsScreen: View {
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: appColorSchemeRaw) { _, newValue in
+            // Apply immediately from here so the open sheet repaints right away.
+            (AppColorScheme(rawValue: newValue) ?? .system).applyToWindows()
+        }
     }
 }
 
