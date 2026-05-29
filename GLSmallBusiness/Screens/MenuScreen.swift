@@ -140,7 +140,7 @@ struct MyCompanyDetailScreen: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(gold.opacity(0.12)))
+                    .glCardBackground()
                 }
                 .buttonStyle(.plain)
             }
@@ -165,13 +165,7 @@ struct MyCompanyDetailScreen: View {
     }
 
     private func card<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.headline)
-            content()
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12).fill(gold.opacity(0.12)))
+        GLCard(title: title) { content() }
     }
 
     private func infoRow(_ label: String, _ value: String) -> some View {

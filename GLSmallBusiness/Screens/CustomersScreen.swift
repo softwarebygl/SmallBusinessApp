@@ -41,6 +41,14 @@ struct CustomersScreen: View {
     var body: some View {
         NavigationStack(path: $path) {
             List {
+                if customers.isEmpty {
+                    ContentUnavailableView {
+                        Label("No Customers", systemImage: "person.2")
+                    } description: {
+                        Text("Tap + to add your first customer.")
+                    }
+                    .listRowBackground(Color.clear)
+                } else {
                 ForEach(customers) { customer in
                     Button {
                         if isEditing {
@@ -71,10 +79,7 @@ struct CustomersScreen: View {
                                 .padding(.leading, 74)
                                 .padding(.trailing, GLLayout.rowContentPadding)
                                 .frame(maxWidth: .infinity)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(gold.opacity(0.15))
-                                )
+                                .glCardBackground()
 
                                 CustomerAvatar(customer: customer, size: 60)
                                     .padding(.leading, 6)
@@ -90,6 +95,7 @@ struct CustomersScreen: View {
                     .listRowInsets(EdgeInsets())
                 }
                 .onDelete(perform: deleteCustomers)
+                }
             }
             .scrollContentBackground(.hidden)
             .listStyle(.plain)

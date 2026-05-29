@@ -92,7 +92,7 @@ struct ReceiptListView: View {
                             .padding(.horizontal, GLLayout.rowContentPadding)
                             .padding(.vertical, GLLayout.rowContentVerticalPadding)
                             .frame(maxWidth: .infinity)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(gold.opacity(0.12)))
+                            .glCardBackground()
                         }
                         .padding(.horizontal, GLLayout.rowCardInset)
                         .padding(.vertical, 4)
@@ -191,9 +191,9 @@ struct ReceiptListView: View {
                 }
             }
         } label: {
-            Image(systemName: "plus")
+            Image(systemName: displayed.isEmpty ? "plus" : "ellipsis")
         }
-        .accessibilityLabel("Add Receipt")
+        .accessibilityLabel(displayed.isEmpty ? "Add Receipt" : "More")
     }
 
     private var filterMenu: some View {

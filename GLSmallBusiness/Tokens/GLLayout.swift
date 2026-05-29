@@ -17,4 +17,10 @@ enum GLLayout {
 
     /// Inset of a row card from the screen's leading/trailing edges.
     static let rowCardInset: CGFloat = 16
+
+    /// Corner radius shared by every card and row surface.
+    static let cardCornerRadius: CGFloat = 12
+
+    /// Gold-tint opacity for every card and row surface.
+    static let cardFillOpacity: Double = 0.12
 }

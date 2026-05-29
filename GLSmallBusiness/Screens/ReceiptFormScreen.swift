@@ -55,6 +55,10 @@ struct ReceiptFormScreen: View {
         _scanData = State(initialValue: receipt.scanData)
     }
 
+    private var canSave: Bool {
+        !vendor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || total > 0 || scanData != nil
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -120,7 +124,7 @@ struct ReceiptFormScreen: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save)
+                    Button("Save", action: save).disabled(!canSave)
                 }
             }
             .task { await readScanIfNeeded() }

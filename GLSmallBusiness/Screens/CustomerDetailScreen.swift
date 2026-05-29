@@ -115,7 +115,7 @@ struct CustomerDetailScreen: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(cardShape)
+                    .glCardBackground()
                 }
                 .buttonStyle(.plain)
             }
@@ -126,19 +126,8 @@ struct CustomerDetailScreen: View {
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
-    private var cardShape: some View {
-        RoundedRectangle(cornerRadius: 12).fill(gold.opacity(0.12))
-    }
-
     private func card<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.headline)
-            content()
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(cardShape)
+        GLCard(title: title) { content() }
     }
 
     private func infoRow(_ label: String, _ value: String) -> some View {

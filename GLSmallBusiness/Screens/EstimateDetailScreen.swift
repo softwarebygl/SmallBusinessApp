@@ -256,12 +256,7 @@ struct EstimateDetailScreen: View {
     // MARK: - Helpers
 
     private func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            content()
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12).fill(gold.opacity(0.12)))
+        GLCard { content() }
     }
 
     private func labeledRow(_ label: String, _ value: String) -> some View {
