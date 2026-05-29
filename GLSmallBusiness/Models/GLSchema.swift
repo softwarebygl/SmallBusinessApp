@@ -50,6 +50,7 @@ enum GLSchemaV1: VersionedSchema {
             InvoiceGroup.self,
             InvoiceLineItem.self,
             InvoicePayment.self,
+            Receipt.self,
             BusinessProfile.self,
         ]
     }

@@ -100,8 +100,8 @@ struct CustomerDetailScreen: View {
                         EstimatesListScreen(customer: customer)
                     case .invoices:
                         InvoicesListScreen(customer: customer)
-                    default:
-                        CustomerDocumentsScreen(customer: customer, kind: kind)
+                    case .receipts:
+                        ReceiptsListScreen(customer: customer)
                     }
                 } label: {
                     HStack(spacing: 12) {
