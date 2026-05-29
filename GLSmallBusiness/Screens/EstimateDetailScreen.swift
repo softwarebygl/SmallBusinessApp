@@ -115,21 +115,7 @@ struct EstimateDetailScreen: View {
             EstimateFormScreen(editing: estimate)
         }
         .sheet(item: $sendAction) { action in
-            switch action {
-            case .email:
-                MailComposeView(
-                    recipients: [estimate.customerEmail],
-                    subject: emailSubject,
-                    body: messageBody,
-                    attachmentURL: pdfURL
-                ) { sendAction = nil }
-            case .text:
-                MessageComposeView(
-                    recipients: [estimate.customerPhone],
-                    body: messageBody,
-                    attachmentURL: pdfURL
-                ) { sendAction = nil }
-            }
+            sendSheet(for: action)
         }
         .alert("Complete your business profile", isPresented: $showingProfilePrompt) {
             Button("OK", role: .cancel) { }
@@ -285,23 +271,35 @@ struct EstimateDetailScreen: View {
         .fontWeight(bold ? .bold : .regular)
     }
 
+    /// The Mail / Messages compose sheet, pre-filled with branded content and attachments.
+    @ViewBuilder
+    private func sendSheet(for action: SendAction) -> some View {
+        let business = businessProfiles.first
+        switch action {
+        case .email:
+            MailComposeView(
+                recipients: [estimate.customerEmail],
+                subject: EstimateMessage.subject(estimate: estimate, business: business),
+                body: EstimateMessage.htmlBody(estimate: estimate, business: business),
+                isHTML: true,
+                attachmentURL: pdfURL
+            ) { sendAction = nil }
+        case .text:
+            // Logo first (renders as an inline image), then the estimate PDF.
+            MessageComposeView(
+                recipients: [estimate.customerPhone],
+                body: EstimateMessage.plainBody(estimate: estimate, business: business),
+                attachmentURLs: [EstimateMessage.logoAttachmentURL(business: business), pdfURL].compactMap { $0 }
+            ) { sendAction = nil }
+        }
+    }
+
     private func regeneratePDF() {
         if let profile = businessProfiles.first, profile.isComplete {
             pdfURL = EstimatePDF.render(estimate, business: profile)
         } else {
             pdfURL = nil
         }
-    }
-
-    private var emailSubject: String {
-        let company = businessProfiles.first?.businessName ?? ""
-        return company.isEmpty ? "Estimate \(estimate.number)" : "Estimate \(estimate.number) from \(company)"
-    }
-
-    private var messageBody: String {
-        let company = businessProfiles.first?.businessName ?? "us"
-        let name = estimate.customerFirstName.isEmpty ? "there" : estimate.customerFirstName
-        return "Hi \(name), here's your estimate \(estimate.number) from \(company). Thank you!"
     }
 
     private var formattedAddress: String {

@@ -26,7 +26,7 @@ struct CustomersScreen: View {
 
     @ViewBuilder
     private var menuButtonLabel: some View {
-        if let data = businessProfiles.first?.logoData, let uiImage = UIImage(data: data) {
+        if let data = businessProfiles.first?.logo(for: colorScheme), let uiImage = UIImage(data: data) {
             Image(uiImage: uiImage)
                 .resizable()
                 .scaledToFill()

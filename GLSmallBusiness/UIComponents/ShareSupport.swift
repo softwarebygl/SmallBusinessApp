@@ -14,6 +14,7 @@ struct MailComposeView: UIViewControllerRepresentable {
     let recipients: [String]
     let subject: String
     let body: String
+    var isHTML: Bool = false
     let attachmentURL: URL?
     let onFinish: () -> Void
 
@@ -22,7 +23,7 @@ struct MailComposeView: UIViewControllerRepresentable {
         controller.mailComposeDelegate = context.coordinator
         controller.setToRecipients(recipients)
         controller.setSubject(subject)
-        controller.setMessageBody(body, isHTML: false)
+        controller.setMessageBody(body, isHTML: isHTML)
         if let url = attachmentURL, let data = try? Data(contentsOf: url) {
             controller.addAttachmentData(data, mimeType: "application/pdf", fileName: url.lastPathComponent)
         }
@@ -47,7 +48,8 @@ struct MailComposeView: UIViewControllerRepresentable {
 struct MessageComposeView: UIViewControllerRepresentable {
     let recipients: [String]
     let body: String
-    let attachmentURL: URL?
+    /// Attachments shown in order — typically the brand logo image followed by the estimate PDF.
+    let attachmentURLs: [URL]
     let onFinish: () -> Void
 
     func makeUIViewController(context: Context) -> MFMessageComposeViewController {
@@ -55,7 +57,7 @@ struct MessageComposeView: UIViewControllerRepresentable {
         controller.messageComposeDelegate = context.coordinator
         controller.recipients = recipients
         controller.body = body
-        if let url = attachmentURL {
+        for url in attachmentURLs {
             controller.addAttachmentURL(url, withAlternateFilename: url.lastPathComponent)
         }
         return controller

@@ -109,7 +109,7 @@ struct MyCompanyDetailScreen: View {
 
     private func logo(_ profile: BusinessProfile) -> some View {
         ZStack {
-            if let data = profile.logoData, let uiImage = UIImage(data: data) {
+            if let data = profile.logo(for: colorScheme), let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage).resizable().scaledToFill()
             } else {
                 gold.opacity(0.12)
@@ -168,7 +168,9 @@ struct MyCompanyFormScreen: View {
     @State private var state: String
     @State private var postalCode: String
     @State private var logoData: Data?
+    @State private var logoDataDark: Data?
     @State private var logoItem: PhotosPickerItem?
+    @State private var logoItemDark: PhotosPickerItem?
 
     init(profile: BusinessProfile) {
         self.profile = profile
@@ -181,6 +183,7 @@ struct MyCompanyFormScreen: View {
         _state = State(initialValue: profile.address.state)
         _postalCode = State(initialValue: profile.address.postalCode)
         _logoData = State(initialValue: profile.logoData)
+        _logoDataDark = State(initialValue: profile.logoDataDark)
     }
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
@@ -199,13 +202,11 @@ struct MyCompanyFormScreen: View {
         NavigationStack {
             Form {
                 Section {
-                    HStack {
-                        Spacer()
-                        PhotosPicker(selection: $logoItem, matching: .images) {
-                            logoView
-                        }
-                        .buttonStyle(.plain)
-                        Spacer()
+                    HStack(alignment: .top, spacing: 24) {
+                        Spacer(minLength: 0)
+                        logoWell(title: "Light", scheme: .light, data: $logoData, item: $logoItem)
+                        logoWell(title: "Dark", scheme: .dark, data: $logoDataDark, item: $logoItemDark)
+                        Spacer(minLength: 0)
                     }
                     .listRowBackground(Color.clear)
                 } header: {
@@ -286,37 +287,70 @@ struct MyCompanyFormScreen: View {
                 else { return }
                 logoData = data
             }
+            .task(id: logoItemDark) {
+                guard let logoItemDark,
+                      let data = try? await logoItemDark.loadTransferable(type: Data.self)
+                else { return }
+                logoDataDark = data
+            }
         }
     }
 
-    private var logoView: some View {
-        ZStack {
-            if let data = logoData, let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                gold.opacity(0.12)
-                VStack(spacing: 6) {
-                    Image(systemName: "photo.badge.plus")
-                        .font(.system(size: 28))
-                        .foregroundStyle(gold)
-                    Text("Add logo")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+    /// One labeled logo slot (Light or Dark), Xcode-asset style. Each previews the logo on the
+    /// brand background for its appearance so the user sees how it will actually look.
+    @ViewBuilder
+    private func logoWell(title: String, scheme: ColorScheme, data: Binding<Data?>, item: Binding<PhotosPickerItem?>) -> some View {
+        let wellBackground = GLColor.backgroundPrimary.render(in: scheme)
+        let wellGold = GLColor.gold.render(in: scheme)
+        VStack(spacing: 8) {
+            PhotosPicker(selection: item, matching: .images) {
+                ZStack {
+                    wellBackground
+                    if let value = data.wrappedValue, let uiImage = UIImage(data: value) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        VStack(spacing: 6) {
+                            Image(systemName: "photo.badge.plus")
+                                .font(.system(size: 24))
+                                .foregroundStyle(wellGold)
+                            Text("Add")
+                                .font(.caption)
+                                .foregroundStyle(wellGold.opacity(0.85))
+                        }
+                    }
+                }
+                .frame(width: 110, height: 110)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(gold.opacity(0.4), lineWidth: 1))
+                .overlay(alignment: .bottomTrailing) {
+                    Image(systemName: "camera.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.white)
+                        .padding(6)
+                        .background(Circle().fill(gold))
+                        .padding(5)
                 }
             }
-        }
-        .frame(width: 120, height: 120)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(gold.opacity(0.4), lineWidth: 1))
-        .overlay(alignment: .bottomTrailing) {
-            Image(systemName: "camera.fill")
-                .font(.caption)
-                .foregroundStyle(.white)
-                .padding(7)
-                .background(Circle().fill(gold))
-                .padding(6)
+            .buttonStyle(.plain)
+
+            Text(title)
+                .font(.subheadline.weight(.medium))
+
+            if data.wrappedValue != nil {
+                Button(role: .destructive) {
+                    data.wrappedValue = nil
+                    item.wrappedValue = nil
+                } label: {
+                    Text("Remove").font(.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
+            } else {
+                // Keeps both wells the same height whether or not a logo is set.
+                Text(" ").font(.caption).hidden()
+            }
         }
     }
 
@@ -330,6 +364,7 @@ struct MyCompanyFormScreen: View {
         profile.address.state = state.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.postalCode = postalCode.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.logoData = logoData
+        profile.logoDataDark = logoDataDark
         dismiss()
     }
 }
