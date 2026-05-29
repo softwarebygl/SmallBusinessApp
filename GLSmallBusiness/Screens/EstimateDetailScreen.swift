@@ -34,13 +34,16 @@ struct EstimateStatusBadge: View {
 
 struct EstimateDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.modelContext) private var modelContext
     @Query private var businessProfiles: [BusinessProfile]
+    @Query private var allInvoices: [Invoice]
     let estimate: Estimate
 
     @State private var showingEdit = false
     @State private var sendAction: SendAction?
     @State private var pdfURL: URL?
     @State private var showingProfilePrompt = false
+    @State private var convertedInvoice: Invoice?
 
     private enum SendAction: Int, Identifiable {
         case email, text
@@ -67,6 +70,9 @@ struct EstimateDetailScreen: View {
         }
         .navigationTitle(estimate.number.isEmpty ? "Estimate" : estimate.number)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $convertedInvoice) { invoice in
+            InvoiceDetailScreen(invoice: invoice)
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -74,6 +80,11 @@ struct EstimateDetailScreen: View {
                         showingEdit = true
                     } label: {
                         Label("Edit", systemImage: "pencil")
+                    }
+                    Button {
+                        convertToInvoice()
+                    } label: {
+                        Label("Convert to Invoice", systemImage: "arrow.right.doc.on.clipboard")
                     }
                     Divider()
                     if let pdfURL {
@@ -300,6 +311,11 @@ struct EstimateDetailScreen: View {
         } else {
             pdfURL = nil
         }
+    }
+
+    private func convertToInvoice() {
+        let number = Invoice.nextNumber(after: allInvoices)
+        convertedInvoice = Invoice.make(from: estimate, number: number, in: modelContext)
     }
 
     private var formattedAddress: String {

@@ -98,6 +98,8 @@ struct CustomerDetailScreen: View {
                     switch kind {
                     case .estimates:
                         EstimatesListScreen(customer: customer)
+                    case .invoices:
+                        InvoicesListScreen(customer: customer)
                     default:
                         CustomerDocumentsScreen(customer: customer, kind: kind)
                     }

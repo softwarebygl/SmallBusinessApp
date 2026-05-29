@@ -22,6 +22,9 @@ final class Customer {
     @Relationship(deleteRule: .cascade, inverse: \Estimate.customer)
     var estimates: [Estimate]?
 
+    @Relationship(deleteRule: .cascade, inverse: \Invoice.customer)
+    var invoices: [Invoice]?
+
     init(
         firstName: String = "",
         lastName: String = "",
