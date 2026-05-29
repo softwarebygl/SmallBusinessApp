@@ -156,11 +156,8 @@ struct EstimateFormScreen: View {
 
                 Section("Tax") {
                     LabeledContent("Tax rate (%)") {
-                        TextField("0", value: $taxRatePercent, format: .number)
+                        AutoClearNumberField(placeholder: "0", value: $taxRatePercent, style: .number, clearsAt: 0)
                             .multilineTextAlignment(.trailing)
-                            #if !os(macOS)
-                            .keyboardType(.decimalPad)
-                            #endif
                     }
                     Text("Applied only to line items marked taxable.")
                         .font(.footnote)
@@ -251,23 +248,17 @@ struct EstimateFormScreen: View {
                 .foregroundStyle(.secondary)
 
             HStack {
-                TextField("Qty", value: line.quantity, format: .number)
+                AutoClearNumberField(placeholder: "Qty", value: line.quantity, style: .number, clearsAt: 1)
                     .frame(maxWidth: 70)
-                    #if !os(macOS)
-                    .keyboardType(.decimalPad)
-                    #endif
                 Picker("Unit", selection: line.unit) {
                     ForEach(UnitOfMeasure.allCases) { Text($0.abbreviation).tag($0) }
                 }
                 .labelsHidden()
                 Spacer()
                 Text("×").foregroundStyle(.secondary)
-                TextField("Price", value: line.unitPrice, format: .currency(code: "USD"))
+                AutoClearNumberField(placeholder: "Price", value: line.unitPrice, style: .currency, clearsAt: 0)
                     .multilineTextAlignment(.trailing)
                     .frame(maxWidth: 110)
-                    #if !os(macOS)
-                    .keyboardType(.decimalPad)
-                    #endif
             }
 
             Picker("Type", selection: line.kind) {
@@ -359,11 +350,8 @@ struct EstimateFormScreen: View {
             }
             if type.wrappedValue != .none {
                 LabeledContent(type.wrappedValue == .percentage ? "\(title) (%)" : "\(title) amount") {
-                    TextField("0", value: value, format: .number)
+                    AutoClearNumberField(placeholder: "0", value: value, style: .number, clearsAt: 0)
                         .multilineTextAlignment(.trailing)
-                        #if !os(macOS)
-                        .keyboardType(.decimalPad)
-                        #endif
                 }
             }
         }
