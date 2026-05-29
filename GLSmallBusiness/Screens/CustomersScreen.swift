@@ -66,8 +66,8 @@ struct CustomersScreen: View {
                 CustomerDetailScreen(customer: customer)
             }
             .toolbar { customerStackToolbar }
-            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance() }
-            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance() }
+            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance(colorScheme) }
+            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
         }
     }
 
@@ -91,8 +91,8 @@ struct CustomersScreen: View {
             }
             .modifier(CustomerListChrome())
             .toolbar { customerToolbar }
-            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance() }
-            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance() }
+            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance(colorScheme) }
+            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
         } detail: {
             NavigationStack {
                 if let selectedCustomer {

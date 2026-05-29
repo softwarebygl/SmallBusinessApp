@@ -187,9 +187,9 @@ struct ReceiptListView: View {
             .ignoresSafeArea()
         }
         .sheet(item: $formInput) { input in
-            ReceiptFormScreen(defaultCustomer: defaultCustomer, scanImage: input.image).glAppearance()
+            ReceiptFormScreen(defaultCustomer: defaultCustomer, scanImage: input.image).glAppearance(colorScheme)
         }
-        .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance() }
+        .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
     }
 
     // MARK: - Toolbar pieces

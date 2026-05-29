@@ -85,7 +85,7 @@ struct StatsScreen: View {
                     .accessibilityLabel("Menu")
                 }
             }
-            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance() }
+            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
             .onAppear { regenerateExport() }
             .onChange(of: period) { _, _ in regenerateExport() }
         }

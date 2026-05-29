@@ -123,10 +123,10 @@ struct EstimateDetailScreen: View {
             if !isShowing { regeneratePDF() }
         }
         .sheet(isPresented: $showingEdit) {
-            EstimateFormScreen(editing: estimate).glAppearance()
+            EstimateFormScreen(editing: estimate).glAppearance(colorScheme)
         }
         .sheet(item: $sendAction) { action in
-            sendSheet(for: action).glAppearance()
+            sendSheet(for: action).glAppearance(colorScheme)
         }
         .alert("Complete your business profile", isPresented: $showingProfilePrompt) {
             Button("OK", role: .cancel) { }

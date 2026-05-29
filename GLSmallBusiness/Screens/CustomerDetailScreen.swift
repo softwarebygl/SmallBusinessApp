@@ -37,7 +37,7 @@ struct CustomerDetailScreen: View {
             }
         }
         .sheet(isPresented: $showingEdit) {
-            CustomerFormScreen(editing: customer).glAppearance()
+            CustomerFormScreen(editing: customer).glAppearance(colorScheme)
         }
         .task(id: photoItem) {
             guard let photoItem,

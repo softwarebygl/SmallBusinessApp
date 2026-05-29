@@ -39,20 +39,13 @@ enum AppColorScheme: String, CaseIterable, Identifiable {
 }
 
 extension View {
-    /// Applies the app's saved appearance to this view. A sheet (or full-screen cover) is a
-    /// separate presentation that captures its color scheme when it appears and does NOT track the
-    /// root's `.preferredColorScheme` afterward — so on iPad an open sheet can be left on the old
-    /// scheme when the user switches Light/Dark. Apply this to each sheet's content: it reads the
-    /// stored preference directly, so the sheet shows the right scheme and repaints live.
-    func glAppearance() -> some View {
-        modifier(GLAppearance())
-    }
-}
-
-private struct GLAppearance: ViewModifier {
-    @AppStorage(AppColorScheme.storageKey) private var raw = AppColorScheme.system.rawValue
-    func body(content: Content) -> some View {
-        content.preferredColorScheme((AppColorScheme(rawValue: raw) ?? .system).colorScheme)
+    /// Forces this presentation (sheet / full-screen cover) to a color scheme. Pass the presenting
+    /// screen's own `\.colorScheme` — it already reflects the app's Light/Dark/Auto setting. A sheet
+    /// otherwise captures its scheme once when it appears and won't follow the app afterward, and
+    /// `.preferredColorScheme(nil)` doesn't push the device's scheme onto a sheet for Auto. Driving
+    /// it from the presenter's resolved scheme covers all three settings and repaints live.
+    func glAppearance(_ scheme: ColorScheme) -> some View {
+        preferredColorScheme(scheme)
     }
 }
 
