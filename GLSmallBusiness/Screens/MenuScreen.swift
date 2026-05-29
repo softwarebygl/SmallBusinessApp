@@ -142,7 +142,6 @@ struct MyCompanyDetailScreen: View {
         }
         .frame(width: 120, height: 120)
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(gold.opacity(0.4), lineWidth: 1))
         .frame(maxWidth: .infinity)
     }
 
