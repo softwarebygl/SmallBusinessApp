@@ -14,6 +14,7 @@ import PhotosUI
 struct MenuScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @State private var showingSettings = false
 
     var body: some View {
         NavigationStack {
@@ -35,9 +36,22 @@ struct MenuScreen: View {
             }
             .navigationTitle("Menu")
             .toolbarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $showingSettings) {
+                SettingsScreen()
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                }
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                    }
+                    .accessibilityLabel("Settings")
+                    Spacer()
                 }
             }
         }

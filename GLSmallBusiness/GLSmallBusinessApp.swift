@@ -14,6 +14,10 @@ import UIKit
 
 @main
 struct GLSmallBusinessApp: App {
+    /// Device-local appearance preference (Light / Dark / Auto), set in Settings.
+    @AppStorage(AppColorScheme.storageKey) private var appColorSchemeRaw = AppColorScheme.system.rawValue
+    private var appColorScheme: AppColorScheme { AppColorScheme(rawValue: appColorSchemeRaw) ?? .system }
+
     /// Private-CloudKit-backed store. With `.automatic`, CloudKit sync turns on once the
     /// iCloud capability is enabled; until then (or with no iCloud account) it stays local.
     let sharedModelContainer: ModelContainer = {
@@ -42,6 +46,7 @@ struct GLSmallBusinessApp: App {
     var body: some Scene {
         WindowGroup {
             CustomersScreen()
+                .preferredColorScheme(appColorScheme.colorScheme)
         }
         .modelContainer(sharedModelContainer)
     }

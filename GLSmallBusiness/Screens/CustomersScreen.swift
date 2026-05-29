@@ -32,7 +32,6 @@ struct CustomersScreen: View {
                 .scaledToFill()
                 .frame(width: 36, height: 36)
                 .clipShape(Circle())
-                .overlay(Circle().stroke(gold.opacity(0.4), lineWidth: 1))
                 .padding(-7)
         } else {
             Image(systemName: "line.3.horizontal")
