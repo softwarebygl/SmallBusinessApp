@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// App root: Customers and a universal Receipts tab.
+/// App root: Customers, a universal Receipts tab, and Stats.
 struct RootTabView: View {
     var body: some View {
         TabView {

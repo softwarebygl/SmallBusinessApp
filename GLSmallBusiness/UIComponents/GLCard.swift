@@ -14,6 +14,12 @@ extension View {
     func glCardBackground() -> some View {
         modifier(GLCardBackground())
     }
+
+    /// The gold outline marking a selected list row in an iPad master-detail sidebar. Pairs with
+    /// `.glCardBackground()` so a row's fill and its selected state share one definition.
+    func glSelectionStroke(_ isSelected: Bool) -> some View {
+        modifier(GLSelectionStroke(isSelected: isSelected))
+    }
 }
 
 private struct GLCardBackground: ViewModifier {
@@ -23,6 +29,19 @@ private struct GLCardBackground: ViewModifier {
         content.background(
             RoundedRectangle(cornerRadius: GLLayout.cardCornerRadius)
                 .fill(GLColor.gold.render(in: colorScheme).opacity(GLLayout.cardFillOpacity))
+        )
+    }
+}
+
+private struct GLSelectionStroke: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+    let isSelected: Bool
+
+    func body(content: Content) -> some View {
+        content.overlay(
+            RoundedRectangle(cornerRadius: GLLayout.cardCornerRadius)
+                .stroke(GLColor.gold.render(in: colorScheme),
+                        lineWidth: isSelected ? GLLayout.selectionStrokeWidth : 0)
         )
     }
 }

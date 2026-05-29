@@ -34,6 +34,9 @@ struct ReceiptListView: View {
     let defaultCustomer: Customer?
     var showsAssignee: Bool = false
     var enablesFilters: Bool = false
+    /// When provided, the view is an iPad master-detail sidebar: a row tap drives this selection
+    /// (highlighting the row) instead of pushing the detail. The parent split renders the detail.
+    var selectionID: Binding<PersistentIdentifier?>? = nil
 
     @State private var showingScanner = false
     @State private var scannedImage: UIImage?
@@ -72,7 +75,13 @@ struct ReceiptListView: View {
             } else {
                 ForEach(displayed) { receipt in
                     Button {
-                        if isEditing { toggleSelection(receipt) } else { selectedReceipt = receipt }
+                        if isEditing {
+                            toggleSelection(receipt)
+                        } else if let selectionID {
+                            selectionID.wrappedValue = receipt.persistentModelID
+                        } else {
+                            selectedReceipt = receipt
+                        }
                     } label: {
                         HStack(spacing: 12) {
                             if isEditing {
@@ -83,7 +92,7 @@ struct ReceiptListView: View {
                             HStack(spacing: 12) {
                                 thumbnail(receipt)
                                 rowContent(receipt)
-                                if !isEditing {
+                                if !isEditing, selectionID == nil {
                                     Image(systemName: "chevron.right")
                                         .font(.footnote.weight(.semibold))
                                         .foregroundStyle(.secondary)
@@ -93,6 +102,7 @@ struct ReceiptListView: View {
                             .padding(.vertical, GLLayout.rowContentVerticalPadding)
                             .frame(maxWidth: .infinity)
                             .glCardBackground()
+                            .glSelectionStroke(selectionID?.wrappedValue == receipt.persistentModelID)
                         }
                         .padding(.horizontal, GLLayout.rowCardInset)
                         .padding(.vertical, 4)

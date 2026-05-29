@@ -23,4 +23,7 @@ enum GLLayout {
 
     /// Gold-tint opacity for every card and row surface.
     static let cardFillOpacity: Double = 0.12
+
+    /// Width of the gold outline marking a selected row in an iPad master-detail sidebar.
+    static let selectionStrokeWidth: CGFloat = 2
 }

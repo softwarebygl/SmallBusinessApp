@@ -66,6 +66,8 @@ struct StatsScreen: View {
                     }
                 }
                 .padding()
+                .frame(maxWidth: 640)
+                .frame(maxWidth: .infinity)
             }
             .containerBackground(for: .navigation) {
                 PrimaryBackground()
