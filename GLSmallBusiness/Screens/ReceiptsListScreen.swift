@@ -37,6 +37,9 @@ struct ReceiptListView: View {
     /// When provided, the view is an iPad master-detail sidebar: a row tap drives this selection
     /// (highlighting the row) instead of pushing the detail. The parent split renders the detail.
     var selectionID: Binding<PersistentIdentifier?>? = nil
+    /// The universal Receipts tab shows the app Menu button (like the other tabs); the per-customer
+    /// and business receipt lists are pushed and don't.
+    var showsMenuButton: Bool = false
 
     @State private var showingScanner = false
     @State private var scannedImage: UIImage?
@@ -46,6 +49,7 @@ struct ReceiptListView: View {
     @State private var selection = Set<PersistentIdentifier>()
     @State private var searchText = ""
     @State private var filter: ReceiptFilter = .all
+    @State private var showingMenu = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
     private var scannerSupported: Bool { VNDocumentCameraViewController.isSupported }
@@ -147,6 +151,16 @@ struct ReceiptListView: View {
                     .disabled(selection.isEmpty)
                 }
             } else {
+                if showsMenuButton {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            showingMenu = true
+                        } label: {
+                            MenuButtonLabel()
+                        }
+                        .accessibilityLabel("Menu")
+                    }
+                }
                 if enablesFilters {
                     ToolbarItem(placement: .topBarLeading) {
                         filterMenu
@@ -173,8 +187,9 @@ struct ReceiptListView: View {
             .ignoresSafeArea()
         }
         .sheet(item: $formInput) { input in
-            ReceiptFormScreen(defaultCustomer: defaultCustomer, scanImage: input.image)
+            ReceiptFormScreen(defaultCustomer: defaultCustomer, scanImage: input.image).glAppearance()
         }
+        .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance() }
     }
 
     // MARK: - Toolbar pieces

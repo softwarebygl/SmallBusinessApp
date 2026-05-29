@@ -96,7 +96,7 @@ struct MyCompanyDetailScreen: View {
         }
         .sheet(isPresented: $showingEdit) {
             if let profile = profiles.first {
-                MyCompanyFormScreen(profile: profile)
+                MyCompanyFormScreen(profile: profile).glAppearance()
             }
         }
     }

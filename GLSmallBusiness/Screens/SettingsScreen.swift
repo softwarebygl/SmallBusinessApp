@@ -38,25 +38,21 @@ enum AppColorScheme: String, CaseIterable, Identifiable {
     }
 }
 
-extension AppColorScheme {
-    /// Applies this appearance to every window via `overrideUserInterfaceStyle`, which cascades
-    /// into presented sheets too (something `.preferredColorScheme` alone doesn't reach). Call
-    /// this from the view that changes the preference so it takes effect immediately.
-    func applyToWindows() {
-        #if canImport(UIKit)
-        let style: UIUserInterfaceStyle
-        switch self {
-        case .light: style = .light
-        case .dark: style = .dark
-        case .system: style = .unspecified
-        }
-        for scene in UIApplication.shared.connectedScenes {
-            guard let windowScene = scene as? UIWindowScene else { continue }
-            for window in windowScene.windows {
-                window.overrideUserInterfaceStyle = style
-            }
-        }
-        #endif
+extension View {
+    /// Applies the app's saved appearance to this view. A sheet (or full-screen cover) is a
+    /// separate presentation that captures its color scheme when it appears and does NOT track the
+    /// root's `.preferredColorScheme` afterward — so on iPad an open sheet can be left on the old
+    /// scheme when the user switches Light/Dark. Apply this to each sheet's content: it reads the
+    /// stored preference directly, so the sheet shows the right scheme and repaints live.
+    func glAppearance() -> some View {
+        modifier(GLAppearance())
+    }
+}
+
+private struct GLAppearance: ViewModifier {
+    @AppStorage(AppColorScheme.storageKey) private var raw = AppColorScheme.system.rawValue
+    func body(content: Content) -> some View {
+        content.preferredColorScheme((AppColorScheme(rawValue: raw) ?? .system).colorScheme)
     }
 }
 
@@ -87,10 +83,6 @@ struct SettingsScreen: View {
         .glFormBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
-        .onChange(of: appColorSchemeRaw) { _, newValue in
-            // Apply immediately from here so the open sheet repaints right away.
-            (AppColorScheme(rawValue: newValue) ?? .system).applyToWindows()
-        }
     }
 }
 

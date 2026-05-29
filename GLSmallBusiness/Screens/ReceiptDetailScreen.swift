@@ -48,7 +48,7 @@ struct ReceiptDetailScreen: View {
             }
         }
         .sheet(isPresented: $showingEdit) {
-            ReceiptFormScreen(editing: receipt)
+            ReceiptFormScreen(editing: receipt).glAppearance()
         }
     }
 

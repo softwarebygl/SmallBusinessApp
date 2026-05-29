@@ -22,6 +22,7 @@ struct StatsScreen: View {
     @State private var selectedYear: Int = Calendar.current.component(.year, from: .now)
     @State private var selectedMonth: Int = Calendar.current.component(.month, from: .now)
     @State private var exportFiles: [URL] = []
+    @State private var showingMenu = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -74,6 +75,17 @@ struct StatsScreen: View {
             }
             .navigationTitle("Stats")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingMenu = true
+                    } label: {
+                        MenuButtonLabel()
+                    }
+                    .accessibilityLabel("Menu")
+                }
+            }
+            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance() }
             .onAppear { regenerateExport() }
             .onChange(of: period) { _, _ in regenerateExport() }
         }

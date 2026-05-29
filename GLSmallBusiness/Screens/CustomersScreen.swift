@@ -14,7 +14,6 @@ struct CustomersScreen: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
     private var customers: [Customer]
-    @Query private var businessProfiles: [BusinessProfile]
 
     @State private var showingAddSheet = false
     @State private var showingMenu = false
@@ -67,8 +66,8 @@ struct CustomersScreen: View {
                 CustomerDetailScreen(customer: customer)
             }
             .toolbar { customerStackToolbar }
-            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen() }
-            .sheet(isPresented: $showingMenu) { MenuScreen() }
+            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance() }
+            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance() }
         }
     }
 
@@ -92,8 +91,8 @@ struct CustomersScreen: View {
             }
             .modifier(CustomerListChrome())
             .toolbar { customerToolbar }
-            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen() }
-            .sheet(isPresented: $showingMenu) { MenuScreen() }
+            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance() }
+            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance() }
         } detail: {
             NavigationStack {
                 if let selectedCustomer {
@@ -110,27 +109,13 @@ struct CustomersScreen: View {
 
     // MARK: - Shared pieces
 
-    @ViewBuilder
-    private var menuButtonLabel: some View {
-        if let data = businessProfiles.first?.logo(for: colorScheme), let uiImage = UIImage(data: data) {
-            Image(uiImage: uiImage)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 36, height: 36)
-                .clipShape(Circle())
-                .padding(-7)
-        } else {
-            Image(systemName: "line.3.horizontal")
-        }
-    }
-
     @ToolbarContentBuilder
     private var customerToolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 showingMenu = true
             } label: {
-                menuButtonLabel
+                MenuButtonLabel()
             }
             .accessibilityLabel("Menu")
         }
@@ -165,7 +150,7 @@ struct CustomersScreen: View {
                 Button {
                     showingMenu = true
                 } label: {
-                    menuButtonLabel
+                    MenuButtonLabel()
                 }
                 .accessibilityLabel("Menu")
             }

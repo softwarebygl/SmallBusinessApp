@@ -127,7 +127,7 @@ struct InvoicesListScreen: View {
             }
         }
         .sheet(isPresented: $showingNew) {
-            InvoiceFormScreen(customer: customer)
+            InvoiceFormScreen(customer: customer).glAppearance()
         }
     }
 

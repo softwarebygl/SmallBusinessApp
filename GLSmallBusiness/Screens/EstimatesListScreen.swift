@@ -127,7 +127,7 @@ struct EstimatesListScreen: View {
             }
         }
         .sheet(isPresented: $showingNew) {
-            EstimateFormScreen(customer: customer)
+            EstimateFormScreen(customer: customer).glAppearance()
         }
     }
 

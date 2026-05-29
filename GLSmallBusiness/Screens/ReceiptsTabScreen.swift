@@ -26,7 +26,7 @@ struct ReceiptsTabScreen: View {
         if sizeClass == .regular {
             NavigationSplitView {
                 ReceiptListView(receipts: allReceipts, defaultCustomer: nil, showsAssignee: true,
-                                enablesFilters: true, selectionID: $selectedReceiptID)
+                                enablesFilters: true, selectionID: $selectedReceiptID, showsMenuButton: true)
             } detail: {
                 NavigationStack {
                     if let selectedReceipt {
@@ -41,7 +41,8 @@ struct ReceiptsTabScreen: View {
             .onChange(of: allReceipts.map(\.persistentModelID)) { _, _ in selectFirstOnIPad() }
         } else {
             NavigationStack {
-                ReceiptListView(receipts: allReceipts, defaultCustomer: nil, showsAssignee: true, enablesFilters: true)
+                ReceiptListView(receipts: allReceipts, defaultCustomer: nil, showsAssignee: true,
+                                enablesFilters: true, showsMenuButton: true)
             }
         }
     }

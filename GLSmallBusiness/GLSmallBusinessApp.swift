@@ -47,9 +47,6 @@ struct GLSmallBusinessApp: App {
         WindowGroup {
             RootTabView()
                 .preferredColorScheme(appColorScheme.colorScheme)
-                .onChange(of: appColorSchemeRaw, initial: true) { _, _ in
-                    appColorScheme.applyToWindows()
-                }
         }
         .modelContainer(sharedModelContainer)
     }

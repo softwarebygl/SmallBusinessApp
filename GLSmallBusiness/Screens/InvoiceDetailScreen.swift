@@ -131,16 +131,16 @@ struct InvoiceDetailScreen: View {
             if !isShowing { regeneratePDF() }
         }
         .sheet(isPresented: $showingEdit) {
-            InvoiceFormScreen(editing: invoice)
+            InvoiceFormScreen(editing: invoice).glAppearance()
         }
         .sheet(isPresented: $showingRecordPayment) {
-            RecordPaymentSheet(invoice: invoice)
+            RecordPaymentSheet(invoice: invoice).glAppearance()
         }
         .sheet(isPresented: $showingSetAmountDue) {
-            SetAmountDueSheet(invoice: invoice)
+            SetAmountDueSheet(invoice: invoice).glAppearance()
         }
         .sheet(item: $sendAction) { action in
-            sendSheet(for: action)
+            sendSheet(for: action).glAppearance()
         }
         .alert("Complete your business profile", isPresented: $showingProfilePrompt) {
             Button("OK", role: .cancel) { }
