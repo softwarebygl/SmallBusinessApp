@@ -13,10 +13,13 @@ struct ReceiptFormScreen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
+    @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
+    private var allCustomers: [Customer]
+
     private let editingReceipt: Receipt?
-    private let customer: Customer?
     private let scanImage: UIImage?
 
+    @State private var selectedCustomerID: PersistentIdentifier?
     @State private var vendor: String
     @State private var date: Date
     @State private var total: Double
@@ -26,10 +29,10 @@ struct ReceiptFormScreen: View {
     @State private var scanData: Data?
     @State private var isReadingScan = false
 
-    init(customer: Customer, scanImage: UIImage?) {
-        self.customer = customer
+    init(defaultCustomer: Customer?, scanImage: UIImage?) {
         self.editingReceipt = nil
         self.scanImage = scanImage
+        _selectedCustomerID = State(initialValue: defaultCustomer?.persistentModelID)
         _vendor = State(initialValue: "")
         _date = State(initialValue: .now)
         _total = State(initialValue: 0)
@@ -40,9 +43,9 @@ struct ReceiptFormScreen: View {
     }
 
     init(editing receipt: Receipt) {
-        self.customer = receipt.customer
         self.editingReceipt = receipt
         self.scanImage = nil
+        _selectedCustomerID = State(initialValue: receipt.customer?.persistentModelID)
         _vendor = State(initialValue: receipt.vendor)
         _date = State(initialValue: receipt.date)
         _total = State(initialValue: receipt.total)
@@ -90,6 +93,17 @@ struct ReceiptFormScreen: View {
                     TextField("Category (e.g. Materials)", text: $category)
                 }
 
+                Section {
+                    Picker("Assigned to", selection: $selectedCustomerID) {
+                        Text("Business").tag(PersistentIdentifier?.none)
+                        ForEach(allCustomers) { customer in
+                            Text(customer.listDisplayName).tag(customer.persistentModelID as PersistentIdentifier?)
+                        }
+                    }
+                } footer: {
+                    Text("Leave as Business for general expenses, or assign this receipt to a customer's job.")
+                }
+
                 Section("Notes") {
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(2...6)
@@ -130,9 +144,10 @@ struct ReceiptFormScreen: View {
         if let editingReceipt {
             receipt = editingReceipt
         } else {
-            receipt = Receipt(customer: customer)
+            receipt = Receipt()
             modelContext.insert(receipt)
         }
+        receipt.customer = allCustomers.first { $0.persistentModelID == selectedCustomerID }
         receipt.vendor = vendor.trimmingCharacters(in: .whitespacesAndNewlines)
         receipt.date = date
         receipt.total = total

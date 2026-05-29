@@ -124,6 +124,25 @@ struct MyCompanyDetailScreen: View {
                         Text(address)
                     }
                 }
+
+                NavigationLink {
+                    BusinessReceiptsScreen()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "doc.viewfinder")
+                            .frame(width: 24)
+                            .foregroundStyle(gold)
+                        Text("Receipts")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(gold.opacity(0.12)))
+                }
+                .buttonStyle(.plain)
             }
             .padding()
         }

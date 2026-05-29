@@ -45,7 +45,7 @@ struct GLSmallBusinessApp: App {
 
     var body: some Scene {
         WindowGroup {
-            CustomersScreen()
+            RootTabView()
                 .preferredColorScheme(appColorScheme.colorScheme)
                 .onChange(of: appColorSchemeRaw, initial: true) { _, _ in
                     appColorScheme.applyToWindows()

@@ -1,0 +1,24 @@
+//
+//  RootTabView.swift
+//  GLSmallBusiness
+//
+//  Created by Gold Life LLC on 5/28/26.
+//
+
+import SwiftUI
+
+/// App root: Customers and a universal Receipts tab.
+struct RootTabView: View {
+    var body: some View {
+        TabView {
+            CustomersScreen()
+                .tabItem {
+                    Label("Customers", systemImage: "person.2")
+                }
+            ReceiptsTabScreen()
+                .tabItem {
+                    Label("Receipts", systemImage: "doc.viewfinder")
+                }
+        }
+    }
+}
