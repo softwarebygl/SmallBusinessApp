@@ -152,9 +152,21 @@ struct InvoicePDFDocument: View {
                 if invoice.discountAmount > 0 { totalLine("Discount", -invoice.discountAmount) }
                 if invoice.taxAmount > 0 { totalLine("Tax (\(invoice.taxRatePercent.formatted())%)", invoice.taxAmount) }
                 totalLine("Total", invoice.total, bold: true)
-                if invoice.amountPaid > 0 {
-                    totalLine("Paid", -invoice.amountPaid)
-                    totalLine("Balance due", invoice.balanceDue, bold: true)
+                if invoice.amountPaid > 0 { totalLine("Paid", -invoice.amountPaid) }
+                totalLine("Balance", invoice.balanceDue)
+                if invoice.hasAmountDueRequest {
+                    Rectangle().fill(gold.opacity(0.5)).frame(height: 1).padding(.vertical, 2)
+                    HStack {
+                        Text("Amount due now").font(.subheadline.bold())
+                        Spacer()
+                        Text(invoice.currentAmountDue.formatted(.currency(code: "USD")))
+                            .font(.subheadline.bold()).foregroundStyle(gold)
+                    }
+                    if !invoice.amountDueDetail.isEmpty {
+                        Text(invoice.amountDueDetail)
+                            .font(.caption2).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                    }
                 }
             }
             .frame(width: 250)

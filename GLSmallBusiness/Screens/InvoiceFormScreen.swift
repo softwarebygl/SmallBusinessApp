@@ -83,6 +83,8 @@ struct InvoiceFormScreen: View {
     @State private var discountValue: Double
     @State private var customerNotes: String
     @State private var terms: String
+    @State private var amountDueNow: Double
+    @State private var amountDueDetail: String
     @State private var groups: [InvoiceGroupDraft]
 
     init(customer: Customer) {
@@ -99,6 +101,8 @@ struct InvoiceFormScreen: View {
         _discountValue = State(initialValue: 0)
         _customerNotes = State(initialValue: "")
         _terms = State(initialValue: "")
+        _amountDueNow = State(initialValue: 0)
+        _amountDueDetail = State(initialValue: "")
         _groups = State(initialValue: [InvoiceGroupDraft()])
     }
 
@@ -115,6 +119,8 @@ struct InvoiceFormScreen: View {
         _discountValue = State(initialValue: invoice.discountValue)
         _customerNotes = State(initialValue: invoice.customerNotes)
         _terms = State(initialValue: invoice.terms)
+        _amountDueNow = State(initialValue: invoice.amountDueNow)
+        _amountDueDetail = State(initialValue: invoice.amountDueDetail)
         let drafts = invoice.sortedGroups.map { InvoiceGroupDraft(from: $0) }
         _groups = State(initialValue: drafts.isEmpty ? [InvoiceGroupDraft()] : drafts)
     }
@@ -180,6 +186,19 @@ struct InvoiceFormScreen: View {
                 }
 
                 adjustmentSection(title: "Discount", type: $discountType, value: $discountValue)
+
+                Section {
+                    LabeledContent("Amount due now") {
+                        AutoClearNumberField(placeholder: "0", value: $amountDueNow, style: .currency, clearsAt: 0)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    TextField("What it's for (e.g. Deposit to start)", text: $amountDueDetail)
+                } header: {
+                    Text("Amount due now")
+                } footer: {
+                    Text("Bill a deposit or milestone now. Leave at $0 to request the full balance.")
+                        .textCase(nil)
+                }
 
                 Section("Notes") {
                     TextField("Notes for the customer", text: $customerNotes, axis: .vertical)
@@ -412,6 +431,8 @@ struct InvoiceFormScreen: View {
         invoice.discountValue = discountValue
         invoice.customerNotes = customerNotes
         invoice.terms = terms
+        invoice.amountDueNow = amountDueNow
+        invoice.amountDueDetail = amountDueDetail.trimmingCharacters(in: .whitespacesAndNewlines)
 
         var groupIndex = 0
         for groupDraft in groups {

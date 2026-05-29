@@ -35,21 +35,30 @@ enum InvoiceMessage {
         let name = greetingName(invoice)
         let company = trimmed(business?.businessName)
         let number = trimmed(invoice.number)
-        let total = invoice.total.formatted(.currency(code: "USD"))
-        let balance = invoice.balanceDue.formatted(.currency(code: "USD"))
         let due = invoice.dueDate.formatted(date: .abbreviated, time: .omitted)
-        let numberLine = number.isEmpty ? "" : "\(number)\n"
-        let paidLine = invoice.amountPaid > 0 ? "Paid: \(invoice.amountPaid.formatted(.currency(code: "USD")))\n" : ""
         let signoff = company.isEmpty ? "" : "\n\n— \(company)"
+
+        var lines: [String] = []
+        if !number.isEmpty { lines.append(number) }
+        lines.append("Total: \(invoice.total.formatted(.currency(code: "USD")))")
+        if invoice.amountPaid > 0 {
+            lines.append("Paid: \(invoice.amountPaid.formatted(.currency(code: "USD")))")
+        }
+        lines.append("Balance: \(invoice.balanceDue.formatted(.currency(code: "USD")))")
+        if invoice.hasAmountDueRequest {
+            let dueNow = invoice.currentAmountDue.formatted(.currency(code: "USD"))
+            let detail = trimmed(invoice.amountDueDetail)
+            lines.append(detail.isEmpty ? "Amount due now: \(dueNow)" : "Amount due now: \(dueNow) — \(detail)")
+        }
+        lines.append("Due by: \(due)")
+        let summary = lines.joined(separator: "\n")
 
         return """
         Hi \(name),
 
         \(defaultIntro)
 
-        \(numberLine)Total: \(total)
-        \(paidLine)Balance due: \(balance)
-        Due: \(due)
+        \(summary)
 
         \(defaultClosing)\(signoff)
         """
@@ -80,7 +89,15 @@ enum InvoiceMessage {
         if invoice.amountPaid > 0 {
             summary += "<strong>Paid:</strong> \(esc(invoice.amountPaid.formatted(.currency(code: "USD"))))<br>"
         }
-        summary += "<strong>Balance due:</strong> \(balance)<br><strong>Due:</strong> \(due)"
+        summary += "<strong>Balance:</strong> \(balance)<br>"
+        if invoice.hasAmountDueRequest {
+            let dueNow = esc(invoice.currentAmountDue.formatted(.currency(code: "USD")))
+            let detail = trimmed(invoice.amountDueDetail)
+            summary += "<strong style=\"color:#9C7A2E;\">Amount due now: \(dueNow)</strong>"
+            if !detail.isEmpty { summary += " — \(esc(detail))" }
+            summary += "<br>"
+        }
+        summary += "<strong>Due by:</strong> \(due)"
 
         var signature = "<strong style=\"color:#9C7A2E;\">\(esc(company))</strong>"
         if !phone.isEmpty { signature += "<br>\(esc(phone))" }

@@ -39,6 +39,7 @@ struct InvoiceDetailScreen: View {
 
     @State private var showingEdit = false
     @State private var showingRecordPayment = false
+    @State private var showingSetAmountDue = false
     @State private var sendAction: SendAction?
     @State private var pdfURL: URL?
     @State private var showingProfilePrompt = false
@@ -82,6 +83,11 @@ struct InvoiceDetailScreen: View {
                     } label: {
                         Label("Record Payment", systemImage: "dollarsign.circle")
                     }
+                    Button {
+                        showingSetAmountDue = true
+                    } label: {
+                        Label("Set Amount Due", systemImage: "banknote")
+                    }
                     Divider()
                     if let pdfURL {
                         if !invoice.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
@@ -121,11 +127,17 @@ struct InvoiceDetailScreen: View {
         .onChange(of: showingRecordPayment) { _, isShowing in
             if !isShowing { regeneratePDF() }
         }
+        .onChange(of: showingSetAmountDue) { _, isShowing in
+            if !isShowing { regeneratePDF() }
+        }
         .sheet(isPresented: $showingEdit) {
             InvoiceFormScreen(editing: invoice)
         }
         .sheet(isPresented: $showingRecordPayment) {
             RecordPaymentSheet(invoice: invoice)
+        }
+        .sheet(isPresented: $showingSetAmountDue) {
+            SetAmountDueSheet(invoice: invoice)
         }
         .sheet(item: $sendAction) { action in
             sendSheet(for: action)
@@ -274,13 +286,29 @@ struct InvoiceDetailScreen: View {
             totalRow("Total", invoice.total, bold: true)
             if invoice.amountPaid > 0 {
                 totalRow("Paid", -invoice.amountPaid)
+            }
+            HStack {
+                Text("Balance").foregroundStyle(.secondary)
+                Spacer()
+                Text(invoice.balanceDue.formatted(.currency(code: "USD")))
+                    .foregroundStyle(invoice.isPaid ? .green : .primary)
+            }
+            .font(.subheadline)
+            if invoice.hasAmountDueRequest {
                 Divider()
-                HStack {
-                    Text("Balance due").fontWeight(.bold)
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Amount due now").fontWeight(.bold)
+                        if !invoice.amountDueDetail.isEmpty {
+                            Text(invoice.amountDueDetail)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     Spacer()
-                    Text(invoice.balanceDue.formatted(.currency(code: "USD")))
+                    Text(invoice.currentAmountDue.formatted(.currency(code: "USD")))
                         .fontWeight(.bold)
-                        .foregroundStyle(invoice.isPaid ? .green : gold)
+                        .foregroundStyle(gold)
                 }
             }
         }
@@ -443,6 +471,64 @@ private struct RecordPaymentSheet: View {
         )
         payment.invoice = invoice
         modelContext.insert(payment)
+        // Draw down the current "amount due now" request as it gets paid, so it never goes stale.
+        if invoice.amountDueNow > 0 {
+            invoice.amountDueNow = max(0, invoice.amountDueNow - amount)
+            if invoice.amountDueNow <= 0.005 { invoice.amountDueDetail = "" }
+        }
+        dismiss()
+    }
+}
+
+// MARK: - Set amount due (milestone request)
+
+private struct SetAmountDueSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    let invoice: Invoice
+
+    @State private var amount: Double
+    @State private var detail: String
+
+    init(invoice: Invoice) {
+        self.invoice = invoice
+        _amount = State(initialValue: invoice.amountDueNow)
+        _detail = State(initialValue: invoice.amountDueDetail)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    LabeledContent("Amount due now") {
+                        AutoClearNumberField(placeholder: "0", value: $amount, style: .currency, clearsAt: 0)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    TextField("What it's for (e.g. 30% progress payment)", text: $detail)
+                } footer: {
+                    Text("What you're asking the customer to pay now. Leave at $0 to request the full balance of \(invoice.balanceDue.formatted(.currency(code: "USD"))).")
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background {
+                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+            }
+            .navigationTitle("Amount Due")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save", action: save)
+                }
+            }
+        }
+    }
+
+    private func save() {
+        invoice.amountDueNow = amount
+        invoice.amountDueDetail = detail.trimmingCharacters(in: .whitespacesAndNewlines)
         dismiss()
     }
 }

@@ -105,6 +105,12 @@ final class Invoice {
     var customerNotes: String = ""
     var terms: String = ""
 
+    /// Milestone billing: the amount being requested right now (e.g. a deposit) and what it's
+    /// for. 0 means no specific request, so the full balance is due. Recording a payment reduces
+    /// this toward 0; you then set the next milestone's amount and label and resend.
+    var amountDueNow: Double = 0
+    var amountDueDetail: String = ""
+
     // CloudKit requires every relationship (including to-many) to be optional.
     @Relationship(deleteRule: .cascade, inverse: \InvoiceGroup.invoice)
     var groups: [InvoiceGroup]?
@@ -192,6 +198,15 @@ extension Invoice {
         max(0, total - amountPaid)
     }
 
+    /// Whether a specific milestone amount (rather than the whole balance) is being requested now.
+    var hasAmountDueRequest: Bool { amountDueNow > 0.005 }
+
+    /// What the customer is asked to pay now: the milestone request if one is set (capped at the
+    /// remaining balance), otherwise the full balance.
+    var currentAmountDue: Double {
+        hasAmountDueRequest ? min(amountDueNow, balanceDue) : balanceDue
+    }
+
     var isPaid: Bool { total > 0 && balanceDue <= 0.005 }
     var isPartiallyPaid: Bool { amountPaid > 0 && !isPaid }
     var isOverdue: Bool { !isPaid && status == .sent && dueDate < .now }
@@ -252,16 +267,11 @@ extension Invoice {
             }
         }
 
-        // Carry the estimate's deposit in as the first payment, so the balance reflects it.
+        // If the estimate had a deposit, request it as the amount due now (not yet paid) — it's
+        // collected later and logged as a payment.
         if estimate.depositAmount > 0 {
-            let deposit = InvoicePayment(
-                amount: estimate.depositAmount,
-                date: .now,
-                method: .other,
-                note: "Deposit from \(estimate.number)"
-            )
-            deposit.invoice = invoice
-            context.insert(deposit)
+            invoice.amountDueNow = estimate.depositAmount
+            invoice.amountDueDetail = "Deposit to start"
         }
 
         return invoice
