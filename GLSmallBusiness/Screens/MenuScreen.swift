@@ -190,6 +190,8 @@ struct MyCompanyFormScreen: View {
     @State private var postalCode: String
     @State private var messageIntro: String
     @State private var messageClosing: String
+    @State private var invoiceMessageIntro: String
+    @State private var invoiceMessageClosing: String
     @State private var logoData: Data?
     @State private var logoDataDark: Data?
     @State private var logoItem: PhotosPickerItem?
@@ -207,6 +209,8 @@ struct MyCompanyFormScreen: View {
         _postalCode = State(initialValue: profile.address.postalCode)
         _messageIntro = State(initialValue: profile.messageIntro)
         _messageClosing = State(initialValue: profile.messageClosing)
+        _invoiceMessageIntro = State(initialValue: profile.invoiceMessageIntro)
+        _invoiceMessageClosing = State(initialValue: profile.invoiceMessageClosing)
         _logoData = State(initialValue: profile.logoData)
         _logoDataDark = State(initialValue: profile.logoDataDark)
     }
@@ -301,6 +305,18 @@ struct MyCompanyFormScreen: View {
                     Text("Estimate message")
                 } footer: {
                     Text("Appears in the estimate email and text, between the greeting and your signature. Leave blank to use the suggested wording shown.")
+                        .textCase(nil)
+                }
+
+                Section {
+                    TextField(InvoiceMessage.defaultIntro, text: $invoiceMessageIntro, axis: .vertical)
+                        .lineLimit(2...6)
+                    TextField(InvoiceMessage.defaultClosing, text: $invoiceMessageClosing, axis: .vertical)
+                        .lineLimit(2...6)
+                } header: {
+                    Text("Invoice message")
+                } footer: {
+                    Text("Appears in the invoice email and text. Leave blank to use the suggested wording shown.")
                         .textCase(nil)
                 }
             }
@@ -402,6 +418,8 @@ struct MyCompanyFormScreen: View {
         profile.address.postalCode = postalCode.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.messageIntro = messageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.messageClosing = messageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.invoiceMessageIntro = invoiceMessageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.invoiceMessageClosing = invoiceMessageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.logoData = logoData
         profile.logoDataDark = logoDataDark
         dismiss()

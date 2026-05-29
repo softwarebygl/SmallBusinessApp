@@ -28,6 +28,10 @@ final class BusinessProfile {
     var messageIntro: String = ""
     var messageClosing: String = ""
 
+    /// Same, for the invoice email/text.
+    var invoiceMessageIntro: String = ""
+    var invoiceMessageClosing: String = ""
+
     init() {}
 }
 

@@ -16,6 +16,20 @@ enum InvoiceMessage {
     static let defaultIntro = "Thank you for your business. Your invoice is attached for your review."
     static let defaultClosing = "Please remit payment by the due date. If you have any questions, just reply to this message. Thank you,"
 
+    /// The custom intro if set, otherwise a default that names the job when there is one.
+    static func intro(invoice: Invoice, business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.invoiceMessageIntro)
+        if !custom.isEmpty { return custom }
+        let job = trimmed(invoice.jobTitle)
+        if job.isEmpty { return defaultIntro }
+        return "Thank you for your business. Here's your invoice for \(job)."
+    }
+
+    static func closing(invoice: Invoice, business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.invoiceMessageClosing)
+        return custom.isEmpty ? defaultClosing : custom
+    }
+
     // MARK: - Subject
 
     static func subject(invoice: Invoice, business: BusinessProfile?) -> String {
@@ -35,10 +49,12 @@ enum InvoiceMessage {
         let name = greetingName(invoice)
         let company = trimmed(business?.businessName)
         let number = trimmed(invoice.number)
+        let job = trimmed(invoice.jobTitle)
         let due = invoice.dueDate.formatted(date: .abbreviated, time: .omitted)
         let signoff = company.isEmpty ? "" : "\n\n— \(company)"
 
         var lines: [String] = []
+        if !job.isEmpty { lines.append("Project: \(job)") }
         if !number.isEmpty { lines.append(number) }
         lines.append("Total: \(invoice.total.formatted(.currency(code: "USD")))")
         if invoice.amountPaid > 0 {
@@ -56,11 +72,11 @@ enum InvoiceMessage {
         return """
         Hi \(name),
 
-        \(defaultIntro)
+        \(intro(invoice: invoice, business: business))
 
         \(summary)
 
-        \(defaultClosing)\(signoff)
+        \(closing(invoice: invoice, business: business))\(signoff)
         """
     }
 
@@ -83,7 +99,9 @@ enum InvoiceMessage {
             logoTag = "<img src=\"data:image/png;base64,\(data.base64EncodedString())\" width=\"150\" style=\"display:block;margin:0 0 18px;max-width:150px;height:auto;\" alt=\"\(esc(company))\" />"
         }
 
+        let job = esc(trimmed(invoice.jobTitle))
         var summary = ""
+        if !job.isEmpty { summary += "<strong>Project:</strong> \(job)<br>" }
         if !number.isEmpty { summary += "<strong>Invoice:</strong> \(number)<br>" }
         summary += "<strong>Total:</strong> \(total)<br>"
         if invoice.amountPaid > 0 {
@@ -108,9 +126,9 @@ enum InvoiceMessage {
         <div style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:#1c1c1e;font-size:15px;line-height:1.5;max-width:560px;">
         \(logoTag)
         <p style="margin:0 0 14px;">Hi \(esc(name)),</p>
-        <p style="margin:0 0 14px;">\(esc(defaultIntro))</p>
+        <p style="margin:0 0 14px;">\(htmlText(intro(invoice: invoice, business: business)))</p>
         <p style="margin:0 0 14px;">\(summary)</p>
-        <p style="margin:0 0 14px;">\(esc(defaultClosing))</p>
+        <p style="margin:0 0 14px;">\(htmlText(closing(invoice: invoice, business: business)))</p>
         <p style="margin:18px 0 0;">\(signature)</p>
         </div>
         """
@@ -133,5 +151,10 @@ enum InvoiceMessage {
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
             .replacingOccurrences(of: "\"", with: "&quot;")
+    }
+
+    /// Escapes user-entered prose for HTML and preserves their line breaks as `<br>`.
+    private static func htmlText(_ string: String) -> String {
+        esc(string).replacingOccurrences(of: "\n", with: "<br>")
     }
 }

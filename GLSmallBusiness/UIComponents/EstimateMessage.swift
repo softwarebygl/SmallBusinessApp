@@ -24,9 +24,13 @@ enum EstimateMessage {
     /// Prepared default closing shown before the signature.
     static let defaultClosing = "If you have any questions, just reply to this message. Warm regards,"
 
-    static func intro(for business: BusinessProfile?) -> String {
+    /// The custom intro if set, otherwise a default that names the job when there is one.
+    static func intro(estimate: Estimate, business: BusinessProfile?) -> String {
         let custom = trimmed(business?.messageIntro)
-        return custom.isEmpty ? defaultIntro : custom
+        if !custom.isEmpty { return custom }
+        let job = trimmed(estimate.jobTitle)
+        if job.isEmpty { return defaultIntro }
+        return "Thank you for the opportunity to earn your business. Here's your estimate for \(job)."
     }
 
     static func closing(for business: BusinessProfile?) -> String {
@@ -68,7 +72,7 @@ enum EstimateMessage {
         return """
         Hi \(name),
 
-        \(intro(for: business))
+        \(intro(estimate: estimate, business: business))
 
         \(projectLine)\(summary)
 
@@ -109,7 +113,7 @@ enum EstimateMessage {
         <div style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:#1c1c1e;font-size:15px;line-height:1.5;max-width:560px;">
         \(logoTag)
         <p style="margin:0 0 14px;">Hi \(esc(name)),</p>
-        <p style="margin:0 0 14px;">\(htmlText(intro(for: business)))</p>
+        <p style="margin:0 0 14px;">\(htmlText(intro(estimate: estimate, business: business)))</p>
         <p style="margin:0 0 14px;">\(summary)</p>
         <p style="margin:0 0 14px;">\(htmlText(closing(for: business)))</p>
         <p style="margin:18px 0 0;">\(signature)</p>
