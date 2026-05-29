@@ -19,6 +19,10 @@ struct RootTabView: View {
                 .tabItem {
                     Label("Receipts", systemImage: "doc.viewfinder")
                 }
+            StatsScreen()
+                .tabItem {
+                    Label("Stats", systemImage: "chart.bar")
+                }
         }
     }
 }
