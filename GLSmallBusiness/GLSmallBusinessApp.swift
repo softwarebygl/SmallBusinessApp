@@ -47,8 +47,32 @@ struct GLSmallBusinessApp: App {
         WindowGroup {
             CustomersScreen()
                 .preferredColorScheme(appColorScheme.colorScheme)
+                .onChange(of: appColorSchemeRaw, initial: true) { _, _ in
+                    applyAppearanceOverride()
+                }
         }
         .modelContainer(sharedModelContainer)
+    }
+
+    /// `.preferredColorScheme` only affects the presentation it's attached to — sheets (the Menu,
+    /// the forms, etc.) don't inherit it, so toggling appearance wouldn't update an open sheet.
+    /// Setting the window's `overrideUserInterfaceStyle` changes the trait for the whole window,
+    /// which cascades to every presented sheet too.
+    private func applyAppearanceOverride() {
+        #if canImport(UIKit)
+        let style: UIUserInterfaceStyle
+        switch appColorScheme {
+        case .light: style = .light
+        case .dark: style = .dark
+        case .system: style = .unspecified
+        }
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                window.overrideUserInterfaceStyle = style
+            }
+        }
+        #endif
     }
 
     private func registerBundledFonts() {
