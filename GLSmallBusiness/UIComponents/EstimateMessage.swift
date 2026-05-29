@@ -15,6 +15,25 @@ import UIKit
 /// otherwise the bundled GL monogram (`glLogo` asset) as a fallback.
 enum EstimateMessage {
 
+    // MARK: - Customizable wording (prepared defaults, overridable per business)
+
+    /// Prepared default intro shown after the salutation. Used when the business hasn't set
+    /// a custom `messageIntro`, so improving this default reaches everyone who hasn't customized.
+    static let defaultIntro = "Thank you for the opportunity to earn your business. Your estimate is attached for your review."
+
+    /// Prepared default closing shown before the signature.
+    static let defaultClosing = "If you have any questions, just reply to this message. Warm regards,"
+
+    static func intro(for business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.messageIntro)
+        return custom.isEmpty ? defaultIntro : custom
+    }
+
+    static func closing(for business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.messageClosing)
+        return custom.isEmpty ? defaultClosing : custom
+    }
+
     // MARK: - Subject
 
     static func subject(estimate: Estimate, business: BusinessProfile?) -> String {
@@ -34,22 +53,26 @@ enum EstimateMessage {
         let name = greetingName(estimate)
         let company = trimmed(business?.businessName)
         let job = trimmed(estimate.jobTitle)
-        let jobClause = job.isEmpty ? "" : " for \(job)"
-        let numberClause = trimmed(estimate.number).isEmpty ? "" : " (\(trimmed(estimate.number)))"
+        let number = trimmed(estimate.number)
         let total = estimate.total.formatted(.currency(code: "USD"))
         let valid = estimate.validUntil.formatted(date: .abbreviated, time: .omitted)
-        let phone = trimmed(business?.phone)
-        let callClause = phone.isEmpty ? "" : " or call \(phone)"
+
+        var summaryParts: [String] = []
+        if !number.isEmpty { summaryParts.append(number) }
+        summaryParts.append("Total: \(total)")
+        summaryParts.append("Valid until: \(valid)")
+        let summary = summaryParts.joined(separator: " · ")
+        let projectLine = job.isEmpty ? "" : "Project: \(job)\n"
         let signoff = company.isEmpty ? "" : "\n\n— \(company)"
 
         return """
         Hi \(name),
 
-        Thank you for the opportunity to earn your business! Your estimate\(jobClause)\(numberClause) is attached.
+        \(intro(for: business))
 
-        Total: \(total) · Valid until: \(valid)
+        \(projectLine)\(summary)
 
-        Questions or ready to move forward? Just reply\(callClause).\(signoff)
+        \(closing(for: business))\(signoff)
         """
     }
 
@@ -60,21 +83,24 @@ enum EstimateMessage {
         let name = greetingName(estimate)
         let company = trimmed(business?.businessName)
         let job = trimmed(estimate.jobTitle)
-        let jobClause = job.isEmpty ? "" : " for \(esc(job))"
         let number = esc(trimmed(estimate.number))
         let total = esc(estimate.total.formatted(.currency(code: "USD")))
         let valid = esc(estimate.validUntil.formatted(date: .abbreviated, time: .omitted))
         let phone = trimmed(business?.phone)
         let email = trimmed(business?.email)
         let license = trimmed(business?.licenseNumber)
-        let callClause = phone.isEmpty ? "" : " or call \(esc(phone))"
 
         var logoTag = ""
         if let data = logoPNGData(business: business) {
             logoTag = "<img src=\"data:image/png;base64,\(data.base64EncodedString())\" width=\"150\" style=\"display:block;margin:0 0 18px;max-width:150px;height:auto;\" alt=\"\(esc(company))\" />"
         }
 
-        var signature = "Warm regards,<br><strong style=\"color:#9C7A2E;\">\(esc(company))</strong>"
+        var summary = ""
+        if !job.isEmpty { summary += "<strong>Project:</strong> \(esc(job))<br>" }
+        if !number.isEmpty { summary += "<strong>Estimate:</strong> \(number)<br>" }
+        summary += "<strong>Total:</strong> \(total)<br><strong>Valid until:</strong> \(valid)"
+
+        var signature = "<strong style=\"color:#9C7A2E;\">\(esc(company))</strong>"
         if !phone.isEmpty { signature += "<br>\(esc(phone))" }
         if !email.isEmpty { signature += "<br>\(esc(email))" }
         if !license.isEmpty { signature += "<br>License #\(esc(license))" }
@@ -83,9 +109,9 @@ enum EstimateMessage {
         <div style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:#1c1c1e;font-size:15px;line-height:1.5;max-width:560px;">
         \(logoTag)
         <p style="margin:0 0 14px;">Hi \(esc(name)),</p>
-        <p style="margin:0 0 14px;">Thank you for the opportunity to earn your business. Your estimate\(jobClause) is attached as a PDF for your review.</p>
-        <p style="margin:0 0 14px;"><strong>Estimate:</strong> \(number)<br><strong>Total:</strong> \(total)<br><strong>Valid until:</strong> \(valid)</p>
-        <p style="margin:0 0 14px;">If you have any questions or would like to move forward, just reply to this email\(callClause).</p>
+        <p style="margin:0 0 14px;">\(htmlText(intro(for: business)))</p>
+        <p style="margin:0 0 14px;">\(summary)</p>
+        <p style="margin:0 0 14px;">\(htmlText(closing(for: business)))</p>
         <p style="margin:18px 0 0;">\(signature)</p>
         </div>
         """
@@ -140,6 +166,11 @@ enum EstimateMessage {
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
             .replacingOccurrences(of: "\"", with: "&quot;")
+    }
+
+    /// Escapes user-entered prose for HTML and preserves their line breaks as `<br>`.
+    private static func htmlText(_ string: String) -> String {
+        esc(string).replacingOccurrences(of: "\n", with: "<br>")
     }
 
     private static func resizedPNGData(_ image: UIImage, maxDimension: CGFloat) -> Data? {

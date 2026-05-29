@@ -31,6 +31,24 @@ struct MenuScreen: View {
                 }
             }
             .scrollContentBackground(.hidden)
+            .safeAreaInset(edge: .bottom) {
+                // A bottom toolbar item doesn't render reliably inside a sheet (it logs a
+                // "UIKitToolbar as subview of UIHostingController" warning and goes missing),
+                // so the bottom-left Settings gear is placed with a safe-area inset instead.
+                HStack {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.title2)
+                            .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                    }
+                    .accessibilityLabel("Settings")
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+            }
             .background {
                 GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
             }
@@ -42,16 +60,6 @@ struct MenuScreen: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
-                }
-                ToolbarItemGroup(placement: .bottomBar) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                            .foregroundStyle(GLColor.gold.render(in: colorScheme))
-                    }
-                    .accessibilityLabel("Settings")
-                    Spacer()
                 }
             }
         }
@@ -181,6 +189,8 @@ struct MyCompanyFormScreen: View {
     @State private var city: String
     @State private var state: String
     @State private var postalCode: String
+    @State private var messageIntro: String
+    @State private var messageClosing: String
     @State private var logoData: Data?
     @State private var logoDataDark: Data?
     @State private var logoItem: PhotosPickerItem?
@@ -196,6 +206,8 @@ struct MyCompanyFormScreen: View {
         _city = State(initialValue: profile.address.city)
         _state = State(initialValue: profile.address.state)
         _postalCode = State(initialValue: profile.address.postalCode)
+        _messageIntro = State(initialValue: profile.messageIntro)
+        _messageClosing = State(initialValue: profile.messageClosing)
         _logoData = State(initialValue: profile.logoData)
         _logoDataDark = State(initialValue: profile.logoDataDark)
     }
@@ -279,6 +291,18 @@ struct MyCompanyFormScreen: View {
                         #if !os(macOS)
                         .keyboardType(.numbersAndPunctuation)
                         #endif
+                }
+
+                Section {
+                    TextField(EstimateMessage.defaultIntro, text: $messageIntro, axis: .vertical)
+                        .lineLimit(2...6)
+                    TextField(EstimateMessage.defaultClosing, text: $messageClosing, axis: .vertical)
+                        .lineLimit(2...6)
+                } header: {
+                    Text("Estimate message")
+                } footer: {
+                    Text("Appears in the estimate email and text, between the greeting and your signature. Leave blank to use the suggested wording shown.")
+                        .textCase(nil)
                 }
             }
             .scrollContentBackground(.hidden)
@@ -377,6 +401,8 @@ struct MyCompanyFormScreen: View {
         profile.address.city = city.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.state = state.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.postalCode = postalCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.messageIntro = messageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.messageClosing = messageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.logoData = logoData
         profile.logoDataDark = logoDataDark
         dismiss()

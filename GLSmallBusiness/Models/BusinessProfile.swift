@@ -23,6 +23,11 @@ final class BusinessProfile {
     /// Optional dark-appearance logo. Falls back to `logoData` when not set.
     @Attribute(.externalStorage) var logoDataDark: Data?
 
+    /// Optional custom wording for the estimate email/text. Empty = use the prepared default,
+    /// so future default-wording improvements reach anyone who hasn't customized.
+    var messageIntro: String = ""
+    var messageClosing: String = ""
+
     init() {}
 }
 
