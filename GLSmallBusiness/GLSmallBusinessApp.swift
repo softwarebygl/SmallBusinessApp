@@ -45,7 +45,7 @@ struct GLSmallBusinessApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
+            RootView()   // PROTOTYPE: single split view on iPad, RootTabView on iPhone
                 .preferredColorScheme(appColorScheme.colorScheme)
         }
         .modelContainer(sharedModelContainer)
