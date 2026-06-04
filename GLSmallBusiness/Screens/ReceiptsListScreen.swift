@@ -133,7 +133,8 @@ struct ReceiptListView: View {
             }
         }
         .navigationTitle("Receipts")
-        .navigationBarTitleDisplayMode(.inline)
+        // Leading title in the iPad split column (matches Customers); inline when pushed on iPhone.
+        .navigationBarTitleDisplayMode(solidBackground ? .automatic : .inline)
         .searchableIf(enablesFilters, text: $searchText, prompt: "Search vendor, customer, notes")
         .safeAreaInset(edge: .top) {
             if enablesFilters {
