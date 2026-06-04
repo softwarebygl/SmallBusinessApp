@@ -10,6 +10,12 @@ import SwiftData
 import Charts
 
 struct StatsScreen: View {
+    /// iPhone tab usage keeps the Menu button + monogram backdrop (matching the other tab landings).
+    /// The iPad split passes `showsMenuButton: false, solidBackground: true` so Stats matches the
+    /// Customers and Receipts content columns — no menu button (it lives in the sidebar), solid fill.
+    var showsMenuButton: Bool = true
+    var solidBackground: Bool = false
+
     @Environment(\.colorScheme) private var colorScheme
     @Query private var invoices: [Invoice]
     @Query private var estimates: [Estimate]
@@ -71,18 +77,25 @@ struct StatsScreen: View {
                 .frame(maxWidth: .infinity)
             }
             .containerBackground(for: .navigation) {
-                PrimaryBackground()
+                if solidBackground {
+                    GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+                } else {
+                    PrimaryBackground()
+                }
             }
             .navigationTitle("Stats")
-            .navigationBarTitleDisplayMode(.inline)
+            // Leading title in the iPad split column (matches Customers); inline on the iPhone tab.
+            .navigationBarTitleDisplayMode(solidBackground ? .automatic : .inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showingMenu = true
-                    } label: {
-                        MenuButtonLabel()
+                if showsMenuButton {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            showingMenu = true
+                        } label: {
+                            MenuButtonLabel()
+                        }
+                        .accessibilityLabel("Menu")
                     }
-                    .accessibilityLabel("Menu")
                 }
             }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }

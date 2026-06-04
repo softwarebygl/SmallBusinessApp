@@ -66,61 +66,16 @@ struct ReceiptListView: View {
 
     var body: some View {
         List {
-            if displayed.isEmpty {
-                ContentUnavailableView {
-                    Label("No Receipts", systemImage: "doc.viewfinder")
-                } description: {
-                    if enablesFilters, !searchText.isEmpty || filter != .all {
-                        Text("No receipts match your search or filter.")
-                    } else {
-                        Text(scannerSupported
-                             ? "Tap + to scan a receipt."
-                             : "Tap + to add a receipt. Scanning needs a device with a camera.")
-                    }
+            // The universal list pins search + filter + total as a sticky section header (it scrolls
+            // with the content, then sticks at the top). Scoped lists have no header.
+            if enablesFilters {
+                Section {
+                    receiptRows
+                } header: {
+                    stickyHeader
                 }
-                .listRowBackground(Color.clear)
             } else {
-                ForEach(displayed) { receipt in
-                    Button {
-                        if isEditing {
-                            toggleSelection(receipt)
-                        } else if let selectionID {
-                            selectionID.wrappedValue = receipt.persistentModelID
-                        } else {
-                            selectedReceipt = receipt
-                        }
-                    } label: {
-                        HStack(spacing: 12) {
-                            if isEditing {
-                                Image(systemName: selection.contains(receipt.persistentModelID) ? "checkmark.circle.fill" : "circle")
-                                    .font(.title3)
-                                    .foregroundStyle(selection.contains(receipt.persistentModelID) ? gold : Color.secondary)
-                            }
-                            HStack(spacing: 12) {
-                                thumbnail(receipt)
-                                rowContent(receipt)
-                                if !isEditing, selectionID == nil {
-                                    Image(systemName: "chevron.right")
-                                        .font(.footnote.weight(.semibold))
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .padding(.horizontal, GLLayout.rowContentPadding)
-                            .padding(.vertical, GLLayout.rowContentVerticalPadding)
-                            .frame(maxWidth: .infinity)
-                            .glCardBackground()
-                            .glSelectionStroke(selectionID?.wrappedValue == receipt.persistentModelID)
-                        }
-                        .padding(.horizontal, GLLayout.rowCardInset)
-                        .padding(.vertical, 4)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets())
-                }
-                .onDelete(perform: delete)
+                receiptRows
             }
         }
         .scrollContentBackground(.hidden)
@@ -133,13 +88,9 @@ struct ReceiptListView: View {
             }
         }
         .navigationTitle("Receipts")
-        .navigationBarTitleDisplayMode(.inline)
-        .searchableIf(enablesFilters, text: $searchText, prompt: "Search vendor, customer, notes")
-        .safeAreaInset(edge: .top) {
-            if enablesFilters {
-                summaryCard
-            }
-        }
+        // Leading title in the iPad split column (matches Customers); inline when pushed on iPhone.
+        .navigationBarTitleDisplayMode(solidBackground ? .automatic : .inline)
+        .contentMargins(.top, 16, for: .scrollContent)   // room for the script title's descenders above the sticky header
         .navigationDestination(item: $selectedReceipt) { receipt in
             ReceiptDetailScreen(receipt: receipt)
         }
@@ -168,11 +119,6 @@ struct ReceiptListView: View {
                         .accessibilityLabel("Menu")
                     }
                 }
-                if enablesFilters {
-                    ToolbarItem(placement: .topBarLeading) {
-                        filterMenu
-                    }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     addMenu
                 }
@@ -197,6 +143,83 @@ struct ReceiptListView: View {
             ReceiptFormScreen(defaultCustomer: defaultCustomer, scanImage: input.image).glAppearance(colorScheme)
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+    }
+
+    // MARK: - Rows
+
+    @ViewBuilder
+    private var receiptRows: some View {
+        if displayed.isEmpty {
+            ContentUnavailableView {
+                Label("No Receipts", systemImage: "doc.viewfinder")
+            } description: {
+                if enablesFilters, !searchText.isEmpty || filter != .all {
+                    Text("No receipts match your search or filter.")
+                } else {
+                    Text(scannerSupported
+                         ? "Tap + to scan a receipt."
+                         : "Tap + to add a receipt. Scanning needs a device with a camera.")
+                }
+            }
+            .listRowBackground(Color.clear)
+        } else {
+            ForEach(displayed) { receipt in
+                Button {
+                    if isEditing {
+                        toggleSelection(receipt)
+                    } else if let selectionID {
+                        selectionID.wrappedValue = receipt.persistentModelID
+                    } else {
+                        selectedReceipt = receipt
+                    }
+                } label: {
+                    HStack(spacing: 12) {
+                        if isEditing {
+                            Image(systemName: selection.contains(receipt.persistentModelID) ? "checkmark.circle.fill" : "circle")
+                                .font(.title3)
+                                .foregroundStyle(selection.contains(receipt.persistentModelID) ? gold : Color.secondary)
+                        }
+                        HStack(spacing: 12) {
+                            thumbnail(receipt)
+                            rowContent(receipt)
+                            if !isEditing, selectionID == nil {
+                                Image(systemName: "chevron.right")
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.horizontal, GLLayout.rowContentPadding)
+                        .padding(.vertical, GLLayout.rowContentVerticalPadding)
+                        .frame(maxWidth: .infinity)
+                        .glCardBackground()
+                        .glSelectionStroke(selectionID?.wrappedValue == receipt.persistentModelID)
+                    }
+                    .padding(.horizontal, GLLayout.rowCardInset)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets())
+            }
+            .onDelete(perform: delete)
+        }
+    }
+
+    /// Search + filter + running total, used as a sticky list header so it scrolls with the content
+    /// and then pins at the top — rather than floating over the title in a separate layer.
+    private var stickyHeader: some View {
+        VStack(spacing: 8) {
+            searchFilterBar
+            summaryCard
+        }
+        .padding(.top, 6)
+        .padding(.bottom, 6)
+        .frame(maxWidth: .infinity)
+        .background(GLColor.backgroundPrimary.render(in: colorScheme))
+        .listRowInsets(EdgeInsets())
+        .textCase(nil)
     }
 
     // MARK: - Toolbar pieces
@@ -254,6 +277,10 @@ struct ReceiptListView: View {
             }
         } label: {
             Image(systemName: filter == .all ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+                .font(.title2)
+                .foregroundStyle(filter == .all ? Color.secondary : gold)
+                .frame(width: 46, height: 46)
+                .glassEffect(in: .capsule)
         }
         .accessibilityLabel("Filter")
     }
@@ -265,6 +292,38 @@ struct ReceiptListView: View {
 
     private func setFilter(_ newValue: ReceiptFilter) {
         withAnimation(.snappy) { filter = newValue }
+    }
+
+    // MARK: - Search + filter (inline, pinned above the list)
+
+    private var searchFilterBar: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Search vendor, customer, notes", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .submitLabel(.search)
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear search")
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .glassEffect(in: .capsule)
+
+            filterMenu
+        }
+        .padding(.horizontal, GLLayout.rowCardInset)
     }
 
     // MARK: - Summary card (pinned, Liquid Glass)
@@ -427,18 +486,6 @@ struct ReceiptListView: View {
     private func delete(at offsets: IndexSet) {
         for receipt in offsets.map({ displayed[$0] }) {
             modelContext.delete(receipt)
-        }
-    }
-}
-
-private extension View {
-    /// Applies `.searchable` only when enabled, so scoped receipt views stay search-free.
-    @ViewBuilder
-    func searchableIf(_ enabled: Bool, text: Binding<String>, prompt: String) -> some View {
-        if enabled {
-            searchable(text: text, prompt: prompt)
-        } else {
-            self
         }
     }
 }
