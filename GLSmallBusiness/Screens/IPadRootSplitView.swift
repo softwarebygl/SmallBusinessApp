@@ -57,6 +57,7 @@ struct IPadRootSplitView: View {
     @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
     private var customers: [Customer]
     @Query(sort: \Receipt.date, order: .reverse) private var receipts: [Receipt]
+    @Query private var businessProfiles: [BusinessProfile]
 
     @State private var section: AppSection? = .customers
     @State private var selectedCustomerID: PersistentIdentifier?
@@ -69,6 +70,11 @@ struct IPadRootSplitView: View {
     }
     private var selectedReceipt: Receipt? {
         receipts.first { $0.persistentModelID == selectedReceiptID }
+    }
+    /// The configured business name for the account row, falling back to the app brand.
+    private var businessName: String {
+        let name = businessProfiles.first?.businessName.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? "Gold Life" : name
     }
 
     var body: some View {
@@ -93,15 +99,38 @@ struct IPadRootSplitView: View {
             }
         }
         .navigationTitle("Gold Life")
+        .navigationBarTitleDisplayMode(.large)   // leading-aligned title now the top-leading button is gone
         .containerBackground(for: .navigation) {
             GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button { showingMenu = true } label: { MenuButtonLabel() }
-                    .accessibilityLabel("Menu")
+        // App-level Menu now lives at the bottom of the sidebar as a clearly-labeled control,
+        // not a bare monogram in the nav bar (which read as decoration, not a button).
+        .safeAreaInset(edge: .bottom) { sidebarMenuButton }
+    }
+
+    private var sidebarMenuButton: some View {
+        VStack(spacing: 0) {
+            Divider().opacity(0.4)
+            Button { showingMenu = true } label: {
+                HStack(spacing: 10) {
+                    MenuButtonLabel()
+                    Text(businessName)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.forward")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(businessName), menu and settings")
         }
+        .background(GLColor.backgroundPrimary.render(in: colorScheme))
     }
 
     // MARK: - Content (the list for the selected section)
