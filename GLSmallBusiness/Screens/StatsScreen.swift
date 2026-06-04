@@ -84,8 +84,9 @@ struct StatsScreen: View {
                 }
             }
             .navigationTitle("Stats")
-            // Leading title in the iPad split column (matches Customers); inline on the iPhone tab.
-            .navigationBarTitleDisplayMode(solidBackground ? .automatic : .inline)
+            // Large title to match Customers. (Stats is the iPhone tab root now; the iPad split
+            // uses StatsControlsColumn, so this view is no longer shown in a split column.)
+            .navigationBarTitleDisplayMode(.automatic)
             .toolbar {
                 if showsMenuButton {
                     ToolbarItem(placement: .topBarLeading) {
