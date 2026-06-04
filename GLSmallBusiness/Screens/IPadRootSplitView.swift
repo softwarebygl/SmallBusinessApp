@@ -160,25 +160,27 @@ struct IPadRootSplitView: View {
 
     @ViewBuilder
     private var detail: some View {
-        switch section {
-        case .customers:
-            NavigationStack {
+        NavigationStack {
+            switch section {
+            case .customers:
                 if let selectedCustomer {
                     CustomerDetailScreen(customer: selectedCustomer)
                 } else {
                     BrandPlaceholder(text: "Select a Customer", systemImage: "person.crop.circle")
                 }
-            }
-        case .receipts:
-            NavigationStack {
+            case .receipts:
                 if let selectedReceipt {
                     ReceiptDetailScreen(receipt: selectedReceipt)
                 } else {
                     BrandPlaceholder(text: "Select a Receipt", systemImage: "doc.viewfinder")
                 }
+            case .stats:
+                // Stats has nothing to "select", so the detail is a branded placeholder rather
+                // than a "Select a …" prompt — keeps the column from looking empty/broken.
+                BrandPlaceholder(text: "Your business at a glance", systemImage: "chart.bar.xaxis")
+            case nil:
+                BrandPlaceholder(text: "")
             }
-        case .stats, nil:
-            BrandPlaceholder(text: "")
         }
     }
 }
