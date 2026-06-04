@@ -135,10 +135,13 @@ struct ReceiptListView: View {
         .navigationTitle("Receipts")
         // Leading title in the iPad split column (matches Customers); inline when pushed on iPhone.
         .navigationBarTitleDisplayMode(solidBackground ? .automatic : .inline)
-        .searchableIf(enablesFilters, text: $searchText, prompt: "Search vendor, customer, notes")
         .safeAreaInset(edge: .top) {
             if enablesFilters {
-                summaryCard
+                VStack(spacing: 8) {
+                    searchFilterBar
+                    summaryCard
+                }
+                .padding(.top, 4)
             }
         }
         .navigationDestination(item: $selectedReceipt) { receipt in
@@ -167,11 +170,6 @@ struct ReceiptListView: View {
                             MenuButtonLabel()
                         }
                         .accessibilityLabel("Menu")
-                    }
-                }
-                if enablesFilters {
-                    ToolbarItem(placement: .topBarLeading) {
-                        filterMenu
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -255,6 +253,10 @@ struct ReceiptListView: View {
             }
         } label: {
             Image(systemName: filter == .all ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+                .font(.title2)
+                .foregroundStyle(filter == .all ? Color.secondary : gold)
+                .frame(width: 46, height: 46)
+                .glassEffect(in: .capsule)
         }
         .accessibilityLabel("Filter")
     }
@@ -266,6 +268,38 @@ struct ReceiptListView: View {
 
     private func setFilter(_ newValue: ReceiptFilter) {
         withAnimation(.snappy) { filter = newValue }
+    }
+
+    // MARK: - Search + filter (inline, pinned above the list)
+
+    private var searchFilterBar: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Search vendor, customer, notes", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .submitLabel(.search)
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear search")
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .glassEffect(in: .capsule)
+
+            filterMenu
+        }
+        .padding(.horizontal, GLLayout.rowCardInset)
     }
 
     // MARK: - Summary card (pinned, Liquid Glass)
@@ -428,18 +462,6 @@ struct ReceiptListView: View {
     private func delete(at offsets: IndexSet) {
         for receipt in offsets.map({ displayed[$0] }) {
             modelContext.delete(receipt)
-        }
-    }
-}
-
-private extension View {
-    /// Applies `.searchable` only when enabled, so scoped receipt views stay search-free.
-    @ViewBuilder
-    func searchableIf(_ enabled: Bool, text: Binding<String>, prompt: String) -> some View {
-        if enabled {
-            searchable(text: text, prompt: prompt)
-        } else {
-            self
         }
     }
 }
