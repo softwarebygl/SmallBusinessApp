@@ -150,7 +150,7 @@ struct IPadRootSplitView: View {
             // Stats is a single dashboard, not a master/detail list. It rides in the content column;
             // the detail column stays a brand placeholder. (This awkward fit is the one rough edge of
             // a 3-column layout for this app — see the report.)
-            StatsScreen()
+            StatsScreen(showsMenuButton: false, solidBackground: true)
         case nil:
             BrandPlaceholder(text: "Select a section", systemImage: "square.grid.2x2")
         }
