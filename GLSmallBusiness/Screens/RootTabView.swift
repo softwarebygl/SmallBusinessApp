@@ -27,6 +27,6 @@ struct RootTabView: View {
                 StatsScreen()
             }
         }
-        .tabViewStyle(.sidebarAdaptable)
+        .tabViewStyle(.automatic)
     }
 }
