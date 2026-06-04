@@ -64,6 +64,7 @@ struct IPadRootSplitView: View {
     @State private var selectedReceiptID: PersistentIdentifier?
     @State private var showingMenu = false
     @State private var showingAddCustomer = false
+    @State private var statsSelection = StatsSelection()   // shared by the Stats content + detail columns
 
     private var selectedCustomer: Customer? {
         customers.first { $0.persistentModelID == selectedCustomerID }
@@ -147,10 +148,8 @@ struct IPadRootSplitView: View {
                             enablesFilters: true, selectionID: $selectedReceiptID,
                             solidBackground: true)
         case .stats:
-            // Stats is a single dashboard, not a master/detail list. It rides in the content column;
-            // the detail column stays a brand placeholder. (This awkward fit is the one rough edge of
-            // a 3-column layout for this app — see the report.)
-            StatsScreen(showsMenuButton: false, solidBackground: true)
+            // Stats laid out natively for the split: period controls + KPIs here, charts in detail.
+            StatsControlsColumn(selection: statsSelection)
         case nil:
             BrandPlaceholder(text: "Select a section", systemImage: "square.grid.2x2")
         }
@@ -175,9 +174,7 @@ struct IPadRootSplitView: View {
                     BrandPlaceholder(text: "Select a Receipt", systemImage: "doc.viewfinder")
                 }
             case .stats:
-                // Stats has nothing to "select", so the detail is a branded placeholder rather
-                // than a "Select a …" prompt — keeps the column from looking empty/broken.
-                BrandPlaceholder(text: "Your business at a glance", systemImage: "chart.bar.xaxis")
+                StatsDashboard(selection: statsSelection)
             case nil:
                 BrandPlaceholder(text: "")
             }
