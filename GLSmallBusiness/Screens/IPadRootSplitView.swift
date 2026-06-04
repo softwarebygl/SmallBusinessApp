@@ -101,6 +101,7 @@ struct IPadRootSplitView: View {
         }
         .navigationTitle("Gold Life")
         .navigationBarTitleDisplayMode(.large)   // leading-aligned title now the top-leading button is gone
+        .contentMargins(.top, 16, for: .scrollContent)   // breathing room below the script title's descenders
         .containerBackground(for: .navigation) {
             GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
         }
@@ -113,8 +114,9 @@ struct IPadRootSplitView: View {
         VStack(spacing: 0) {
             Divider().opacity(0.4)
             Button { showingMenu = true } label: {
-                HStack(spacing: 10) {
+                HStack(spacing: 14) {
                     MenuButtonLabel()
+                        .padding(.leading, 2)
                     Text(businessName)
                         .font(.headline)
                         .foregroundStyle(.primary)
