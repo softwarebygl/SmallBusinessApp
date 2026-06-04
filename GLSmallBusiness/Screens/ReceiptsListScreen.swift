@@ -90,6 +90,7 @@ struct ReceiptListView: View {
         .navigationTitle("Receipts")
         // Leading title in the iPad split column (matches Customers); inline when pushed on iPhone.
         .navigationBarTitleDisplayMode(solidBackground ? .automatic : .inline)
+        .contentMargins(.top, 16, for: .scrollContent)   // room for the script title's descenders above the sticky header
         .navigationDestination(item: $selectedReceipt) { receipt in
             ReceiptDetailScreen(receipt: receipt)
         }
