@@ -26,7 +26,8 @@ struct ReceiptsTabScreen: View {
         if sizeClass == .regular {
             NavigationSplitView {
                 ReceiptListView(receipts: allReceipts, defaultCustomer: nil, showsAssignee: true,
-                                enablesFilters: true, selectionID: $selectedReceiptID, showsMenuButton: true)
+                                enablesFilters: true, selectionID: $selectedReceiptID,
+                                showsMenuButton: true, solidBackground: true)
             } detail: {
                 NavigationStack {
                     if let selectedReceipt {

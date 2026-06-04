@@ -89,7 +89,7 @@ struct CustomersScreen: View {
                     .onDelete(perform: deleteCustomers)
                 }
             }
-            .modifier(CustomerListChrome())
+            .modifier(CustomerListChrome(showsMonogram: false))
             .toolbar { customerToolbar }
             .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance(colorScheme) }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
@@ -262,14 +262,23 @@ struct CustomersScreen: View {
 }
 
 /// Shared list styling for both the iPhone stack and the iPad sidebar.
+/// `showsMonogram` keeps the brand-monogram backdrop for the iPhone push view; the iPad split
+/// sidebar opts out (passes `false`) so the GL monogram only appears once on screen — on the
+/// right-hand detail pane.
 private struct CustomerListChrome: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
+    var showsMonogram: Bool = true
+
     func body(content: Content) -> some View {
         content
             .scrollContentBackground(.hidden)
             .listStyle(.plain)
             .containerBackground(for: .navigation) {
-                PrimaryBackground()
+                if showsMonogram {
+                    PrimaryBackground()
+                } else {
+                    GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+                }
             }
             .navigationTitle("Customers")
     }

@@ -40,6 +40,9 @@ struct ReceiptListView: View {
     /// The universal Receipts tab shows the app Menu button (like the other tabs); the per-customer
     /// and business receipt lists are pushed and don't.
     var showsMenuButton: Bool = false
+    /// Drops the brand-monogram background in favor of a solid color. Used by the iPad split's
+    /// sidebar so the GL monogram only appears once on the screen — on the detail pane.
+    var solidBackground: Bool = false
 
     @State private var showingScanner = false
     @State private var scannedImage: UIImage?
@@ -123,7 +126,11 @@ struct ReceiptListView: View {
         .scrollContentBackground(.hidden)
         .listStyle(.plain)
         .containerBackground(for: .navigation) {
-            PrimaryBackground()
+            if solidBackground {
+                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+            } else {
+                PrimaryBackground()
+            }
         }
         .navigationTitle("Receipts")
         .navigationBarTitleDisplayMode(.inline)
