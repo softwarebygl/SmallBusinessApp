@@ -46,6 +46,7 @@ struct GLSmallBusinessApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()   // PROTOTYPE: single split view on iPad, RootTabView on iPhone
+                .tint(Color("AccentColor"))   // GL gold accent app-wide (tabs, selections, buttons)
                 .preferredColorScheme(appColorScheme.colorScheme)
         }
         .modelContainer(sharedModelContainer)
