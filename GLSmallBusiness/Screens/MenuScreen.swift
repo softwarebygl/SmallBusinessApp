@@ -14,7 +14,15 @@ import PhotosUI
 struct MenuScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @State private var showingSettings = false
+
+    /// `mailto:` link that opens the user's mail app, pre-addressed to support with a subject filled in.
+    private var developerFeedbackURL: URL? {
+        let subject = "Developer Feedback"
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Developer%20Feedback"
+        return URL(string: "mailto:support@evolvedbygl.com?subject=\(subject)")
+    }
 
     var body: some View {
         NavigationStack {
@@ -44,7 +52,17 @@ struct MenuScreen: View {
                             .foregroundStyle(GLColor.gold.render(in: colorScheme))
                     }
                     .accessibilityLabel("Settings")
+
                     Spacer()
+
+                    Button {
+                        if let developerFeedbackURL { openURL(developerFeedbackURL) }
+                    } label: {
+                        Text("Developer Feedback")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                    }
+                    .accessibilityLabel("Developer Feedback")
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
