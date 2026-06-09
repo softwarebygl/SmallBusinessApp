@@ -47,3 +47,7 @@ Package.resolved.user
 *~
 .idea/
 .vscode/
+
+# Local secrets — tokens, API keys, signing keys (NEVER commit these)
+secrets/
+*.p8
