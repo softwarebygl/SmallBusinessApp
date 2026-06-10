@@ -90,6 +90,18 @@ struct SettingsScreen: View {
             } footer: {
                 Text("Personalize the app with your uploaded company logo — it appears on the Menu button and faintly behind your screens. Turn this off to use the app’s built-in monogram instead.")
             }
+
+            Section {
+                NavigationLink {
+                    RedeemCodeView()
+                } label: {
+                    Label("Enter Access Code", systemImage: "key.fill")
+                }
+            } header: {
+                Text("Access")
+            } footer: {
+                Text("Redeem an access code to unlock full access on this device.")
+            }
         }
         .glFormBackground()
         .navigationTitle("Settings")
