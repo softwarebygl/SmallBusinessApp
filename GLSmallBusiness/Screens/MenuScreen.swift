@@ -206,6 +206,12 @@ struct MyCompanyDetailScreen: View {
 
 // MARK: - My Company edit form (sheet with Cancel/Save, same pattern as the Customer/Estimate forms)
 
+private struct LogoCrop: Identifiable {
+    let id = UUID()
+    let image: UIImage
+    let isDark: Bool
+}
+
 struct MyCompanyFormScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
@@ -227,6 +233,7 @@ struct MyCompanyFormScreen: View {
     @State private var logoDataDark: Data?
     @State private var logoItem: PhotosPickerItem?
     @State private var logoItemDark: PhotosPickerItem?
+    @State private var logoToCrop: LogoCrop?
 
     init(profile: BusinessProfile) {
         self.profile = profile
@@ -364,15 +371,28 @@ struct MyCompanyFormScreen: View {
             }
             .task(id: logoItem) {
                 guard let logoItem,
-                      let data = try? await logoItem.loadTransferable(type: Data.self)
+                      let data = try? await logoItem.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data)
                 else { return }
-                logoData = data
+                logoToCrop = LogoCrop(image: uiImage, isDark: false)
+                self.logoItem = nil
             }
             .task(id: logoItemDark) {
                 guard let logoItemDark,
-                      let data = try? await logoItemDark.loadTransferable(type: Data.self)
+                      let data = try? await logoItemDark.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data)
                 else { return }
-                logoDataDark = data
+                logoToCrop = LogoCrop(image: uiImage, isDark: true)
+                self.logoItemDark = nil
+            }
+            .fullScreenCover(item: $logoToCrop) { crop in
+                ImageCropView(image: crop.image, guide: .roundedRect) {
+                    logoToCrop = nil
+                } onCrop: { cropped in
+                    let data = cropped.pngData()
+                    if crop.isDark { logoDataDark = data } else { logoData = data }
+                    logoToCrop = nil
+                }
             }
         }
     }
