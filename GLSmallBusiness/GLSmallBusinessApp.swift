@@ -45,10 +45,11 @@ struct GLSmallBusinessApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()   // PROTOTYPE: single split view on iPad, RootTabView on iPhone
+            AppGate()   // gates RootView behind subscription / access-code; RootView is the app
                 .tint(Color("AccentColor"))   // GL gold accent app-wide (tabs, selections, buttons)
                 .preferredColorScheme(appColorScheme.colorScheme)
                 .environment(AccessManager.shared)
+                .environment(SubscriptionManager.shared)
         }
         .modelContainer(sharedModelContainer)
     }
