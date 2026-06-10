@@ -44,9 +44,10 @@ extension BusinessProfile {
             && !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    /// The logo to display for a given appearance: the dark variant in dark mode (falling back
-    /// to the light/default logo), and the light/default logo otherwise.
+    /// The logo to display for a given appearance, falling back to the other variant so a single
+    /// uploaded logo shows in both modes: dark mode prefers the dark variant (falling back to the
+    /// light/default), light mode prefers the light/default (falling back to the dark variant).
     func logo(for colorScheme: ColorScheme) -> Data? {
-        colorScheme == .dark ? (logoDataDark ?? logoData) : logoData
+        colorScheme == .dark ? (logoDataDark ?? logoData) : (logoData ?? logoDataDark)
     }
 }

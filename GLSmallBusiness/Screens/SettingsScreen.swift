@@ -38,6 +38,15 @@ enum AppColorScheme: String, CaseIterable, Identifiable {
     }
 }
 
+/// Whether the uploaded company logo personalizes the app's chrome — the Menu button and the
+/// faint screen-background watermark. Device-local `@AppStorage`; defaults to `true` to match the
+/// app's original behavior (the Menu button has always shown the uploaded logo when one is set).
+/// When `false`, that chrome falls back to the built-in GL monogram. Does NOT affect the logo on
+/// estimate/invoice PDFs or emails — those always carry the company logo.
+enum AppBranding {
+    static let useCompanyLogoKey = "useCompanyLogo"
+}
+
 extension View {
     /// Forces this presentation (sheet / full-screen cover) to a color scheme. Pass the presenting
     /// screen's own `\.colorScheme` — it already reflects the app's Light/Dark/Auto setting. A sheet
@@ -51,6 +60,7 @@ extension View {
 
 struct SettingsScreen: View {
     @AppStorage(AppColorScheme.storageKey) private var appColorSchemeRaw = AppColorScheme.system.rawValue
+    @AppStorage(AppBranding.useCompanyLogoKey) private var useCompanyLogo = true
 
     private var appearance: Binding<AppColorScheme> {
         Binding(
@@ -71,6 +81,14 @@ struct SettingsScreen: View {
                 Text("Appearance")
             } footer: {
                 Text("Choose Light or Dark, or Auto to follow your device’s setting.")
+            }
+
+            Section {
+                Toggle("Use company logo", isOn: $useCompanyLogo)
+            } header: {
+                Text("Branding")
+            } footer: {
+                Text("Personalize the app with your uploaded company logo — it appears on the Menu button and faintly behind your screens. Turn this off to use the app’s built-in monogram instead.")
             }
         }
         .glFormBackground()

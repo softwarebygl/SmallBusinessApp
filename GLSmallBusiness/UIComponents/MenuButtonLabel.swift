@@ -13,10 +13,11 @@ import SwiftData
 /// so the Menu button looks identical across Customers, Receipts, and Stats.
 struct MenuButtonLabel: View {
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage(AppBranding.useCompanyLogoKey) private var useCompanyLogo = true
     @Query private var businessProfiles: [BusinessProfile]
 
     var body: some View {
-        if let data = businessProfiles.first?.logo(for: colorScheme), let uiImage = UIImage(data: data) {
+        if useCompanyLogo, let data = businessProfiles.first?.logo(for: colorScheme), let uiImage = UIImage(data: data) {
             Image(uiImage: uiImage)
                 .resizable()
                 .scaledToFill()
