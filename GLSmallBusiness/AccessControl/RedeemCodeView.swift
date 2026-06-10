@@ -7,11 +7,14 @@
 
 import SwiftUI
 
-/// Settings → "Enter Access Code". Redeems a code into an unlock flag.
+/// Settings → "Enter Access Code". Redeems a GL code into an unlock flag.
 struct RedeemCodeView: View {
     @Environment(AccessManager.self) private var access
-    @State private var code = ""
+    @State private var group1 = ""
+    @State private var group2 = ""
     @State private var result: RedeemResult?
+
+    private var isComplete: Bool { group1.count == 4 && group2.count == 4 }
 
     var body: some View {
         Form {
@@ -23,13 +26,12 @@ struct RedeemCodeView: View {
             }
 
             Section {
-                TextField("Access code", text: $code)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                    .submitLabel(.go)
-                    .onSubmit(redeem)
+                GLCodeField(group1: $group1, group2: $group2, onComplete: redeem)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .listRowBackground(Color.clear)
             } footer: {
-                Text("Have an access code? Enter it to unlock full access on this device.")
+                Text("Enter your GL access code to unlock full access on this device.")
             }
 
             if let result {
@@ -37,8 +39,7 @@ struct RedeemCodeView: View {
             }
 
             Section {
-                Button("Redeem", action: redeem)
-                    .disabled(AccessCodes.normalize(code).isEmpty)
+                Button("Redeem", action: redeem).disabled(!isComplete)
             }
         }
         .glFormBackground()
@@ -70,9 +71,10 @@ struct RedeemCodeView: View {
     }
 
     private func redeem() {
-        let outcome = access.redeem(code)
+        guard isComplete else { return }
+        let outcome = access.redeem("GL-\(group1)-\(group2)")
         withAnimation { result = outcome }
-        if case .success = outcome { code = "" }
+        if case .success = outcome { group1 = ""; group2 = "" }
     }
 }
 
