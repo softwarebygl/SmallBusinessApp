@@ -9,11 +9,17 @@ import SwiftUI
 import SwiftData
 import PhotosUI
 
+private struct CroppableImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
+}
+
 struct CustomerDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     let customer: Customer
 
     @State private var photoItem: PhotosPickerItem?
+    @State private var imageToCrop: CroppableImage?
     @State private var showingEdit = false
 
     var body: some View {
@@ -41,9 +47,19 @@ struct CustomerDetailScreen: View {
         }
         .task(id: photoItem) {
             guard let photoItem,
-                  let data = try? await photoItem.loadTransferable(type: Data.self)
+                  let data = try? await photoItem.loadTransferable(type: Data.self),
+                  let uiImage = UIImage(data: data)
             else { return }
-            customer.profileImageData = data
+            imageToCrop = CroppableImage(image: uiImage)
+            self.photoItem = nil
+        }
+        .fullScreenCover(item: $imageToCrop) { item in
+            ImageCropView(image: item.image) {
+                imageToCrop = nil
+            } onCrop: { cropped in
+                customer.profileImageData = cropped.jpegData(compressionQuality: 0.85)
+                imageToCrop = nil
+            }
         }
     }
 
