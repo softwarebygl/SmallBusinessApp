@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>GL Business</string>
+	<string>My Business</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Used to scan receipts with the document camera.</string>
 	<key>UIBackgroundModes</key>
