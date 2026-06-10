@@ -12,7 +12,7 @@
   },
   "subscriptionGroups" : [
     {
-      "id" : "21500001",
+      "id" : "22148954",
       "localizations" : [],
       "name" : "Pro Access",
       "subscriptions" : [
@@ -38,7 +38,7 @@
           "productID" : "com.evolvedbygl.GLSmallBusiness.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Pro Monthly",
-          "subscriptionGroupID" : "21500001",
+          "subscriptionGroupID" : "22148954",
           "type" : "RecurringSubscription"
         },
         {
@@ -63,7 +63,7 @@
           "productID" : "com.evolvedbygl.GLSmallBusiness.pro.annual",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Pro Annual",
-          "subscriptionGroupID" : "21500001",
+          "subscriptionGroupID" : "22148954",
           "type" : "RecurringSubscription"
         }
       ]

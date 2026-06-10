@@ -34,17 +34,9 @@ final class AccessManager {
 
     private(set) var enabledFlags: Set<String> = []
 
-    /// Set by the StoreKit subscription layer. `false` until that lands.
-    var subscriptionActive = false
-
     @ObservationIgnored private let store = FlagStore()
 
     private init() { revalidate() }
-
-    /// True if the app should be unlocked.
-    var hasFullAccess: Bool {
-        subscriptionActive || enabledFlags.contains(AccessFlag.unlimitedLifeAccess)
-    }
 
     func isEnabled(_ flag: String) -> Bool { enabledFlags.contains(flag) }
 

@@ -5,11 +5,11 @@
 //  Created by Gold Life LLC.
 //
 //  The root gate. Decides what the user sees based on access:
-//    • has access (subscription OR redeemed code) → the app
-//    • still checking the subscription at launch    → a brief splash (no onboarding flash)
-//    • no access                                     → onboarding / paywall
-//  Everything is reactive, so redeeming a code, subscribing, an expiry, or a revoked code
-//  flips the UI automatically — the user can never get stranded in an invalid state.
+//    • has access (active subscription OR redeemed code) → the app
+//    • subscription status still loading at launch         → a brief splash (no onboarding flash)
+//    • no access                                           → onboarding / paywall
+//  Subscription status is tracked reactively with `.subscriptionStatusTask`, so subscribing,
+//  restoring, renewing, or expiring all flip the UI automatically — no one gets stranded.
 //
 
 import SwiftUI
@@ -17,31 +17,53 @@ import StoreKit
 
 struct AppGate: View {
     @Environment(AccessManager.self) private var access
-    @Environment(SubscriptionManager.self) private var subs
 
+    @State private var subscribed = false
+    @State private var statusKnown = false
     @State private var manageSubs = false
     @State private var hintDismissed = false
 
+    private var hasCode: Bool { access.isEnabled(AccessFlag.unlimitedLifeAccess) }
+
     var body: some View {
         Group {
-            if access.hasFullAccess {
+            if hasCode || subscribed {
                 RootView()
                     .safeAreaInset(edge: .bottom) {
                         if showCancelHint { cancelHintBanner }
                     }
-            } else if !subs.didLoadEntitlements {
+            } else if !statusKnown {
                 SplashView()
             } else {
                 OnboardingView()
             }
         }
+        .subscriptionStatusTask(for: SubscriptionManager.groupID) { taskState in
+            switch taskState {
+            case .loading:
+                break
+            case .failure:
+                subscribed = false
+                statusKnown = true
+            case .success(let statuses):
+                subscribed = statuses.contains {
+                    [.subscribed, .inGracePeriod, .inBillingRetryPeriod].contains($0.state)
+                }
+                statusKnown = true
+            @unknown default:
+                statusKnown = true
+            }
+        }
+        .task {
+            // Safety net: never sit on the splash forever if status is slow or unavailable.
+            try? await Task.sleep(for: .seconds(3))
+            statusKnown = true
+        }
         .manageSubscriptionsSheet(isPresented: $manageSubs)
     }
 
     /// You're paying AND you hold a lifetime code — nudge to cancel so you're not double-charged.
-    private var showCancelHint: Bool {
-        subs.isSubscribed && access.isEnabled(AccessFlag.unlimitedLifeAccess) && !hintDismissed
-    }
+    private var showCancelHint: Bool { subscribed && hasCode && !hintDismissed }
 
     private var cancelHintBanner: some View {
         HStack(spacing: 12) {
@@ -67,7 +89,7 @@ struct AppGate: View {
     }
 }
 
-/// Brief branded placeholder shown only while the subscription entitlement is being read at launch.
+/// Brief branded placeholder shown only while the subscription status is being read at launch.
 struct SplashView: View {
     var body: some View {
         ZStack {

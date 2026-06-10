@@ -4,43 +4,38 @@
 //
 //  Created by Gold Life LLC.
 //
-//  StoreKit 2 wrapper: loads products, tracks whether the user owns an active subscription,
-//  and pushes that into the central AccessManager gate. Verification is cryptographic
-//  (StoreKit's signed `VerificationResult`), so entitlements can't be forged on a normal device.
+//  Loads the subscription products for the paywall and finishes incoming transactions.
+//  Whether the user is *currently* subscribed is tracked reactively by `.subscriptionStatusTask`
+//  in AppGate (the reliable, Apple-recommended way), not here.
 //
 
 import Foundation
 import StoreKit
 import Observation
 
-enum PurchaseOutcome { case success, pending, cancelled, failed }
-
 @MainActor
 @Observable
 final class SubscriptionManager {
     static let shared = SubscriptionManager()
 
-    // Product IDs — must match the App Store Connect products (and the local .storekit file).
     static let monthlyID = "com.evolvedbygl.GLSmallBusiness.pro.monthly"
     static let annualID  = "com.evolvedbygl.GLSmallBusiness.pro.annual"
     static let productIDs = [monthlyID, annualID]
+
+    /// The App Store Connect subscription group ID — mirrored in GLSmallBusiness.storekit so
+    /// status tracking behaves identically in local testing and in production.
+    static let groupID = "22148954"
 
     enum LoadState { case loading, loaded, failed }
 
     private(set) var products: [Product] = []
     private(set) var loadState: LoadState = .loading
-    private(set) var isSubscribed = false
-    /// True once the first entitlement check finishes — lets the gate avoid an onboarding flash.
-    private(set) var didLoadEntitlements = false
 
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
 
     private init() {
         updatesTask = listenForTransactions()
-        Task {
-            await refreshEntitlements()
-            await loadProducts()
-        }
+        Task { await loadProducts() }
     }
 
     func loadProducts() async {
@@ -52,51 +47,12 @@ final class SubscriptionManager {
         }
     }
 
-    /// Recomputes whether the user currently owns an active auto-renewable subscription and pushes
-    /// the result into the central gate. `currentEntitlements` already excludes expired/revoked.
-    func refreshEntitlements() async {
-        var active = false
-        for await result in Transaction.currentEntitlements {
-            guard case .verified(let txn) = result else { continue }
-            if txn.productType == .autoRenewable && txn.revocationDate == nil {
-                active = true
-            }
-        }
-        isSubscribed = active
-        didLoadEntitlements = true
-        AccessManager.shared.subscriptionActive = active
-    }
-
-    @discardableResult
-    func purchase(_ product: Product) async -> PurchaseOutcome {
-        do {
-            switch try await product.purchase() {
-            case .success(let verification):
-                guard case .verified(let txn) = verification else { return .failed }
-                await txn.finish()
-                await refreshEntitlements()
-                return .success
-            case .pending:    return .pending
-            case .userCancelled: return .cancelled
-            @unknown default: return .failed
-            }
-        } catch {
-            return .failed
-        }
-    }
-
-    func restore() async {
-        try? await AppStore.sync()
-        await refreshEntitlements()
-    }
-
-    /// Live updates: renewals, Ask-to-Buy approvals, refunds, purchases made elsewhere.
+    /// Finish transactions delivered at runtime (renewals, Ask-to-Buy approvals, etc.) so StoreKit
+    /// doesn't keep redelivering them. Entitlement state is tracked by `.subscriptionStatusTask`.
     private func listenForTransactions() -> Task<Void, Never> {
-        Task { [weak self] in
+        Task {
             for await update in Transaction.updates {
-                guard case .verified(let txn) = update else { continue }
-                await txn.finish()
-                await self?.refreshEntitlements()
+                if case .verified(let txn) = update { await txn.finish() }
             }
         }
     }
