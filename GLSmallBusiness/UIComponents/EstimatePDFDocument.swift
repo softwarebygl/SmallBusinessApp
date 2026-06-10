@@ -96,6 +96,14 @@ struct EstimatePDFDocument: View {
                 Text(estimate.jobTitle.isEmpty ? "—" : estimate.jobTitle)
                     .font(.subheadline.bold())
                     .multilineTextAlignment(.trailing)
+                if !estimate.serviceAddress.isEmpty {
+                    Text("SERVICE ADDRESS")
+                        .font(.caption2.weight(.bold)).foregroundStyle(gold)
+                        .padding(.top, 4)
+                    Text(estimate.serviceAddress.formattedMultiline)
+                        .font(.caption).foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                }
             }
         }
     }
@@ -145,7 +153,7 @@ struct EstimatePDFDocument: View {
                 if estimate.discountAmount > 0 { totalLine("Discount", -estimate.discountAmount) }
                 if estimate.taxAmount > 0 { totalLine("Tax (\(estimate.taxRatePercent.formatted())%)", estimate.taxAmount) }
                 totalLine("Total", estimate.total, bold: true)
-                if estimate.depositAmount > 0 { totalLine("Deposit due", estimate.depositAmount) }
+                if estimate.depositAmount > 0 { totalLine("Required Deposit", estimate.depositAmount) }
             }
             .frame(width: 250)
         }

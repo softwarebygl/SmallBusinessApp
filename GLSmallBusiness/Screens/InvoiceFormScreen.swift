@@ -83,6 +83,10 @@ struct InvoiceFormScreen: View {
     @State private var discountValue: Double
     @State private var customerNotes: String
     @State private var terms: String
+    @State private var serviceStreet: String
+    @State private var serviceCity: String
+    @State private var serviceState: String
+    @State private var servicePostal: String
     @State private var amountDueNow: Double
     @State private var amountDueDetail: String
     @State private var groups: [InvoiceGroupDraft]
@@ -101,6 +105,10 @@ struct InvoiceFormScreen: View {
         _discountValue = State(initialValue: 0)
         _customerNotes = State(initialValue: "")
         _terms = State(initialValue: "")
+        _serviceStreet = State(initialValue: "")
+        _serviceCity = State(initialValue: "")
+        _serviceState = State(initialValue: "")
+        _servicePostal = State(initialValue: "")
         _amountDueNow = State(initialValue: 0)
         _amountDueDetail = State(initialValue: "")
         _groups = State(initialValue: [InvoiceGroupDraft()])
@@ -119,6 +127,10 @@ struct InvoiceFormScreen: View {
         _discountValue = State(initialValue: invoice.discountValue)
         _customerNotes = State(initialValue: invoice.customerNotes)
         _terms = State(initialValue: invoice.terms)
+        _serviceStreet = State(initialValue: invoice.serviceAddress.street1)
+        _serviceCity = State(initialValue: invoice.serviceAddress.city)
+        _serviceState = State(initialValue: invoice.serviceAddress.state)
+        _servicePostal = State(initialValue: invoice.serviceAddress.postalCode)
         _amountDueNow = State(initialValue: invoice.amountDueNow)
         _amountDueDetail = State(initialValue: invoice.amountDueDetail)
         let drafts = invoice.sortedGroups.map { InvoiceGroupDraft(from: $0) }
@@ -161,6 +173,25 @@ struct InvoiceFormScreen: View {
                     } else {
                         LabeledContent("Due date", value: dueDate.formatted(date: .abbreviated, time: .omitted))
                     }
+                }
+
+                Section {
+                    TextField("Street", text: $serviceStreet)
+                        .textContentType(.streetAddressLine1)
+                    TextField("City", text: $serviceCity)
+                        .textContentType(.addressCity)
+                    TextField("State", text: $serviceState)
+                        .textContentType(.addressState)
+                    TextField("ZIP", text: $servicePostal)
+                        .textContentType(.postalCode)
+                        #if !os(macOS)
+                        .keyboardType(.numbersAndPunctuation)
+                        #endif
+                } header: {
+                    Text("Service Address")
+                } footer: {
+                    Text("The specific job site or lot this invoice is for. Optional — leave blank if it's at the customer's own address.")
+                        .textCase(nil)
                 }
 
                 ForEach($groups) { $group in
@@ -236,7 +267,9 @@ struct InvoiceFormScreen: View {
                 .foregroundStyle(.secondary)
 
             ForEach(group.lines) { $line in
-                lineEditor($line)
+                lineEditor($line) {
+                    group.lines.wrappedValue.removeAll { $0.id == line.id }
+                }
             }
             .onDelete { group.lines.wrappedValue.remove(atOffsets: $0) }
 
@@ -265,7 +298,7 @@ struct InvoiceFormScreen: View {
         }
     }
 
-    private func lineEditor(_ line: Binding<InvoiceLineItemDraft>) -> some View {
+    private func lineEditor(_ line: Binding<InvoiceLineItemDraft>, onRemove: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             nameField(
                 line.name,
@@ -302,6 +335,11 @@ struct InvoiceFormScreen: View {
             Toggle("Taxable", isOn: line.isTaxable)
 
             HStack {
+                Button(role: .destructive, action: onRemove) {
+                    Label("Remove", systemImage: "trash")
+                        .font(.footnote)
+                }
+                .buttonStyle(.borderless)
                 Spacer()
                 Text("Line total: \(line.wrappedValue.lineTotal.formatted(.currency(code: "USD")))")
                     .font(.footnote)
@@ -428,6 +466,12 @@ struct InvoiceFormScreen: View {
         invoice.discountValue = discountValue
         invoice.customerNotes = customerNotes
         invoice.terms = terms
+        invoice.serviceAddress = Address(
+            street1: serviceStreet.trimmingCharacters(in: .whitespacesAndNewlines),
+            city: serviceCity.trimmingCharacters(in: .whitespacesAndNewlines),
+            state: serviceState.trimmingCharacters(in: .whitespacesAndNewlines),
+            postalCode: servicePostal.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
         invoice.amountDueNow = amountDueNow
         invoice.amountDueDetail = amountDueDetail.trimmingCharacters(in: .whitespacesAndNewlines)
 

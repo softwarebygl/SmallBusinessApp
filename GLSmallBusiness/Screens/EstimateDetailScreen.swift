@@ -57,6 +57,9 @@ struct EstimateDetailScreen: View {
             VStack(spacing: 20) {
                 headerCard
                 customerCard
+                if !estimate.serviceAddress.isEmpty {
+                    serviceAddressCard
+                }
                 groupsView
                 totalsCard
                 if !estimate.customerNotes.isEmpty || !estimate.terms.isEmpty {
@@ -176,6 +179,16 @@ struct EstimateDetailScreen: View {
         }
     }
 
+    private var serviceAddressCard: some View {
+        card {
+            Text("Service Address")
+                .font(.headline)
+            Text(estimate.serviceAddress.formattedMultiline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
     @ViewBuilder
     private var groupsView: some View {
         ForEach(estimate.sortedGroups) { group in
@@ -235,7 +248,7 @@ struct EstimateDetailScreen: View {
             Divider()
             totalRow("Total", estimate.total, bold: true)
             if estimate.depositAmount > 0 {
-                totalRow("Deposit due", estimate.depositAmount)
+                totalRow("Required Deposit", estimate.depositAmount)
             }
         }
     }

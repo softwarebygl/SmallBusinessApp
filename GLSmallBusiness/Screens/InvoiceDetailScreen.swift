@@ -56,6 +56,9 @@ struct InvoiceDetailScreen: View {
             VStack(spacing: 20) {
                 headerCard
                 customerCard
+                if !invoice.serviceAddress.isEmpty {
+                    serviceAddressCard
+                }
                 groupsView
                 totalsCard
                 paymentsCard
@@ -223,6 +226,16 @@ struct InvoiceDetailScreen: View {
             if !invoice.customerPhone.isEmpty {
                 Text(invoice.customerPhone).foregroundStyle(.secondary)
             }
+        }
+    }
+
+    private var serviceAddressCard: some View {
+        card {
+            Text("Service Address")
+                .font(.headline)
+            Text(invoice.serviceAddress.formattedMultiline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

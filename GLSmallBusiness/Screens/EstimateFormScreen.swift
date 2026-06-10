@@ -81,6 +81,10 @@ struct EstimateFormScreen: View {
     @State private var depositValue: Double
     @State private var customerNotes: String
     @State private var terms: String
+    @State private var serviceStreet: String
+    @State private var serviceCity: String
+    @State private var serviceState: String
+    @State private var servicePostal: String
     @State private var groups: [GroupDraft]
 
     init(customer: Customer) {
@@ -96,6 +100,10 @@ struct EstimateFormScreen: View {
         _depositValue = State(initialValue: 0)
         _customerNotes = State(initialValue: "")
         _terms = State(initialValue: "")
+        _serviceStreet = State(initialValue: "")
+        _serviceCity = State(initialValue: "")
+        _serviceState = State(initialValue: "")
+        _servicePostal = State(initialValue: "")
         _groups = State(initialValue: [GroupDraft()])
     }
 
@@ -112,6 +120,10 @@ struct EstimateFormScreen: View {
         _depositValue = State(initialValue: estimate.depositValue)
         _customerNotes = State(initialValue: estimate.customerNotes)
         _terms = State(initialValue: estimate.terms)
+        _serviceStreet = State(initialValue: estimate.serviceAddress.street1)
+        _serviceCity = State(initialValue: estimate.serviceAddress.city)
+        _serviceState = State(initialValue: estimate.serviceAddress.state)
+        _servicePostal = State(initialValue: estimate.serviceAddress.postalCode)
         let drafts = estimate.sortedGroups.map { GroupDraft(from: $0) }
         _groups = State(initialValue: drafts.isEmpty ? [GroupDraft()] : drafts)
     }
@@ -140,6 +152,25 @@ struct EstimateFormScreen: View {
                         ForEach(EstimateStatus.allCases) { Text($0.label).tag($0) }
                     }
                     DatePicker("Valid until", selection: $validUntil, displayedComponents: .date)
+                }
+
+                Section {
+                    TextField("Street", text: $serviceStreet)
+                        .textContentType(.streetAddressLine1)
+                    TextField("City", text: $serviceCity)
+                        .textContentType(.addressCity)
+                    TextField("State", text: $serviceState)
+                        .textContentType(.addressState)
+                    TextField("ZIP", text: $servicePostal)
+                        .textContentType(.postalCode)
+                        #if !os(macOS)
+                        .keyboardType(.numbersAndPunctuation)
+                        #endif
+                } header: {
+                    Text("Service Address")
+                } footer: {
+                    Text("The specific job site or lot this estimate is for. Optional — leave blank if it's at the customer's own address.")
+                        .textCase(nil)
                 }
 
                 ForEach($groups) { $group in
@@ -203,7 +234,9 @@ struct EstimateFormScreen: View {
                 .foregroundStyle(.secondary)
 
             ForEach(group.lines) { $line in
-                lineEditor($line)
+                lineEditor($line) {
+                    group.lines.wrappedValue.removeAll { $0.id == line.id }
+                }
             }
             .onDelete { group.lines.wrappedValue.remove(atOffsets: $0) }
 
@@ -232,7 +265,7 @@ struct EstimateFormScreen: View {
         }
     }
 
-    private func lineEditor(_ line: Binding<LineItemDraft>) -> some View {
+    private func lineEditor(_ line: Binding<LineItemDraft>, onRemove: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             nameField(
                 line.name,
@@ -269,6 +302,11 @@ struct EstimateFormScreen: View {
             Toggle("Taxable", isOn: line.isTaxable)
 
             HStack {
+                Button(role: .destructive, action: onRemove) {
+                    Label("Remove", systemImage: "trash")
+                        .font(.footnote)
+                }
+                .buttonStyle(.borderless)
                 Spacer()
                 Text("Line total: \(line.wrappedValue.lineTotal.formatted(.currency(code: "USD")))")
                     .font(.footnote)
@@ -360,7 +398,7 @@ struct EstimateFormScreen: View {
             if totals.discount > 0 { summaryRow("Discount", -totals.discount) }
             if totals.tax > 0 { summaryRow("Tax", totals.tax) }
             summaryRow("Total", totals.total, bold: true)
-            if totals.deposit > 0 { summaryRow("Deposit due", totals.deposit) }
+            if totals.deposit > 0 { summaryRow("Required Deposit", totals.deposit) }
         }
     }
 
@@ -397,6 +435,12 @@ struct EstimateFormScreen: View {
         estimate.depositValue = depositValue
         estimate.customerNotes = customerNotes
         estimate.terms = terms
+        estimate.serviceAddress = Address(
+            street1: serviceStreet.trimmingCharacters(in: .whitespacesAndNewlines),
+            city: serviceCity.trimmingCharacters(in: .whitespacesAndNewlines),
+            state: serviceState.trimmingCharacters(in: .whitespacesAndNewlines),
+            postalCode: servicePostal.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
 
         var groupIndex = 0
         for groupDraft in groups {

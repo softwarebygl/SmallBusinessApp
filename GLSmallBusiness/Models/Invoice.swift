@@ -91,6 +91,10 @@ final class Invoice {
     var customerPhone: String = ""
     var customerAddress: Address = Address()
 
+    /// The job site / lot this invoice is for. Independent of the customer's (billing) address;
+    /// carried over from the originating estimate when converted.
+    var serviceAddress: Address = Address()
+
     var customer: Customer?
 
     /// The estimate this was converted from, for reference on the invoice (display only).
@@ -239,6 +243,7 @@ extension Invoice {
         invoice.customerEmail = estimate.customerEmail
         invoice.customerPhone = estimate.customerPhone
         invoice.customerAddress = estimate.customerAddress
+        invoice.serviceAddress = estimate.serviceAddress
         invoice.taxRatePercent = estimate.taxRatePercent
         invoice.discountType = estimate.discountType
         invoice.discountValue = estimate.discountValue

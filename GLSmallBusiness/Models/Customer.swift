@@ -93,3 +93,26 @@ nonisolated struct Address: Codable, Hashable, Sendable {
         self.postalCode = postalCode
     }
 }
+
+extension Address {
+    /// True when every field is blank, so callers can skip showing an empty address.
+    var isEmpty: Bool {
+        [street1, street2 ?? "", city, state, postalCode]
+            .allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
+    /// Multi-line "street / street2 / City, ST ZIP" with any empty parts omitted.
+    var formattedMultiline: String {
+        let cityLine = [city, state]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: ", ")
+        let cityZip = [cityLine, postalCode.trimmingCharacters(in: .whitespacesAndNewlines)]
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        return [street1, street2 ?? "", cityZip]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n")
+    }
+}

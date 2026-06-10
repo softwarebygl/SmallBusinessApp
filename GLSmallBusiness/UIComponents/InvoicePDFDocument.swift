@@ -102,6 +102,14 @@ struct InvoicePDFDocument: View {
                 Text(invoice.jobTitle.isEmpty ? "—" : invoice.jobTitle)
                     .font(.subheadline.bold())
                     .multilineTextAlignment(.trailing)
+                if !invoice.serviceAddress.isEmpty {
+                    Text("SERVICE ADDRESS")
+                        .font(.caption2.weight(.bold)).foregroundStyle(gold)
+                        .padding(.top, 4)
+                    Text(invoice.serviceAddress.formattedMultiline)
+                        .font(.caption).foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                }
                 Text("Terms: \(invoice.paymentTerms.label)").font(.caption).foregroundStyle(.secondary)
             }
         }

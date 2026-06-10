@@ -44,7 +44,7 @@ nonisolated enum LineItemKind: String, Codable, CaseIterable, Identifiable {
 }
 
 nonisolated enum UnitOfMeasure: String, Codable, CaseIterable, Identifiable {
-    case squareFoot, linearFoot, squareYard, hour, day, each, lumpSum
+    case squareFoot, linearFoot, squareYard, hour, day, each, lumpSum, job
 
     var id: String { rawValue }
 
@@ -57,6 +57,7 @@ nonisolated enum UnitOfMeasure: String, Codable, CaseIterable, Identifiable {
         case .day: "day"
         case .each: "ea"
         case .lumpSum: "lump"
+        case .job: "job"
         }
     }
 
@@ -69,6 +70,7 @@ nonisolated enum UnitOfMeasure: String, Codable, CaseIterable, Identifiable {
         case .day: "Days"
         case .each: "Each"
         case .lumpSum: "Lump sum"
+        case .job: "Job"
         }
     }
 }
@@ -150,6 +152,10 @@ final class Estimate {
     var customerEmail: String = ""
     var customerPhone: String = ""
     var customerAddress: Address = Address()
+
+    /// The job site / lot this estimate is for. Independent of the customer's (billing) address,
+    /// so a GC's office stays put while each estimate can point at a different property.
+    var serviceAddress: Address = Address()
 
     // Link back to the originating customer (for grouping/filtering only).
     var customer: Customer?
