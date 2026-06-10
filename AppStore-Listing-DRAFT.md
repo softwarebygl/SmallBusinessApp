@@ -6,7 +6,7 @@ Recommended copy to paste into App Store Connect, plus the decisions only you ca
 ---
 
 ## Name (≤ 30 chars)
-**Business by GL**
+**GL Business**
 
 ## Subtitle (≤ 30 chars)
 **Estimates, invoices & receipts**
@@ -16,7 +16,7 @@ Run your contracting business from your phone: professional estimates and invoic
 scanning, and payment tracking — all synced privately through your own iCloud.
 
 ## Description (≤ 4000 chars)
-Business by GL is a simple, professional toolkit for running a small contracting or trades
+GL Business is a simple, professional toolkit for running a small contracting or trades
 business — built for the way you actually work: labor and materials together, job after job.
 
 CUSTOMERS

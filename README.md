@@ -1,4 +1,4 @@
-# Business by GL — Developer & Handoff Guide
+# GL Business — Developer & Handoff Guide
 
 > **🔄 KEEP THIS FILE CURRENT — this is the single source of truth for handoff.**
 > Whenever any of the following changes, update the relevant section **in the same change**:
@@ -16,7 +16,7 @@ A native iOS app for **Gold Life LLC**, a tile & flooring subcontracting busines
 Jobs typically mix **labor + materials** on the same estimate/invoice, which shapes the line-item
 and tax model.
 
-- **App Store display name:** "Business by GL" (`CFBundleDisplayName`)
+- **App Store display name:** "GL Business" (`CFBundleDisplayName`)
 - **Public developer name:** "Evolved by GL" (Gold Life LLC's DBA; matches evolvedbygl.com)
 - **Internal product/bundle name:** `GLSmallBusiness` (never shown to users)
 
@@ -187,7 +187,7 @@ no migration needed until the first post-launch change).
   deployed to Production.
 - **Done toward launch:** feature batch **tested on-device (approved) and committed to `main`** (5 logical
   commits). Fresh **Release archive** at `/tmp/GLSmallBusiness.xcarchive` (v1.0 (1), iPhoneOS only,
-  "Business by GL" — ready to upload). **App Store listing + privacy policy drafted**
+  "GL Business" — ready to upload). **App Store listing + privacy policy drafted**
   (`AppStore-Listing-DRAFT.md`, `PrivacyPolicy-DRAFT.md`).
 - **Pending before launch (needs the owner):**
   - **Re-deploy CloudKit** — `serviceAddress` was added to `Estimate`/`Invoice` after the last deploy, so

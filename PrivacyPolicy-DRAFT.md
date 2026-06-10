@@ -1,4 +1,4 @@
-# Privacy Policy — Business by GL
+# Privacy Policy — GL Business
 
 **DRAFT — review before publishing.** App Store requires this to be hosted at a public URL
 (e.g. evolvedbygl.com/privacy). It's written to match how the app actually works: it collects
@@ -7,7 +7,7 @@ nothing for us, and your data stays in your own iCloud.
 _Last updated: [set the date when you publish]_
 
 ## The short version
-Business by GL does **not** collect, transmit, sell, or have access to your personal or business
+GL Business does **not** collect, transmit, sell, or have access to your personal or business
 data. Everything you enter stays on your device and syncs through **your own private iCloud
 account**. We (Gold Life LLC, the developer) cannot see it.
 
