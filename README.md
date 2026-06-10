@@ -185,13 +185,19 @@ no migration needed until the first post-launch change).
   keyboard dismiss on scroll/tap-outside (+ Picker-tap conflict fixed); app display name set to "Business by
   GL"; "Developer Feedback" mailto button in the menu (→ support@evolvedbygl.com). CloudKit V1 (10 types) was
   deployed to Production.
-- **Pending before launch:**
-  - Install/test the above batch on a physical device.
+- **Done toward launch:** fresh **Release archive** built at `/tmp/GLSmallBusiness.xcarchive` (v1.0 (1),
+  iPhoneOS only, "Business by GL" — ready to upload). Latest Debug build **installed on AG-iPhone** for
+  testing. **App Store listing + privacy policy drafted** (`AppStore-Listing-DRAFT.md`,
+  `PrivacyPolicy-DRAFT.md`).
+- **Pending before launch (needs the owner):**
+  - **Test** the batch on the device (the keyboard/Picker fix especially).
   - **Re-deploy CloudKit** — `serviceAddress` was added to `Estimate`/`Invoice` after the last deploy, so
-    `CD_Estimate`/`CD_Invoice` need the new field mirrored to Dev (run app + save) then deployed to Production.
-  - Commit the batch (only the "Developer Feedback button" + this README are committed so far).
-  - Re-archive (the existing `/tmp/*.xcarchive` predates these changes).
-  - App Store Connect setup, screenshots/metadata, submit.
+    `CD_Estimate`/`CD_Invoice` need the new field mirrored to Dev (run app + save an estimate with a service
+    address) then deployed to Production (§7).
+  - **Commit the feature batch** (docs are committed; the feature code is not yet).
+  - **Host the privacy policy** at a public URL; finalize listing decisions (price, audience, keywords).
+  - **App Store Connect:** create the app record, upload the archive (needs an ASC API key, or Xcode
+    Organizer), add screenshots (iPhone 6.9" + iPad 13") + metadata, and submit for review.
 
 ## 12. Working conventions / preferences
 
