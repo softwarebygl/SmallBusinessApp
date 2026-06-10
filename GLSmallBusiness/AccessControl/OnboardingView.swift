@@ -5,47 +5,104 @@
 //  Created by Gold Life LLC.
 //
 //  The first screen for anyone without access: subscribe, or enter a GL access code.
-//  Uses Apple's `SubscriptionStoreView` (compliant paywall — prices, auto-renew terms, restore,
-//  and the required privacy/terms links handled for us).
+//  Uses Apple's `SubscriptionStoreView` (compliant paywall) when products are available, and a
+//  friendly retry state if they can't load — so the user always has a clear path, never a dead end.
 //
 
 import SwiftUI
 import StoreKit
 
 struct OnboardingView: View {
+    @Environment(SubscriptionManager.self) private var subs
     @State private var showCode = false
+    @State private var retrying = false
 
     private let privacyURL = URL(string: "https://evolvedbygl.github.io/privacy/")!
     private let termsURL   = URL(string: "https://evolvedbygl.github.io/terms/")!
 
     var body: some View {
+        content
+            .safeAreaInset(edge: .bottom) { codeButton }
+            .sheet(isPresented: $showCode) { codeSheet }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if !subs.products.isEmpty {
+            paywall
+        } else if subs.loadState == .loading {
+            loadingState
+        } else {
+            unavailableState
+        }
+    }
+
+    // MARK: - States
+
+    private var paywall: some View {
         SubscriptionStoreView(productIDs: SubscriptionManager.productIDs) {
             marketingHeader
         }
         .storeButton(.visible, for: .restorePurchases)
         .subscriptionStorePolicyDestination(url: privacyURL, for: .privacyPolicy)
         .subscriptionStorePolicyDestination(url: termsURL, for: .termsOfService)
-        .safeAreaInset(edge: .bottom) {
+    }
+
+    private var loadingState: some View {
+        VStack(spacing: 28) {
+            marketingHeader
+            ProgressView("Loading plans…")
+        }
+        .padding()
+    }
+
+    private var unavailableState: some View {
+        VStack(spacing: 22) {
+            marketingHeader
+            VStack(spacing: 8) {
+                Image(systemName: "wifi.exclamationmark")
+                    .font(.largeTitle).foregroundStyle(.secondary)
+                Text("Couldn't load plans right now").font(.headline)
+                Text("Check your connection and tap Retry — or unlock with a GL access code below.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
             Button {
-                showCode = true
+                retrying = true
+                Task { await subs.loadProducts(); retrying = false }
             } label: {
-                Text("Have a GL access code?")
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.vertical, 6)
+                if retrying {
+                    ProgressView()
+                } else {
+                    Text("Retry").fontWeight(.semibold).frame(maxWidth: 200)
+                }
             }
-            .padding(.bottom, 4)
+            .buttonStyle(.borderedProminent)
         }
-        .sheet(isPresented: $showCode) {
-            NavigationStack {
-                RedeemCodeView()
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") { showCode = false }
-                        }
+        .padding()
+    }
+
+    // MARK: - Shared pieces
+
+    private var codeButton: some View {
+        Button { showCode = true } label: {
+            Text("Have a GL access code?")
+                .font(.subheadline.weight(.semibold))
+                .padding(.vertical, 6)
+        }
+        .padding(.bottom, 4)
+    }
+
+    private var codeSheet: some View {
+        NavigationStack {
+            RedeemCodeView()
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showCode = false }
                     }
-            }
-            .presentationDetents([.medium, .large])
+                }
         }
+        .presentationDetents([.medium, .large])
     }
 
     private var marketingHeader: some View {
