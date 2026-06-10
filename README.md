@@ -179,20 +179,22 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
-- **Done (this development push):** Service Address on estimates + invoices; customer photo crop; logo
-  light↔dark fallback fix + company-logo screen background + Settings "Use company logo" toggle; `job` added
-  to the unit selector; estimate wording "Deposit due" → "Required Deposit"; per-line-item **Remove** buttons;
-  keyboard dismiss on scroll/tap-outside (+ Picker-tap conflict fixed); app display name set to "Business by
-  GL"; "Developer Feedback" mailto button in the menu (→ support@evolvedbygl.com). CloudKit V1 (10 types) was
-  deployed to Production.
-- **Done toward launch:** feature batch **tested on-device (approved) and committed to `main`** (5 logical
-  commits). Fresh **Release archive** at `/tmp/GLSmallBusiness.xcarchive` (v1.0 (1), iPhoneOS only,
-  "GL Business" — ready to upload). **App Store listing + privacy policy drafted**
-  (`AppStore-Listing-DRAFT.md`, `PrivacyPolicy-DRAFT.md`).
+- **Done (V1 development), all tested on-device and committed to `main`:** Service Address on estimates +
+  invoices; customer photo crop **and company-logo crop** (shared `ImageCropView` — configurable guide
+  shape + safe-area-correct top bar; reads the key window's top inset since `fullScreenCover` doesn't pass
+  the safe area down); logo light↔dark fallback fix + company-logo screen background + Settings "Use company
+  logo" toggle; `job` added to the unit selector; estimate wording "Deposit due" → "Required Deposit";
+  per-line-item **Remove** buttons; keyboard dismiss on scroll/tap-outside (+ Picker-tap conflict fixed);
+  app display name **"GL Business"**; "Developer Feedback" mailto button (→ support@evolvedbygl.com).
+- **CloudKit:** V1 (10 record types) deployed to Production. A one-time **completeness seed** (since removed)
+  populated every field including the image/asset ones; `serviceAddress` + the dark-logo asset were deployed.
+  ⏳ **Final deploy to confirm:** the `CD_Receipt` `scanData` + `customer` fields the seed surfaced — deploy
+  via the Console (§7); then Production = the full model.
+- **Ready:** fresh **Release archive** at `/tmp/GLSmallBusiness.xcarchive` (v1.0 (1), iPhone/iPad only,
+  "GL Business" — re-archived with all changes, ready to upload). **App Store listing + privacy policy
+  drafted** (`AppStore-Listing-DRAFT.md`, `PrivacyPolicy-DRAFT.md`).
 - **Pending before launch (needs the owner):**
-  - **Re-deploy CloudKit** — `serviceAddress` was added to `Estimate`/`Invoice` after the last deploy, so
-    `CD_Estimate`/`CD_Invoice` need the new field mirrored to Dev (run app + save an estimate with a service
-    address) then deployed to Production (§7).
+  - Confirm the final **CloudKit `CD_Receipt` deploy** (above).
   - **Host the privacy policy** at a public URL; finalize listing decisions (price, audience, keywords).
   - **App Store Connect:** create the app record, upload the archive (needs an ASC API key, or Xcode
     Organizer), add screenshots (iPhone 6.9" + iPad 13") + metadata, and submit for review.
