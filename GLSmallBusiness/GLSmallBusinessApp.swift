@@ -41,6 +41,11 @@ struct GLSmallBusinessApp: App {
     init() {
         registerBundledFonts()
         configureNavigationBarAppearance()
+        #if DEBUG
+        if DemoMode.isActive {
+            DemoSeed.populate(sharedModelContainer.mainContext)
+        }
+        #endif
     }
 
     var body: some Scene {

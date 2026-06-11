@@ -27,7 +27,7 @@ struct AppGate: View {
 
     var body: some View {
         Group {
-            if hasCode || subscribed {
+            if hasCode || subscribed || DemoMode.isActive {
                 RootView()
                     .safeAreaInset(edge: .bottom) {
                         if showCancelHint { cancelHintBanner }
