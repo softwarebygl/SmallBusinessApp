@@ -51,8 +51,8 @@ struct RedeemCodeView: View {
     private func resultRow(_ result: RedeemResult) -> some View {
         switch result {
         case .success(_, let expires):
-            let detail = expires.map { "Active until \($0.formatted(date: .abbreviated, time: .omitted))" }
-                ?? "Lifetime access — enjoy!"
+            let detail = expires.map { String(localized: "Active until \($0.formatted(date: .abbreviated, time: .omitted))") }
+                ?? String(localized: "Lifetime access — enjoy!")
             Label {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Access unlocked").fontWeight(.semibold)

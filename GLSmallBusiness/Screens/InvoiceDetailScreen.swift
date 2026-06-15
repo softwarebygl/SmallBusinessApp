@@ -71,7 +71,7 @@ struct InvoiceDetailScreen: View {
         .containerBackground(for: .navigation) {
             PrimaryBackground()
         }
-        .navigationTitle(invoice.number.isEmpty ? "Invoice" : invoice.number)
+        .navigationTitle(invoice.number.isEmpty ? String(localized: "Invoice") : invoice.number)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -186,7 +186,7 @@ struct InvoiceDetailScreen: View {
         card {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(invoice.jobTitle.isEmpty ? "Untitled invoice" : invoice.jobTitle)
+                    Text(invoice.jobTitle.isEmpty ? String(localized: "Untitled invoice") : invoice.jobTitle)
                         .font(.title3.weight(.semibold))
                     Text(invoice.number)
                         .font(.subheadline)
@@ -201,9 +201,9 @@ struct InvoiceDetailScreen: View {
                 InvoiceStatusBadge(invoice: invoice)
             }
             Divider()
-            labeledRow("Created", invoice.createdAt.formatted(date: .abbreviated, time: .omitted))
-            labeledRow("Terms", invoice.paymentTerms.label)
-            labeledRow("Due", invoice.dueDate.formatted(date: .abbreviated, time: .omitted))
+            labeledRow(String(localized: "Created"), invoice.createdAt.formatted(date: .abbreviated, time: .omitted))
+            labeledRow(String(localized: "Terms"), invoice.paymentTerms.label)
+            labeledRow(String(localized: "Due"), invoice.dueDate.formatted(date: .abbreviated, time: .omitted))
         }
     }
 
@@ -243,7 +243,7 @@ struct InvoiceDetailScreen: View {
     private var groupsView: some View {
         ForEach(invoice.sortedGroups) { group in
             card {
-                Text(group.name.isEmpty ? "Line Items" : group.name)
+                Text(group.name.isEmpty ? String(localized: "Line Items") : group.name)
                     .font(.headline)
                 if !group.note.isEmpty {
                     Text(group.note).font(.subheadline).foregroundStyle(.secondary)
@@ -292,13 +292,13 @@ struct InvoiceDetailScreen: View {
 
     private var totalsCard: some View {
         card {
-            totalRow("Subtotal", invoice.subtotal)
-            if invoice.discountAmount > 0 { totalRow("Discount", -invoice.discountAmount) }
-            if invoice.taxAmount > 0 { totalRow("Tax (\(invoice.taxRatePercent.formatted())%)", invoice.taxAmount) }
+            totalRow(String(localized: "Subtotal"), invoice.subtotal)
+            if invoice.discountAmount > 0 { totalRow(String(localized: "Discount"), -invoice.discountAmount) }
+            if invoice.taxAmount > 0 { totalRow(String(localized: "Tax") + " (\(invoice.taxRatePercent.formatted())%)", invoice.taxAmount) }
             Divider()
-            totalRow("Total", invoice.total, bold: true)
+            totalRow(String(localized: "Total"), invoice.total, bold: true)
             if invoice.amountPaid > 0 {
-                totalRow("Paid", -invoice.amountPaid)
+                totalRow(String(localized: "Paid"), -invoice.amountPaid)
             }
             HStack {
                 Text("Balance").foregroundStyle(.secondary)

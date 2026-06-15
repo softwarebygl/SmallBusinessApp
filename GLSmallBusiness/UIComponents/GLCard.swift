@@ -48,10 +48,10 @@ private struct GLSelectionStroke: ViewModifier {
 
 /// A padded content card used on detail screens. Pass `title` for a headline above the content.
 struct GLCard<Content: View>: View {
-    var title: String?
+    var title: LocalizedStringKey?
     @ViewBuilder var content: Content
 
-    init(title: String? = nil, @ViewBuilder content: () -> Content) {
+    init(title: LocalizedStringKey? = nil, @ViewBuilder content: () -> Content) {
         self.title = title
         self.content = content()
     }

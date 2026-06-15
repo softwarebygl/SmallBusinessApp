@@ -6,6 +6,8 @@
 	<string>My Business</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Used to scan receipts with the document camera.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Used to unlock your saved signature before adding it to a document.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

@@ -57,7 +57,7 @@ nonisolated extension Customer {
         if !last.isEmpty { return last }
         if !first.isEmpty { return first }
         if !business.isEmpty { return business }
-        return "No name"
+        return String(localized: "No name")
     }
 
     var initials: String {

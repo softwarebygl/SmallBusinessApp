@@ -104,7 +104,7 @@ struct ReceiptListView: View {
                     Button(role: .destructive) {
                         deleteSelected()
                     } label: {
-                        Text(selection.isEmpty ? "Delete" : "Delete (\(selection.count))")
+                        Text(selection.isEmpty ? String(localized: "Delete") : String(localized: "Delete (\(selection.count))"))
                     }
                     .tint(.red)
                     .disabled(selection.isEmpty)
@@ -218,7 +218,6 @@ struct ReceiptListView: View {
         .padding(.top, 6)
         .padding(.bottom, 6)
         .frame(maxWidth: .infinity)
-        .background(GLColor.backgroundPrimary.render(in: colorScheme))
         .listRowInsets(EdgeInsets())
         .textCase(nil)
     }
@@ -254,11 +253,11 @@ struct ReceiptListView: View {
 
     private var filterMenu: some View {
         Menu {
-            Button { setFilter(.all) } label: { menuRow("All Receipts", active: filter == .all) }
+            Button { setFilter(.all) } label: { menuRow(String(localized: "All Receipts"), active: filter == .all) }
             if hasBusinessReceipts || !receiptCustomers.isEmpty {
                 Section("Customer") {
                     if hasBusinessReceipts {
-                        Button { setFilter(.business) } label: { menuRow("Business", active: filter == .business) }
+                        Button { setFilter(.business) } label: { menuRow(String(localized: "Business"), active: filter == .business) }
                     }
                     ForEach(receiptCustomers) { customer in
                         Button {
@@ -409,7 +408,7 @@ struct ReceiptListView: View {
     private var activeFilterLabel: String? {
         switch filter {
         case .all: return nil
-        case .business: return "Business"
+        case .business: return String(localized: "Business")
         case .customer(let id): return receiptCustomers.first { $0.persistentModelID == id }?.listDisplayName
         case .store(let name): return name
         }
@@ -449,7 +448,7 @@ struct ReceiptListView: View {
                 Text(receipt.date.formatted(date: .abbreviated, time: .omitted))
                 if showsAssignee {
                     Text("·")
-                    Text(receipt.customer?.listDisplayName ?? "Business").lineLimit(1)
+                    Text(receipt.customer?.listDisplayName ?? String(localized: "Business")).lineLimit(1)
                 } else if !receipt.category.isEmpty {
                     Text("·")
                     Text(receipt.category).lineLimit(1)

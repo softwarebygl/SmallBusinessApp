@@ -20,8 +20,8 @@ nonisolated enum InvoiceStatus: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .draft: "Draft"
-        case .sent: "Sent"
+        case .draft: String(localized: "Draft")
+        case .sent: String(localized: "Sent")
         }
     }
 }
@@ -33,10 +33,10 @@ nonisolated enum PaymentTerms: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .dueOnReceipt: "Due on receipt"
-        case .net15: "Net 15"
-        case .net30: "Net 30"
-        case .custom: "Custom date"
+        case .dueOnReceipt: String(localized: "Due on receipt")
+        case .net15: String(localized: "Net 15")
+        case .net30: String(localized: "Net 30")
+        case .custom: String(localized: "Custom date")
         }
     }
 
@@ -63,11 +63,11 @@ nonisolated enum PaymentMethod: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .cash: "Cash"
-        case .check: "Check"
-        case .card: "Card"
-        case .transfer: "Bank transfer"
-        case .other: "Other"
+        case .cash: String(localized: "Cash")
+        case .check: String(localized: "Check")
+        case .card: String(localized: "Card")
+        case .transfer: String(localized: "Bank transfer")
+        case .other: String(localized: "Other")
         }
     }
 }
@@ -217,9 +217,9 @@ extension Invoice {
 
     /// Status as shown to the user — surfaces Paid / Partially Paid / Overdue automatically.
     var displayStatus: String {
-        if isPaid { return "Paid" }
-        if isOverdue { return "Overdue" }
-        if isPartiallyPaid { return "Partially Paid" }
+        if isPaid { return String(localized: "Paid") }
+        if isOverdue { return String(localized: "Overdue") }
+        if isPartiallyPaid { return String(localized: "Partially Paid") }
         return status.label
     }
 

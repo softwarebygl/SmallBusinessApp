@@ -140,7 +140,7 @@ struct CustomersScreen: View {
                 Button(role: .destructive) {
                     deleteSelected()
                 } label: {
-                    Text(selection.isEmpty ? "Delete" : "Delete (\(selection.count))")
+                    Text(selection.isEmpty ? String(localized: "Delete") : String(localized: "Delete (\(selection.count))"))
                 }
                 .tint(.red)
                 .disabled(selection.isEmpty)

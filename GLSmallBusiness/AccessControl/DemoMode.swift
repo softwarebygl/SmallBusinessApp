@@ -11,6 +11,9 @@
 
 import Foundation
 import SwiftData
+#if canImport(UIKit)
+import UIKit
+#endif
 
 enum DemoMode {
     static var isActive: Bool {
@@ -31,11 +34,21 @@ enum DemoSeed {
         guard existing.isEmpty else { return }
 
         let biz = BusinessProfile()
-        biz.businessName = "Evolved by GL"
+        biz.businessName = "Summit Tile & Stone"
         biz.phone = "(850) 555-0142"
-        biz.email = "hello@evolvedbygl.com"
-        biz.licenseNumber = "FL-CBC1525487"
-        biz.address = Address(street1: "2491 Dundee Dr", city: "Tallahassee", state: "FL", postalCode: "32308")
+        biz.email = "office@summittilestone.com"
+        biz.licenseNumber = "CBC1245789"
+        biz.address = Address(street1: "1280 Commerce Blvd", city: "Tallahassee", state: "FL", postalCode: "32301")
+        #if canImport(UIKit)
+        // Only brand the demo business when explicitly requested (-demoBrand). Without it,
+        // the app falls back to the bundled GL logo — so the default screenshots show the
+        // GL design, and -demoBrand is used to demonstrate white-labeling.
+        if ProcessInfo.processInfo.arguments.contains("-demoBrand"),
+           let logo = UIImage(named: "DemoBrandLogo")?.pngData() {
+            biz.logoData = logo
+            biz.logoDataDark = logo
+        }
+        #endif
         context.insert(biz)
 
         let c1 = Customer(firstName: "Marcus", lastName: "Reed", email: "marcus@reedgc.com",
@@ -48,6 +61,13 @@ enum DemoSeed {
                           phoneNumber: "(850) 555-0176", businessName: "Nguyen Property Management",
                           address: Address(street1: "305 John Knox Rd", city: "Tallahassee", state: "FL", postalCode: "32303"))
         [c1, c2, c3].forEach(context.insert)
+
+        // demo receipts (fictional vendors) for the Receipts + Stats screenshots
+        let r1 = Receipt(vendor: "Henderson Hardware", date: .now.addingTimeInterval(-4 * 86_400), total: 127.43, category: "Materials", notes: "Tile spacers, grout, mortar", customer: c1)
+        let r2 = Receipt(vendor: "Coastal Supply", date: .now.addingTimeInterval(-2 * 86_400), total: 456.78, category: "Materials", notes: "LVP flooring stock", customer: c2)
+        let r3 = Receipt(vendor: "Sunbelt Tool Rental", date: .now.addingTimeInterval(-6 * 86_400), total: 184.00, category: "Equipment", notes: "Wet saw, 2-day rental", customer: c1)
+        let r4 = Receipt(vendor: "QuickStop Fuel", date: .now.addingTimeInterval(-1 * 86_400), total: 62.15, category: "Fuel", notes: "Job-site travel", customer: nil)
+        [r1, r2, r3, r4].forEach(context.insert)
 
         // Estimate 1 — Marcus, master bath tile (Sent)
         let e1 = Estimate(number: "EST-0001", jobTitle: "Master Bath — Porcelain Tile",
@@ -92,6 +112,14 @@ enum DemoSeed {
                                  date: .now.addingTimeInterval(-1 * 86_400), method: .check, note: "Deposit to start")
         pay.invoice = inv
         context.insert(pay)
+
+        // A progress payment so the demo shows a healthy positive net (income comfortably above expenses).
+        let pay2 = InvoicePayment(amount: 1400, date: .now.addingTimeInterval(-43_200), method: .check, note: "Progress payment")
+        pay2.invoice = inv
+        context.insert(pay2)
+        // The seed inserts payments directly (bypassing recordPayment, which normally decrements this),
+        // so clear the deposit request — it's fully covered by the payments above.
+        inv.amountDueNow = 0
 
         try? context.save()
     }

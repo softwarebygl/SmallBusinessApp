@@ -24,6 +24,19 @@ struct RootView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
+        #if DEBUG
+        if DemoMode.wantsDocument {
+            DemoDocumentScreenshot()
+        } else {
+            shell
+        }
+        #else
+        shell
+        #endif
+    }
+
+    @ViewBuilder
+    private var shell: some View {
         if sizeClass == .regular {
             IPadRootSplitView()
         } else {
@@ -38,9 +51,9 @@ private enum AppSection: String, CaseIterable, Identifiable {
     var id: Self { self }
     var title: String {
         switch self {
-        case .customers: "Customers"
-        case .receipts: "Receipts"
-        case .stats: "Stats"
+        case .customers: String(localized: "Customers")
+        case .receipts: String(localized: "Receipts")
+        case .stats: String(localized: "Stats")
         }
     }
     var systemImage: String {
@@ -59,7 +72,17 @@ struct IPadRootSplitView: View {
     @Query(sort: \Receipt.date, order: .reverse) private var receipts: [Receipt]
     @Query private var businessProfiles: [BusinessProfile]
 
-    @State private var section: AppSection? = .customers
+    @State private var section: AppSection? = {
+        #if DEBUG
+        switch DemoMode.screen {
+        case "receipts": return .receipts
+        case "stats": return .stats
+        default: return .customers
+        }
+        #else
+        return .customers
+        #endif
+    }()
     @State private var selectedCustomerID: PersistentIdentifier?
     @State private var selectedReceiptID: PersistentIdentifier?
     @State private var showingMenu = false
@@ -88,7 +111,29 @@ struct IPadRootSplitView: View {
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
         .sheet(isPresented: $showingAddCustomer) { CustomerFormScreen().glAppearance(colorScheme) }
+        #if DEBUG
+        .onAppear { selectDemoCustomerIfNeeded(); selectDemoReceiptIfNeeded() }
+        .onChange(of: customers.count) { _, _ in selectDemoCustomerIfNeeded() }
+        .onChange(of: receipts.count) { _, _ in selectDemoReceiptIfNeeded() }
+        #endif
     }
+
+    #if DEBUG
+    /// Screenshot helper: in demo mode on the Customers section, show the first customer's
+    /// detail instead of the empty "Select a Customer" placeholder. DEBUG-only — never affects users.
+    private func selectDemoCustomerIfNeeded() {
+        guard DemoMode.isActive, section == .customers, selectedCustomerID == nil,
+              let first = customers.first else { return }
+        selectedCustomerID = first.persistentModelID
+    }
+
+    /// Same idea for Receipts, so the iPad detail shows a receipt instead of "Select a Receipt".
+    private func selectDemoReceiptIfNeeded() {
+        guard DemoMode.isActive, section == .receipts, selectedReceiptID == nil,
+              let first = receipts.first else { return }
+        selectedReceiptID = first.persistentModelID
+    }
+    #endif
 
     // MARK: - Sidebar (sections)
 
@@ -153,7 +198,7 @@ struct IPadRootSplitView: View {
             // Stats laid out natively for the split: period controls + KPIs here, charts in detail.
             StatsControlsColumn(selection: statsSelection)
         case nil:
-            BrandPlaceholder(text: "Select a section", systemImage: "square.grid.2x2")
+            BrandPlaceholder(text: String(localized: "Select a section"), systemImage: "square.grid.2x2")
         }
     }
 
@@ -167,13 +212,13 @@ struct IPadRootSplitView: View {
                 if let selectedCustomer {
                     CustomerDetailScreen(customer: selectedCustomer)
                 } else {
-                    BrandPlaceholder(text: "Select a Customer", systemImage: "person.crop.circle")
+                    BrandPlaceholder(text: String(localized: "Select a Customer"), systemImage: "person.crop.circle")
                 }
             case .receipts:
                 if let selectedReceipt {
                     ReceiptDetailScreen(receipt: selectedReceipt)
                 } else {
-                    BrandPlaceholder(text: "Select a Receipt", systemImage: "doc.viewfinder")
+                    BrandPlaceholder(text: String(localized: "Select a Receipt"), systemImage: "doc.viewfinder")
                 }
             case .stats:
                 StatsDashboard(selection: statsSelection)

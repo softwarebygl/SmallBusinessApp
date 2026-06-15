@@ -92,8 +92,15 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 This is the most important section. The goal: **users never lose data or have to reinstall on an update.**
 
 - The app uses a **versioned schema + migration plan** in `Models/GLSchema.swift`:
-  `GLSchemaV1` (a frozen snapshot of the model shape) and `GLMigrationPlan`. The container is built with
+  `GLSchemaV1` and `GLMigrationPlan`. The container is built with
   `ModelContainer(for: schema, migrationPlan: GLMigrationPlan.self, …)`.
+- ⚠️ **`GLSchemaV1` currently references the LIVE `@Model` types, not frozen copies.** That is fine while
+  V1 is the only version (pre-launch we keep folding additive changes into V1 — see rule 3 / §11). But it is
+  a **trap for the first post-launch migration:** if you add `GLSchemaV2` while V1 still points at the live
+  types, V1 and V2 resolve to the *same current shape* → identical checksums → the app crashes at launch with
+  **"Duplicate version checksums detected."** (Seen for real when a premature V2 was added.) Before introducing
+  V2, you MUST **freeze V1** — copy the launch-shape model definitions into a V1-only namespace so `GLSchemaV1`
+  describes the *old* shape and `GLSchemaV2` the *new* one.
 - **Why dev crashes/wipes happen (dev-only):** changing a model in place without bumping the version
   leaves the on-disk store's shape mismatched → crash; the dev fix is "delete the app" (throwaway data).
   Also, **CloudKit requires every stored property to have a default or be optional** — a property with no
@@ -103,9 +110,11 @@ This is the most important section. The goal: **users never lose data or have to
      rename, remove, retype, or make-required an existing stored property in place. To "rename": add the
      new field, copy data in code, keep the old one (drop it only in a far-future cleanup).
   2. New relationships must be **optional** (incl. to-many: `[Thing]?`, never `[Thing] = []`), with inverses.
-  3. For a model change in a release **after** launch: snapshot the new shape as `GLSchemaV2` (then V3…),
-     add it to `GLMigrationPlan.schemas`, add a `.lightweight(fromVersion:toVersion:)` stage, and point the
-     `GLCurrentSchema` typealias at the newest version. Lightweight = automatic, zero data loss.
+  3. For a model change in a release **after** launch: first **freeze the current `GLSchemaV1`** (replace its
+     live-type references with copied snapshot definitions of the launch shape — see the ⚠️ above), then
+     snapshot the new shape as `GLSchemaV2` (then V3…), add it to `GLMigrationPlan.schemas`, add a
+     `.lightweight(fromVersion:toVersion:)` stage, and point the `GLCurrentSchema` typealias at the newest
+     version. Lightweight = automatic, zero data loss, **no reinstall for users.**
   4. CloudKit only supports **lightweight/additive** migrations (no custom-migration hook), so the
      additive discipline above is mandatory, not optional.
 - `Codable` value types stored as `@Model` properties (e.g. `Address`) must be marked **`nonisolated`**
@@ -152,6 +161,14 @@ This is the most important section. The goal: **users never lose data or have to
   dismiss is a **non-cancelling window gesture** (`KeyboardDismissInstaller`), NOT a SwiftUI
   `simultaneousGesture(TapGesture())` — the latter steals taps from menu Pickers (they'd need a long-press).
 - **Photo crop:** customer profile photos go through `ImageCropView` (pinch/drag in a circle) before saving.
+- **Sheet dismissal controls (pick by intent, not habit):** **(a)** *Presentational* sheets — you only viewed /
+  generated / shared, nothing to commit — use an **X close** in `.topBarLeading` via the iOS-26 role:
+  `Button(role: .close) { dismiss() }` (e.g. Menu, Generate a W-9, Year-End Tax Report). **(b)** *Editing* sheets —
+  you entered/changed data — use **Cancel** (`.cancellationAction`) + **Save** (`.confirmationAction`) (e.g. the
+  Company/Customer/Estimate/Invoice/Receipt forms, Signature editor, Record Payment, Set Amount Due). **(c)**
+  **Edit↔Done** toggle stays the list edit-mode pattern (Customers/Estimates/Invoices/Receipts). Avoid a bare
+  "Done" to dismiss a presentational sheet — "Done" implies you finished an action; if there's nothing to
+  finish, it's a close.
 
 ## 9. Secrets
 
@@ -186,6 +203,37 @@ no migration needed until the first post-launch change).
   logo" toggle; `job` added to the unit selector; estimate wording "Deposit due" → "Required Deposit";
   per-line-item **Remove** buttons; keyboard dismiss on scroll/tap-outside (+ Picker-tap conflict fixed);
   app display name **"GL Business"**; "Developer Feedback" mailto button (→ support@evolvedbygl.com).
+- **Done (V1 development), built + verified on the simulator — ⚠️ NOT yet tested on-device or committed:**
+  **Documents hub** — a new Menu destination (`DocumentsScreen`, peer to My Company) that is the single
+  home for generating/sending business documents. **Architecture rule going forward:** *My Company holds
+  the reusable data (identity, tax details, signature, soon insurance); Documents holds the actions
+  (generate + send).* Don't add more document generators to My Company. Today it has **Year-End Tax
+  Report** (the accountant export — receipts CSV + tax summary — behind an inline year picker defaulted to
+  the **last completed year**) and **Generate a W-9** that fills the **actual official IRS Form W-9 (Rev.
+  3-2024)**.
+  The blank government PDF page 1 is bundled at `Resources/W9Template.pdf`; `W9PDF.render` stamps the
+  company's details onto it at the form's **real AcroForm field coordinates** (read from the template's
+  fields — name, the 7 classification checkboxes, LLC letter, address, and the comb SSN 3‑2‑4 / EIN 2‑7
+  boxes) via `CGContext` + Core Text, then flattens to a single shareable page. Looks pixel-identical to the
+  IRS form. (Earlier app-drawn approximation `W9PDFDocument.swift` was replaced by `W9FormFiller.swift`.)
+  **My Company → "Signature"** row (Face-ID-gated): create a saved signature by **draw** (PencilKit),
+  **type** (Italianno script), or **import** (photo, near-white knocked out). The W-9 has an **"Export with
+  Signature and Date"** toggle (default on) that, after a Face ID unlock, draws the saved signature image
+  onto the form's signing line and fills the date.
+  Stats **"Export for Accountant" → "Year-End Tax Report"** (both iPhone + iPad). New **additive**
+  `BusinessProfile` fields (still **V1**, no migration): `w9Name`, `w9TaxClassificationRaw`,
+  `w9LLCClassification`, `w9OtherClassification`, `w9TINTypeRaw`, `w9TIN`, `w9ExemptPayeeCode`,
+  `w9FATCACode`, and `signatureData` (`@Attribute(.externalStorage)`, CloudKit-synced). Added
+  `NSFaceIDUsageDescription` to Info.plist. New files: `UIComponents/W9FormFiller.swift`,
+  `UIComponents/SignatureKit.swift`, `Screens/CompanyDocuments.swift`, `Screens/SignatureEditorSheet.swift`,
+  and the bundled `Resources/W9Template.pdf` (official IRS form, public domain).
+- **Planned next (owner-requested) — Documents roadmap:** (1) **COI** (Certificate of Insurance) — owner
+  imports a blank COI PDF, app asks for the GC's info, fills + generates it (same fill-the-official-PDF
+  approach as the W-9). (2) **WC exemption certificate**. (3) **Send Compliance Packet** — bundle W-9 + COI
+  + WC into one email with a fixed header/body/sign-off (brand voice per evolvedbygl.com: clean, honest, no
+  shortcuts), owner just picks the outgoing account and sends (MFMailComposeViewController, device-only).
+  Reusable insurance data should live in **My Company** (new "Insurance" section); generation/sending stays
+  in the **Documents** hub.
 - **CloudKit:** V1 (10 record types) deployed to Production. A one-time **completeness seed** (since removed)
   populated every field including the image/asset ones; `serviceAddress` + the dark-logo asset were deployed.
   ⏳ **Final deploy to confirm:** the `CD_Receipt` `scanData` + `customer` fields the seed surfaced — deploy
@@ -194,6 +242,12 @@ no migration needed until the first post-launch change).
   "GL Business" — re-archived with all changes, ready to upload). **App Store listing + privacy policy
   drafted** (`AppStore-Listing-DRAFT.md`, `PrivacyPolicy-DRAFT.md`).
 - **Pending before launch (needs the owner):**
+  - **TODO — deploy the new `CD_BusinessProfile` fields to CloudKit Production (§7).** The Generate-a-Document
+    work added the W-9 fields + `signatureData` to `BusinessProfile`. Run the app so SwiftData mirrors the new
+    fields into the **Development** schema, then **Deploy Schema Changes → Production** (all additive). Skipping
+    this = sync silently breaks for users.
+  - **TODO — bump the build number** for the next submission (and re-archive Release) once this feature is
+    tested on-device and committed.
   - Confirm the final **CloudKit `CD_Receipt` deploy** (above).
   - **Host the privacy policy** at a public URL; finalize listing decisions (price, audience, keywords).
   - **App Store Connect:** create the app record, upload the archive (needs an ASC API key, or Xcode
@@ -209,4 +263,34 @@ no migration needed until the first post-launch change).
   unless asked (e.g. when swapping which image shows, keep the existing display treatment identical).
 - **Guidance:** drive decisions with a clear recommended default; proactively flag industry/business norms.
   The owner is a capable non-CS small-business owner — explain technical trade-offs plainly when asked.
-</content>
+
+## 13. Design requirements
+
+The design bar is Gold Life's **Gold Standard — review it before any UX/visual/copy decision:**
+**🔗 https://evolvedbygl.com** → *"One standard. Many ventures."* · *"The work I do for you is the work I'd
+do for my own. With restraint. With care. Without shortcuts."* Clean, honest, intentional. Every screen and
+every line of customer-facing copy must clear that bar.
+
+- **Brand & voice:** GL gold is the single accent (`Color("AccentColor")` / `GLColor.gold`, resolved
+  appearance-aware via `.render(in:)`). Titles use the calligraphic **Italianno** script; body uses **Inter**.
+  Copy is plain and honest, no fluff — in-app *and* in customer-facing documents/emails.
+- **Visual language (iOS 26 "Liquid Glass"):** card-based layouts (`glCardBackground()` / `GLCard`),
+  `glassEffect` where it fits, the GL monogram backdrop (`PrimaryBackground`). Full **light + dark** support —
+  never hard-code colors; resolve through `GLColor`. The company logo may replace the monogram (Settings
+  toggle) — honor `BusinessProfile.logo(for:)` fallbacks.
+- **Information architecture — one screen, one purpose:** keep reusable *data* and *actions* apart. **My
+  Company** holds reusable identity/credentials (business info, tax details, signature, soon insurance); the
+  **Documents** hub holds the generate/send *actions*. When a screen starts collecting unrelated actions,
+  spin out a dedicated hub rather than piling on — the "without shortcuts" rule applied to IA.
+- **Sheet dismissal (see §8):** **X close** (`Button(role: .close)`, `.topBarLeading`) for presentational
+  sheets; **Cancel + Save** for editing; **Edit↔Done** for list edit mode. Never a bare "Done" just to close.
+- **Cross-device — iPhone *and* iPad:** ships on iPhone (`RootTabView`, compact width) and iPad / large-iPhone
+  landscape (single three-column `NavigationSplitView`, regular width). Shared components — the **Menu sheet**
+  (My Company, Documents, Settings), forms, and document sheets — must render correctly on both. **Every change
+  must preserve the iPad split-view flow;** verify it (launch an iPad sim with `-demoMode` to bypass the gate,
+  then screenshot — see §5).
+- **Generated documents look genuine:** official forms (W-9 today; COI / WC next) **fill the real official
+  PDF** so output is indistinguishable from the genuine document — never an app-drawn approximation.
+- **Interaction principles:** drive with a clear recommended default; prefer **Apple-recommended, idiomatic
+  first-class SwiftUI APIs** over hacks; **verify empirically** (build → run → screenshot; don't assume
+  layout). Icon-only buttons get an `accessibilityLabel`.

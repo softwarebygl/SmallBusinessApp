@@ -30,7 +30,7 @@ enum StatsPeriod: Hashable {
     var label: String {
         switch self {
         case .all:
-            return "All time"
+            return String(localized: "All time")
         case .year(let year):
             return String(year)
         case .month(let year, let month):
@@ -145,7 +145,7 @@ enum StatsEngine {
         for receipt in receipts where period.contains(receipt.date, calendar: calendar) {
             summary.expenses += receipt.total
             let key = receipt.category.trimmingCharacters(in: .whitespacesAndNewlines)
-            categoryTotals[key.isEmpty ? "Uncategorized" : key, default: 0] += receipt.total
+            categoryTotals[key.isEmpty ? String(localized: "Uncategorized") : key, default: 0] += receipt.total
         }
         summary.expensesByCategory = categoryTotals
             .map { CategoryAmount(category: $0.key, amount: $0.value) }

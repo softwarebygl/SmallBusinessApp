@@ -195,8 +195,8 @@ struct EstimateFormScreen: View {
                         .foregroundStyle(.secondary)
                 }
 
-                adjustmentSection(title: "Discount", type: $discountType, value: $discountValue)
-                adjustmentSection(title: "Deposit", type: $depositType, value: $depositValue)
+                adjustmentSection(title: String(localized: "Discount"), type: $discountType, value: $discountValue)
+                adjustmentSection(title: String(localized: "Deposit"), type: $depositType, value: $depositValue)
 
                 Section("Notes") {
                     TextField("Notes for the customer", text: $customerNotes, axis: .vertical)
@@ -261,7 +261,7 @@ struct EstimateFormScreen: View {
                 }
             }
         } header: {
-            Text(group.wrappedValue.name.isEmpty ? "Group" : group.wrappedValue.name)
+            Text(group.wrappedValue.name.isEmpty ? String(localized: "Group") : group.wrappedValue.name)
         }
     }
 
@@ -349,7 +349,7 @@ struct EstimateFormScreen: View {
     }
 
     @ViewBuilder
-    private func nameField(_ text: Binding<String>, placeholder: String, field: SuggestionField, counts: [String: Int]) -> some View {
+    private func nameField(_ text: Binding<String>, placeholder: LocalizedStringKey, field: SuggestionField, counts: [String: Int]) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             TextField(placeholder, text: text)
                 .font(.headline)
@@ -394,11 +394,11 @@ struct EstimateFormScreen: View {
 
     private var summarySection: some View {
         Section("Summary") {
-            summaryRow("Subtotal", totals.subtotal)
-            if totals.discount > 0 { summaryRow("Discount", -totals.discount) }
-            if totals.tax > 0 { summaryRow("Tax", totals.tax) }
-            summaryRow("Total", totals.total, bold: true)
-            if totals.deposit > 0 { summaryRow("Required Deposit", totals.deposit) }
+            summaryRow(String(localized: "Subtotal"), totals.subtotal)
+            if totals.discount > 0 { summaryRow(String(localized: "Discount"), -totals.discount) }
+            if totals.tax > 0 { summaryRow(String(localized: "Tax"), totals.tax) }
+            summaryRow(String(localized: "Total"), totals.total, bold: true)
+            if totals.deposit > 0 { summaryRow(String(localized: "Required Deposit"), totals.deposit) }
         }
     }
 

@@ -16,7 +16,7 @@ import SwiftUI
 struct AutoClearNumberField: View {
     enum Style { case number, currency }
 
-    let placeholder: String
+    let placeholder: LocalizedStringKey
     @Binding var value: Double
     var style: Style = .number
     /// The default value that should auto-clear on tap (0 for prices/rates, 1 for quantities).

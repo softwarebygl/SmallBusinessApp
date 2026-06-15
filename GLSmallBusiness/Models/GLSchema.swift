@@ -56,6 +56,11 @@ enum GLSchemaV1: VersionedSchema {
     }
 }
 
+// NOTE: Pre-launch, every model change is still part of V1 (see README §6 rule 3 / §11) — nothing
+// has shipped, so there are no production stores to migrate. The W-9 tax fields and saved
+// `signatureData` added to `BusinessProfile` are purely additive (defaulted / optional), so they
+// fold into V1. The first post-launch model change is when GLSchemaV2 + a lightweight stage land.
+
 /// The schema version the app currently builds against. Repoint this when you add a new version.
 typealias GLCurrentSchema = GLSchemaV1
 
@@ -70,7 +75,7 @@ enum GLMigrationPlan: SchemaMigrationPlan {
 
     static var stages: [MigrationStage] {
         // No migrations yet — V1 is the baseline.
-        // When GLSchemaV2 lands, append e.g.:
+        // When GLSchemaV2 lands (first post-launch model change), append e.g.:
         //   .lightweight(fromVersion: GLSchemaV1.self, toVersion: GLSchemaV2.self)
         []
     }

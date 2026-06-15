@@ -19,10 +19,10 @@ nonisolated enum EstimateStatus: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .draft: "Draft"
-        case .sent: "Sent"
-        case .accepted: "Accepted"
-        case .declined: "Declined"
+        case .draft: String(localized: "Draft")
+        case .sent: String(localized: "Sent")
+        case .accepted: String(localized: "Accepted")
+        case .declined: String(localized: "Declined")
         }
     }
 }
@@ -34,8 +34,8 @@ nonisolated enum LineItemKind: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .labor: "Labor"
-        case .material: "Material"
+        case .labor: String(localized: "Labor")
+        case .material: String(localized: "Material")
         }
     }
 
@@ -50,27 +50,27 @@ nonisolated enum UnitOfMeasure: String, Codable, CaseIterable, Identifiable {
 
     var abbreviation: String {
         switch self {
-        case .squareFoot: "sq ft"
-        case .linearFoot: "ln ft"
-        case .squareYard: "sq yd"
-        case .hour: "hr"
-        case .day: "day"
-        case .each: "ea"
-        case .lumpSum: "lump"
-        case .job: "job"
+        case .squareFoot: String(localized: "sq ft")
+        case .linearFoot: String(localized: "ln ft")
+        case .squareYard: String(localized: "sq yd")
+        case .hour: String(localized: "hr")
+        case .day: String(localized: "day")
+        case .each: String(localized: "ea")
+        case .lumpSum: String(localized: "lump")
+        case .job: String(localized: "job")
         }
     }
 
     var label: String {
         switch self {
-        case .squareFoot: "Square feet"
-        case .linearFoot: "Linear feet"
-        case .squareYard: "Square yards"
-        case .hour: "Hours"
-        case .day: "Days"
-        case .each: "Each"
-        case .lumpSum: "Lump sum"
-        case .job: "Job"
+        case .squareFoot: String(localized: "Square feet")
+        case .linearFoot: String(localized: "Linear feet")
+        case .squareYard: String(localized: "Square yards")
+        case .hour: String(localized: "Hours")
+        case .day: String(localized: "Days")
+        case .each: String(localized: "Each")
+        case .lumpSum: String(localized: "Lump sum")
+        case .job: String(localized: "Job")
         }
     }
 }
@@ -83,9 +83,9 @@ nonisolated enum AdjustmentType: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .none: "None"
-        case .percentage: "Percentage"
-        case .fixed: "Fixed amount"
+        case .none: String(localized: "None")
+        case .percentage: String(localized: "Percentage")
+        case .fixed: String(localized: "Fixed amount")
         }
     }
 }
@@ -246,7 +246,7 @@ extension Estimate {
 
     /// Status as shown to the user — surfaces "Expired" when past the valid-until date.
     var displayStatus: String {
-        isExpired ? "Expired" : status.label
+        isExpired ? String(localized: "Expired") : status.label
     }
 
     static func nextNumber(after existing: [Estimate]) -> String {

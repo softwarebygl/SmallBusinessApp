@@ -123,7 +123,7 @@ struct OnboardingView: View {
         .padding(.vertical, 8)
     }
 
-    private func feature(_ symbol: String, _ text: String) -> some View {
+    private func feature(_ symbol: String, _ text: LocalizedStringKey) -> some View {
         HStack(spacing: 12) {
             Image(systemName: symbol)
                 .foregroundStyle(Color("AccentColor"))

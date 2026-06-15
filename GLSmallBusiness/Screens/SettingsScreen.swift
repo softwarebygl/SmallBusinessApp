@@ -22,9 +22,9 @@ enum AppColorScheme: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .light: "Light"
-        case .dark: "Dark"
-        case .system: "Auto"
+        case .light: String(localized: "Light")
+        case .dark: String(localized: "Dark")
+        case .system: String(localized: "Auto")
         }
     }
 

@@ -71,7 +71,7 @@ struct EstimateDetailScreen: View {
         .containerBackground(for: .navigation) {
             PrimaryBackground()
         }
-        .navigationTitle(estimate.number.isEmpty ? "Estimate" : estimate.number)
+        .navigationTitle(estimate.number.isEmpty ? String(localized: "Estimate") : estimate.number)
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $convertedInvoice) { invoice in
             InvoiceDetailScreen(invoice: invoice)
@@ -142,7 +142,7 @@ struct EstimateDetailScreen: View {
         card {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(estimate.jobTitle.isEmpty ? "Untitled job" : estimate.jobTitle)
+                    Text(estimate.jobTitle.isEmpty ? String(localized: "Untitled job") : estimate.jobTitle)
                         .font(.title3.weight(.semibold))
                     Text(estimate.number)
                         .font(.subheadline)
@@ -152,8 +152,8 @@ struct EstimateDetailScreen: View {
                 EstimateStatusBadge(estimate: estimate)
             }
             Divider()
-            labeledRow("Created", estimate.createdAt.formatted(date: .abbreviated, time: .omitted))
-            labeledRow("Valid until", estimate.validUntil.formatted(date: .abbreviated, time: .omitted))
+            labeledRow(String(localized: "Created"), estimate.createdAt.formatted(date: .abbreviated, time: .omitted))
+            labeledRow(String(localized: "Valid until"), estimate.validUntil.formatted(date: .abbreviated, time: .omitted))
         }
     }
 
@@ -193,7 +193,7 @@ struct EstimateDetailScreen: View {
     private var groupsView: some View {
         ForEach(estimate.sortedGroups) { group in
             card {
-                Text(group.name.isEmpty ? "Line Items" : group.name)
+                Text(group.name.isEmpty ? String(localized: "Line Items") : group.name)
                     .font(.headline)
                 if !group.note.isEmpty {
                     Text(group.note).font(.subheadline).foregroundStyle(.secondary)
@@ -242,13 +242,13 @@ struct EstimateDetailScreen: View {
 
     private var totalsCard: some View {
         card {
-            totalRow("Subtotal", estimate.subtotal)
-            if estimate.discountAmount > 0 { totalRow("Discount", -estimate.discountAmount) }
-            if estimate.taxAmount > 0 { totalRow("Tax (\(estimate.taxRatePercent.formatted())%)", estimate.taxAmount) }
+            totalRow(String(localized: "Subtotal"), estimate.subtotal)
+            if estimate.discountAmount > 0 { totalRow(String(localized: "Discount"), -estimate.discountAmount) }
+            if estimate.taxAmount > 0 { totalRow(String(localized: "Tax") + " (\(estimate.taxRatePercent.formatted())%)", estimate.taxAmount) }
             Divider()
-            totalRow("Total", estimate.total, bold: true)
+            totalRow(String(localized: "Total"), estimate.total, bold: true)
             if estimate.depositAmount > 0 {
-                totalRow("Required Deposit", estimate.depositAmount)
+                totalRow(String(localized: "Required Deposit"), estimate.depositAmount)
             }
         }
     }

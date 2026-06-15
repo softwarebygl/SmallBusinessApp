@@ -17,17 +17,17 @@ enum CustomerDocumentKind: String, CaseIterable, Identifiable, Hashable {
 
     var pluralTitle: String {
         switch self {
-        case .estimates: "Estimates"
-        case .invoices: "Invoices"
-        case .receipts: "Receipts"
+        case .estimates: String(localized: "Estimates")
+        case .invoices: String(localized: "Invoices")
+        case .receipts: String(localized: "Receipts")
         }
     }
 
     var singularTitle: String {
         switch self {
-        case .estimates: "Estimate"
-        case .invoices: "Invoice"
-        case .receipts: "Receipt"
+        case .estimates: String(localized: "Estimate")
+        case .invoices: String(localized: "Invoice")
+        case .receipts: String(localized: "Receipt")
         }
     }
 

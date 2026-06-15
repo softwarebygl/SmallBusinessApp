@@ -9,6 +9,62 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+// MARK: - W-9 enums
+
+/// The federal tax classification checked on line 3a of IRS Form W-9.
+enum W9TaxClassification: String, CaseIterable, Identifiable, Sendable {
+    case individual
+    case cCorporation
+    case sCorporation
+    case partnership
+    case trustEstate
+    case llc
+    case other
+
+    var id: String { rawValue }
+
+    /// Plain label used in the My Company picker.
+    var label: String {
+        switch self {
+        case .individual: return String(localized: "Individual / sole proprietor")
+        case .cCorporation: return String(localized: "C corporation")
+        case .sCorporation: return String(localized: "S corporation")
+        case .partnership: return String(localized: "Partnership")
+        case .trustEstate: return String(localized: "Trust / estate")
+        case .llc: return String(localized: "Limited liability company")
+        case .other: return String(localized: "Other")
+        }
+    }
+
+    /// The exact wording printed next to the checkbox on the W-9.
+    var formLabel: String {
+        switch self {
+        case .individual: return "Individual/sole proprietor"
+        case .cCorporation: return "C corporation"
+        case .sCorporation: return "S corporation"
+        case .partnership: return "Partnership"
+        case .trustEstate: return "Trust/estate"
+        case .llc: return "Limited liability company"
+        case .other: return "Other"
+        }
+    }
+}
+
+/// Whether the W-9 taxpayer ID is a Social Security Number or an Employer ID Number.
+enum W9TINType: String, CaseIterable, Identifiable, Sendable {
+    case ssn
+    case ein
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .ssn: return String(localized: "SSN")
+        case .ein: return String(localized: "EIN")
+        }
+    }
+}
+
 /// The company's own details, shown as the header on estimates/invoices/receipts.
 /// A single instance is expected; the Settings screen fetches-or-creates it.
 @Model
@@ -32,6 +88,29 @@ final class BusinessProfile {
     var invoiceMessageIntro: String = ""
     var invoiceMessageClosing: String = ""
 
+    // MARK: W-9 details (used to generate a W-9 PDF; all optional)
+
+    /// Line 1 — name as shown on the income tax return. Falls back to `businessName` when blank.
+    var w9Name: String = ""
+    /// `W9TaxClassification.rawValue`; "" = not set.
+    var w9TaxClassificationRaw: String = ""
+    /// For LLCs, the tax classification letter entered on line 3a (C, S, or P).
+    var w9LLCClassification: String = ""
+    /// Free-text description when the classification is "Other".
+    var w9OtherClassification: String = ""
+    /// `W9TINType.rawValue`; "" = not set.
+    var w9TINTypeRaw: String = ""
+    /// The taxpayer ID digits (SSN or EIN), formatted when rendered.
+    var w9TIN: String = ""
+    /// Line 4 — exempt payee code (optional; most filers leave blank).
+    var w9ExemptPayeeCode: String = ""
+    /// Line 4 — exemption from FATCA reporting code (optional; most filers leave blank).
+    var w9FATCACode: String = ""
+
+    /// The user's saved signature as a transparent PNG, applied (after Face ID) to documents
+    /// like the W-9. Synced privately through CloudKit like the rest of the profile.
+    @Attribute(.externalStorage) var signatureData: Data?
+
     init() {}
 }
 
@@ -49,5 +128,45 @@ extension BusinessProfile {
     /// light/default), light mode prefers the light/default (falling back to the dark variant).
     func logo(for colorScheme: ColorScheme) -> Data? {
         colorScheme == .dark ? (logoDataDark ?? logoData) : (logoData ?? logoDataDark)
+    }
+
+    // MARK: - W-9 helpers
+
+    var w9TaxClassification: W9TaxClassification? {
+        get { W9TaxClassification(rawValue: w9TaxClassificationRaw) }
+        set { w9TaxClassificationRaw = newValue?.rawValue ?? "" }
+    }
+
+    var w9TINType: W9TINType? {
+        get { W9TINType(rawValue: w9TINTypeRaw) }
+        set { w9TINTypeRaw = newValue?.rawValue ?? "" }
+    }
+
+    /// Line 1 of the W-9 — the name as shown on the tax return, falling back to the business name.
+    var w9LegalName: String {
+        let trimmed = w9Name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? businessName : trimmed
+    }
+
+    /// Whether a saved signature exists.
+    var hasSignature: Bool { signatureData != nil }
+
+    /// The minimum needed to produce a usable W-9: a name, a classification, and a TIN.
+    var w9IsComplete: Bool { w9MissingRequirements.isEmpty }
+
+    /// The W-9 requirements still missing after reusing the company info already on file (name falls
+    /// back to the business name; the address comes from `address`). Empty means the W-9 is ready.
+    var w9MissingRequirements: [String] {
+        var missing: [String] = []
+        if w9LegalName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            missing.append(String(localized: "Your name (as shown on your tax return)"))
+        }
+        if w9TaxClassification == nil {
+            missing.append(String(localized: "Federal tax classification"))
+        }
+        if w9TINType == nil || w9TIN.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            missing.append(String(localized: "Tax ID (SSN or EIN)"))
+        }
+        return missing
     }
 }

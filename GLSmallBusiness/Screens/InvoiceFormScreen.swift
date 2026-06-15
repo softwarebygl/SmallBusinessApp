@@ -216,7 +216,7 @@ struct InvoiceFormScreen: View {
                         .foregroundStyle(.secondary)
                 }
 
-                adjustmentSection(title: "Discount", type: $discountType, value: $discountValue)
+                adjustmentSection(title: String(localized: "Discount"), type: $discountType, value: $discountValue)
 
                 Section {
                     LabeledContent("Amount due now") {
@@ -294,7 +294,7 @@ struct InvoiceFormScreen: View {
                 }
             }
         } header: {
-            Text(group.wrappedValue.name.isEmpty ? "Group" : group.wrappedValue.name)
+            Text(group.wrappedValue.name.isEmpty ? String(localized: "Group") : group.wrappedValue.name)
         }
     }
 
@@ -382,7 +382,7 @@ struct InvoiceFormScreen: View {
     }
 
     @ViewBuilder
-    private func nameField(_ text: Binding<String>, placeholder: String, field: SuggestionField, counts: [String: Int]) -> some View {
+    private func nameField(_ text: Binding<String>, placeholder: LocalizedStringKey, field: SuggestionField, counts: [String: Int]) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             TextField(placeholder, text: text)
                 .font(.headline)
@@ -427,10 +427,10 @@ struct InvoiceFormScreen: View {
 
     private var summarySection: some View {
         Section("Summary") {
-            summaryRow("Subtotal", totals.subtotal)
-            if totals.discount > 0 { summaryRow("Discount", -totals.discount) }
-            if totals.tax > 0 { summaryRow("Tax", totals.tax) }
-            summaryRow("Total", totals.total, bold: true)
+            summaryRow(String(localized: "Subtotal"), totals.subtotal)
+            if totals.discount > 0 { summaryRow(String(localized: "Discount"), -totals.discount) }
+            if totals.tax > 0 { summaryRow(String(localized: "Tax"), totals.tax) }
+            summaryRow(String(localized: "Total"), totals.total, bold: true)
         }
     }
 

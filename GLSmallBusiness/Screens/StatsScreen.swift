@@ -54,6 +54,7 @@ struct StatsScreen: View {
 
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 18) {
                     periodSelector
@@ -62,7 +63,7 @@ struct StatsScreen: View {
                         inOutCard
                         expensesCard
                         estimatesInvoicesCard
-                        exportButton
+                        exportButton.id("exportAnchor")
                     } else {
                         ContentUnavailableView {
                             Label("No activity yet", systemImage: "chart.bar")
@@ -102,6 +103,16 @@ struct StatsScreen: View {
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
             .onAppear { regenerateExport() }
             .onChange(of: period) { _, _ in regenerateExport() }
+            #if DEBUG
+            .onAppear {
+                if DemoMode.screen == "export" {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        proxy.scrollTo("exportAnchor", anchor: .bottom)
+                    }
+                }
+            }
+            #endif
+            }
         }
     }
 
@@ -140,10 +151,10 @@ struct StatsScreen: View {
 
     private var kpiGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            kpi("Collected", summary.collected, tint: gold)
-            kpi("Expenses", summary.expenses)
-            kpi("Net", summary.net, tint: summary.net >= 0 ? .green : .red)
-            kpi("Outstanding", summary.outstanding, tint: summary.outstanding > 0 ? .orange : .primary)
+            kpi(String(localized: "Collected"), summary.collected, tint: gold)
+            kpi(String(localized: "Expenses"), summary.expenses)
+            kpi(String(localized: "Net"), summary.net, tint: summary.net >= 0 ? .green : .red)
+            kpi(String(localized: "Outstanding"), summary.outstanding, tint: summary.outstanding > 0 ? .orange : .primary)
         }
     }
 
@@ -169,17 +180,19 @@ struct StatsScreen: View {
 
     private var inOutCard: some View {
         GLCard(title: "Money In vs Out") {
+            let inL = String(localized: "In")
+            let outL = String(localized: "Out")
             Chart {
                 ForEach(summary.inOut) { bucket in
                     BarMark(x: .value("Period", bucket.label), y: .value("Amount", bucket.moneyIn))
-                        .foregroundStyle(by: .value("Flow", "In"))
-                        .position(by: .value("Flow", "In"))
+                        .foregroundStyle(by: .value("Flow", inL))
+                        .position(by: .value("Flow", inL))
                     BarMark(x: .value("Period", bucket.label), y: .value("Amount", bucket.moneyOut))
-                        .foregroundStyle(by: .value("Flow", "Out"))
-                        .position(by: .value("Flow", "Out"))
+                        .foregroundStyle(by: .value("Flow", outL))
+                        .position(by: .value("Flow", outL))
                 }
             }
-            .chartForegroundStyleScale(["In": gold, "Out": Color.secondary])
+            .chartForegroundStyleScale([inL: gold, outL: Color.secondary])
             .chartYAxis {
                 AxisMarks(format: .currency(code: "USD").precision(.fractionLength(0)))
             }
@@ -242,7 +255,7 @@ struct StatsScreen: View {
         }
     }
 
-    private func statRow(_ label: String, _ value: String, valueColor: Color = .primary) -> some View {
+    private func statRow(_ label: LocalizedStringKey, _ value: String, valueColor: Color = .primary) -> some View {
         HStack {
             Text(label).foregroundStyle(.secondary)
             Spacer()
@@ -255,7 +268,7 @@ struct StatsScreen: View {
 
     private var exportButton: some View {
         ShareLink(items: exportFiles) {
-            Label("Export for Accountant", systemImage: "square.and.arrow.up")
+            Label("Year-End Tax Report", systemImage: "square.and.arrow.up")
                 .font(.headline)
                 .foregroundStyle(gold)
                 .frame(maxWidth: .infinity)

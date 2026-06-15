@@ -92,7 +92,7 @@ struct InvoicesListScreen: View {
                     Button(role: .destructive) {
                         deleteSelected()
                     } label: {
-                        Text(selection.isEmpty ? "Delete" : "Delete (\(selection.count))")
+                        Text(selection.isEmpty ? String(localized: "Delete") : String(localized: "Delete (\(selection.count))"))
                     }
                     .tint(.red)
                     .disabled(selection.isEmpty)
@@ -134,7 +134,7 @@ struct InvoicesListScreen: View {
     private func rowContent(_ invoice: Invoice) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(invoice.jobTitle.isEmpty ? "Untitled invoice" : invoice.jobTitle)
+                Text(invoice.jobTitle.isEmpty ? String(localized: "Untitled invoice") : invoice.jobTitle)
                     .font(.headline)
                     .lineLimit(1)
                 Spacer()

@@ -142,11 +142,11 @@ struct CustomerDetailScreen: View {
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
-    private func card<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func card<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         GLCard(title: title) { content() }
     }
 
-    private func infoRow(_ label: String, _ value: String) -> some View {
+    private func infoRow(_ label: LocalizedStringKey, _ value: String) -> some View {
         HStack(alignment: .firstTextBaseline) {
             Text(label)
                 .foregroundStyle(.secondary)

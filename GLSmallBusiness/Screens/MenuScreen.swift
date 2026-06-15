@@ -37,6 +37,16 @@ struct MenuScreen: View {
                             .foregroundStyle(GLColor.gold.render(in: colorScheme))
                     }
                 }
+                NavigationLink {
+                    DocumentsScreen()
+                } label: {
+                    Label {
+                        Text("Documents")
+                    } icon: {
+                        Image(systemName: "doc.on.doc")
+                            .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                    }
+                }
             }
             .scrollContentBackground(.hidden)
             .safeAreaInset(edge: .bottom) {
@@ -76,8 +86,8 @@ struct MenuScreen: View {
                 SettingsScreen()
             }
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(role: .close) { dismiss() }
                 }
             }
         }
@@ -91,6 +101,7 @@ struct MyCompanyDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Query private var profiles: [BusinessProfile]
     @State private var showingEdit = false
+    @State private var showingSignature = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -117,13 +128,18 @@ struct MyCompanyDetailScreen: View {
                 MyCompanyFormScreen(profile: profile).glAppearance(colorScheme)
             }
         }
+        .sheet(isPresented: $showingSignature) {
+            if let profile = profiles.first {
+                SignatureEditorSheet(profile: profile).glAppearance(colorScheme)
+            }
+        }
     }
 
     private func detail(_ profile: BusinessProfile) -> some View {
         ScrollView {
             VStack(spacing: 20) {
                 logo(profile)
-                Text(profile.businessName.isEmpty ? "Your business" : profile.businessName)
+                Text(profile.businessName.isEmpty ? String(localized: "Your business") : profile.businessName)
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(profile.businessName.isEmpty ? .secondary : .primary)
 
@@ -161,9 +177,41 @@ struct MyCompanyDetailScreen: View {
                     .glCardBackground()
                 }
                 .buttonStyle(.plain)
+
+                Button {
+                    Task { await openSignature(profile) }
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "signature")
+                            .frame(width: 24)
+                            .foregroundStyle(gold)
+                        Text("Signature")
+                        Spacer()
+                        if profile.hasSignature {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.footnote)
+                                .foregroundStyle(gold)
+                        }
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .glCardBackground()
+                }
+                .buttonStyle(.plain)
             }
             .padding()
         }
+    }
+
+    /// Existing signatures are revealed only after Face ID; creating a first one needs no unlock.
+    private func openSignature(_ profile: BusinessProfile) async {
+        if profile.hasSignature {
+            guard await BiometricGate.authenticate(reason: String(localized: "Unlock your saved signature.")) else { return }
+        }
+        showingSignature = true
     }
 
     private func logo(_ profile: BusinessProfile) -> some View {
@@ -182,11 +230,11 @@ struct MyCompanyDetailScreen: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func card<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func card<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         GLCard(title: title) { content() }
     }
 
-    private func infoRow(_ label: String, _ value: String) -> some View {
+    private func infoRow(_ label: LocalizedStringKey, _ value: String) -> some View {
         HStack {
             Text(label).foregroundStyle(.secondary)
             Spacer()
@@ -234,6 +282,14 @@ struct MyCompanyFormScreen: View {
     @State private var logoItem: PhotosPickerItem?
     @State private var logoItemDark: PhotosPickerItem?
     @State private var logoToCrop: LogoCrop?
+    @State private var w9Name: String
+    @State private var w9Classification: W9TaxClassification?
+    @State private var w9LLCClassification: String
+    @State private var w9OtherClassification: String
+    @State private var w9TINType: W9TINType?
+    @State private var w9TIN: String
+    @State private var w9ExemptPayeeCode: String
+    @State private var w9FATCACode: String
 
     init(profile: BusinessProfile) {
         self.profile = profile
@@ -251,6 +307,14 @@ struct MyCompanyFormScreen: View {
         _invoiceMessageClosing = State(initialValue: profile.invoiceMessageClosing)
         _logoData = State(initialValue: profile.logoData)
         _logoDataDark = State(initialValue: profile.logoDataDark)
+        _w9Name = State(initialValue: profile.w9Name)
+        _w9Classification = State(initialValue: profile.w9TaxClassification)
+        _w9LLCClassification = State(initialValue: profile.w9LLCClassification)
+        _w9OtherClassification = State(initialValue: profile.w9OtherClassification)
+        _w9TINType = State(initialValue: profile.w9TINType)
+        _w9TIN = State(initialValue: profile.w9TIN)
+        _w9ExemptPayeeCode = State(initialValue: profile.w9ExemptPayeeCode)
+        _w9FATCACode = State(initialValue: profile.w9FATCACode)
     }
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
@@ -332,6 +396,50 @@ struct MyCompanyFormScreen: View {
                         #if !os(macOS)
                         .keyboardType(.numbersAndPunctuation)
                         #endif
+                }
+
+                Section {
+                    TextField("Name (as on tax return)", text: $w9Name)
+                        .textContentType(.name)
+                    Picker("Tax classification", selection: $w9Classification) {
+                        Text("Select…").tag(W9TaxClassification?.none)
+                        ForEach(W9TaxClassification.allCases) { option in
+                            Text(option.label).tag(W9TaxClassification?.some(option))
+                        }
+                    }
+                    if w9Classification == .llc {
+                        TextField("LLC tax classification (C, S, or P)", text: $w9LLCClassification)
+                            #if !os(macOS)
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
+                            #endif
+                    }
+                    if w9Classification == .other {
+                        TextField("Describe classification", text: $w9OtherClassification)
+                    }
+                    Picker("Taxpayer ID type", selection: $w9TINType) {
+                        Text("Select…").tag(W9TINType?.none)
+                        ForEach(W9TINType.allCases) { option in
+                            Text(option.label).tag(W9TINType?.some(option))
+                        }
+                    }
+                    TextField(w9TINType == .ein ? "EIN" : "Taxpayer ID number", text: $w9TIN)
+                        #if !os(macOS)
+                        .keyboardType(.numbersAndPunctuation)
+                        #endif
+                } header: {
+                    Text("Tax details (for W-9)")
+                } footer: {
+                    Text("Optional. Used to generate a W-9. Sign and date the form by hand after you print or send it.")
+                        .textCase(nil)
+                }
+
+                Section {
+                    TextField("Exempt payee code", text: $w9ExemptPayeeCode)
+                    TextField("FATCA exemption code", text: $w9FATCACode)
+                } footer: {
+                    Text("Optional W-9 exemption codes. Most small businesses leave these blank.")
+                        .textCase(nil)
                 }
 
                 Section {
@@ -470,6 +578,14 @@ struct MyCompanyFormScreen: View {
         profile.invoiceMessageClosing = invoiceMessageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.logoData = logoData
         profile.logoDataDark = logoDataDark
+        profile.w9Name = w9Name.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.w9TaxClassification = w9Classification
+        profile.w9LLCClassification = w9LLCClassification.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        profile.w9OtherClassification = w9OtherClassification.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.w9TINType = w9TINType
+        profile.w9TIN = w9TIN.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.w9ExemptPayeeCode = w9ExemptPayeeCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.w9FATCACode = w9FATCACode.trimmingCharacters(in: .whitespacesAndNewlines)
         dismiss()
     }
 }
