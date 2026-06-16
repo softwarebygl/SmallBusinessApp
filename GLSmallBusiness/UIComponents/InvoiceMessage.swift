@@ -33,6 +33,8 @@ enum InvoiceMessage {
     // MARK: - Subject
 
     static func subject(invoice: Invoice, business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.invoiceMessageSubject)
+        if !custom.isEmpty { return custom }
         let company = trimmed(business?.businessName)
         let number = trimmed(invoice.number)
         switch (company.isEmpty, number.isEmpty) {

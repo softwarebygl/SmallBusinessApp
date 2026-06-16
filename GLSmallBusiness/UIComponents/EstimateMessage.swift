@@ -41,6 +41,8 @@ enum EstimateMessage {
     // MARK: - Subject
 
     static func subject(estimate: Estimate, business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.estimateMessageSubject)
+        if !custom.isEmpty { return custom }
         let company = trimmed(business?.businessName)
         let number = trimmed(estimate.number)
         switch (company.isEmpty, number.isEmpty) {

@@ -148,4 +148,49 @@ struct MessageTests {
         #expect(html.contains("background-color:#ffffff"))
         #expect(ChangeOrderMessage.subject(co, business: business()).contains("CO-0001"))
     }
+
+    // MARK: - Custom subject / wording overrides (consistent across all documents)
+
+    @Test func estimateAndInvoiceSubjectsAcceptCustomOverride() {
+        let b = business()
+        b.estimateMessageSubject = "Your project quote"
+        b.invoiceMessageSubject = "Time to pay 🙂"
+        #expect(EstimateMessage.subject(estimate: TS.estimate(number: "EST-1"), business: b) == "Your project quote")
+        #expect(InvoiceMessage.subject(invoice: TS.invoice(number: "INV-1"), business: b) == "Time to pay 🙂")
+    }
+
+    @Test func receiptCustomWordingOverridesDefaults() {
+        let b = business()
+        b.receiptMessageSubject = "Got it — thanks!"
+        b.receiptMessageIntro = "We received your payment."
+        b.receiptMessageClosing = "Questions? Call us."
+        let inv = TS.invoice(lines: [(1000, false)])
+        let p = TS.pay(inv, 400)
+        #expect(PaymentReceiptMessage.subject(invoice: inv, business: b) == "Got it — thanks!")
+        let plain = PaymentReceiptMessage.plainBody(invoice: inv, payment: p, business: b)
+        #expect(plain.contains("We received your payment."))
+        #expect(plain.contains("Questions? Call us."))
+    }
+
+    @Test func changeOrderCustomWordingOverridesDefaults() {
+        let b = business()
+        b.changeOrderMessageSubject = "Scope update"
+        b.changeOrderMessageIntro = "Please review this change."
+        b.changeOrderMessageClosing = "Reply yes to approve."
+        let co = TS.changeOrder(TS.invoice(lines: [(1000, false)]), status: .pending, lines: [(100, false)])
+        #expect(ChangeOrderMessage.subject(co, business: b) == "Scope update")
+        let plain = ChangeOrderMessage.plainBody(co, business: b)
+        #expect(plain.contains("Please review this change."))
+        #expect(plain.contains("Reply yes to approve."))
+    }
+
+    @Test func emptyOverridesFallBackToDefaults() {
+        // Blank custom fields must not blank out the message — defaults still apply.
+        let b = business()
+        b.receiptMessageClosing = "   "
+        let inv = TS.invoice(lines: [(1000, false)])
+        let p = TS.pay(inv, 400)
+        #expect(PaymentReceiptMessage.closing(business: b) == PaymentReceiptMessage.defaultClosing)
+        #expect(PaymentReceiptMessage.plainBody(invoice: inv, payment: p, business: b).contains(PaymentReceiptMessage.defaultClosing))
+    }
 }

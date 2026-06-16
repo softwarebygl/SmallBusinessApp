@@ -308,10 +308,21 @@ struct MyCompanyFormScreen: View {
     @State private var city: String
     @State private var state: String
     @State private var postalCode: String
+    @State private var estimateMessageSubject: String
     @State private var messageIntro: String
     @State private var messageClosing: String
+    @State private var invoiceMessageSubject: String
     @State private var invoiceMessageIntro: String
     @State private var invoiceMessageClosing: String
+    @State private var receiptMessageSubject: String
+    @State private var receiptMessageIntro: String
+    @State private var receiptMessageClosing: String
+    @State private var changeOrderMessageSubject: String
+    @State private var changeOrderMessageIntro: String
+    @State private var changeOrderMessageClosing: String
+    @State private var packageMessageSubject: String
+    @State private var packageMessageIntro: String
+    @State private var packageMessageClosing: String
     @State private var logoData: Data?
     @State private var logoDataDark: Data?
     @State private var logoItem: PhotosPickerItem?
@@ -338,10 +349,21 @@ struct MyCompanyFormScreen: View {
         _city = State(initialValue: profile.address.city)
         _state = State(initialValue: profile.address.state)
         _postalCode = State(initialValue: profile.address.postalCode)
+        _estimateMessageSubject = State(initialValue: profile.estimateMessageSubject)
         _messageIntro = State(initialValue: profile.messageIntro)
         _messageClosing = State(initialValue: profile.messageClosing)
+        _invoiceMessageSubject = State(initialValue: profile.invoiceMessageSubject)
         _invoiceMessageIntro = State(initialValue: profile.invoiceMessageIntro)
         _invoiceMessageClosing = State(initialValue: profile.invoiceMessageClosing)
+        _receiptMessageSubject = State(initialValue: profile.receiptMessageSubject)
+        _receiptMessageIntro = State(initialValue: profile.receiptMessageIntro)
+        _receiptMessageClosing = State(initialValue: profile.receiptMessageClosing)
+        _changeOrderMessageSubject = State(initialValue: profile.changeOrderMessageSubject)
+        _changeOrderMessageIntro = State(initialValue: profile.changeOrderMessageIntro)
+        _changeOrderMessageClosing = State(initialValue: profile.changeOrderMessageClosing)
+        _packageMessageSubject = State(initialValue: profile.packageMessageSubject)
+        _packageMessageIntro = State(initialValue: profile.packageMessageIntro)
+        _packageMessageClosing = State(initialValue: profile.packageMessageClosing)
         _logoData = State(initialValue: profile.logoData)
         _logoDataDark = State(initialValue: profile.logoDataDark)
         _w9Name = State(initialValue: profile.w9Name)
@@ -490,29 +512,30 @@ struct MyCompanyFormScreen: View {
                         .textCase(nil)
                 }
 
-                Section {
-                    TextField(EstimateMessage.defaultIntro, text: $messageIntro, axis: .vertical)
-                        .lineLimit(2...6)
-                    TextField(EstimateMessage.defaultClosing, text: $messageClosing, axis: .vertical)
-                        .lineLimit(2...6)
-                } header: {
-                    Text("Estimate message")
-                } footer: {
-                    Text("Appears in the estimate email and text, between the greeting and your signature. Leave blank to use the suggested wording shown.")
-                        .textCase(nil)
-                }
+                messageSection("Estimate message", document: "estimate",
+                               subject: $estimateMessageSubject, subjectHint: "Estimate # from your business",
+                               intro: $messageIntro, introHint: EstimateMessage.defaultIntro,
+                               closing: $messageClosing, closingHint: EstimateMessage.defaultClosing)
 
-                Section {
-                    TextField(InvoiceMessage.defaultIntro, text: $invoiceMessageIntro, axis: .vertical)
-                        .lineLimit(2...6)
-                    TextField(InvoiceMessage.defaultClosing, text: $invoiceMessageClosing, axis: .vertical)
-                        .lineLimit(2...6)
-                } header: {
-                    Text("Invoice message")
-                } footer: {
-                    Text("Appears in the invoice email and text. Leave blank to use the suggested wording shown.")
-                        .textCase(nil)
-                }
+                messageSection("Invoice message", document: "invoice",
+                               subject: $invoiceMessageSubject, subjectHint: "Invoice # from your business",
+                               intro: $invoiceMessageIntro, introHint: InvoiceMessage.defaultIntro,
+                               closing: $invoiceMessageClosing, closingHint: InvoiceMessage.defaultClosing)
+
+                messageSection("Receipt message", document: "payment receipt",
+                               subject: $receiptMessageSubject, subjectHint: "Receipt for invoice # from your business",
+                               intro: $receiptMessageIntro, introHint: "Thank you for your payment. Your receipt is attached.",
+                               closing: $receiptMessageClosing, closingHint: PaymentReceiptMessage.defaultClosing)
+
+                messageSection("Change order message", document: "change order",
+                               subject: $changeOrderMessageSubject, subjectHint: "Change order # from your business",
+                               intro: $changeOrderMessageIntro, introHint: ChangeOrderMessage.defaultIntro,
+                               closing: $changeOrderMessageClosing, closingHint: ChangeOrderMessage.defaultClosing)
+
+                messageSection("Contractor package message", document: "contractor package",
+                               subject: $packageMessageSubject, subjectHint: "Contractor package from your business",
+                               intro: $packageMessageIntro, introHint: ContractorPackageMessage.defaultIntro,
+                               closing: $packageMessageClosing, closingHint: ContractorPackageMessage.defaultClosing)
             }
             .glFormBackground()
             .navigationTitle("My Business Details")
@@ -611,6 +634,27 @@ struct MyCompanyFormScreen: View {
         }
     }
 
+    /// One document's editable text/email wording: an optional subject line plus the intro and
+    /// closing paragraphs. Each shows its default as placeholder; blank falls back to that default.
+    private func messageSection(_ title: LocalizedStringKey, document: String,
+                                subject: Binding<String>, subjectHint: String,
+                                intro: Binding<String>, introHint: String,
+                                closing: Binding<String>, closingHint: String) -> some View {
+        Section {
+            TextField("Subject — \(subjectHint)", text: subject, axis: .vertical)
+                .lineLimit(1...2)
+            TextField(introHint, text: intro, axis: .vertical)
+                .lineLimit(2...6)
+            TextField(closingHint, text: closing, axis: .vertical)
+                .lineLimit(2...6)
+        } header: {
+            Text(title)
+        } footer: {
+            Text("Subject line, then the message between the greeting and your signature, used when you send the \(document) by email or text. Leave any field blank to use the suggested wording shown.")
+                .textCase(nil)
+        }
+    }
+
     private func save() {
         profile.businessName = businessName.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.ownerFirstName = ownerFirstName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -622,10 +666,21 @@ struct MyCompanyFormScreen: View {
         profile.address.city = city.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.state = state.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.postalCode = postalCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.estimateMessageSubject = estimateMessageSubject.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.messageIntro = messageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.messageClosing = messageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.invoiceMessageSubject = invoiceMessageSubject.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.invoiceMessageIntro = invoiceMessageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.invoiceMessageClosing = invoiceMessageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.receiptMessageSubject = receiptMessageSubject.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.receiptMessageIntro = receiptMessageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.receiptMessageClosing = receiptMessageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.changeOrderMessageSubject = changeOrderMessageSubject.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.changeOrderMessageIntro = changeOrderMessageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.changeOrderMessageClosing = changeOrderMessageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.packageMessageSubject = packageMessageSubject.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.packageMessageIntro = packageMessageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.packageMessageClosing = packageMessageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.logoData = logoData
         profile.logoDataDark = logoDataDark
         profile.w9Name = w9Name.trimmingCharacters(in: .whitespacesAndNewlines)

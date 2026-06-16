@@ -189,11 +189,30 @@ enum PaymentReceiptPDF {
 // MARK: - Email / text wording
 
 enum PaymentReceiptMessage {
+
+    static let defaultClosing = "If anything looks off, just reply to this message."
+
     static func subject(invoice: Invoice, business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.receiptMessageSubject)
+        if !custom.isEmpty { return custom }
         let company = trimmed(business?.businessName)
         let number = trimmed(invoice.number)
         let base = number.isEmpty ? "Payment receipt" : "Receipt for invoice \(number)"
         return company.isEmpty ? base : "\(base) from \(company)"
+    }
+
+    /// Intro paragraph: custom override, else a default that reflects whether the invoice is settled.
+    static func intro(paidInFull: Bool, business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.receiptMessageIntro)
+        if !custom.isEmpty { return custom }
+        return paidInFull
+            ? "Thank you — this invoice is now paid in full."
+            : "Thank you for your payment. Your receipt is attached."
+    }
+
+    static func closing(business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.receiptMessageClosing)
+        return custom.isEmpty ? defaultClosing : custom
     }
 
     static func plainBody(invoice: Invoice, payment: InvoicePayment, business: BusinessProfile?) -> String {
@@ -210,15 +229,14 @@ enum PaymentReceiptMessage {
         lines.append("Paid to date: \(money(invoice.paidThrough(payment)))")
         lines.append(paidInFull ? "Remaining balance: Paid in full" : "Remaining balance: \(money(remaining))")
 
-        let thanks = paidInFull
-            ? "Thank you — this invoice is now paid in full."
-            : "Thank you for your payment. Your receipt is attached."
         return """
         Hi \(name),
 
-        \(thanks)
+        \(intro(paidInFull: paidInFull, business: business))
 
-        \(lines.joined(separator: "\n"))\(signoff)
+        \(lines.joined(separator: "\n"))
+
+        \(closing(business: business))\(signoff)
         """
     }
 
@@ -246,16 +264,12 @@ enum PaymentReceiptMessage {
         if let phone = business?.phone, !phone.isEmpty { signature += "<br>\(esc(phone))" }
         if let email = business?.email, !email.isEmpty { signature += "<br>\(esc(email))" }
 
-        let thanks = paidInFull
-            ? "Thank you — this invoice is now <strong>paid in full</strong>. We appreciate your business."
-            : "Thank you for your payment. This confirms the amount we received; your receipt is attached."
-
         let inner = """
         \(logoTag)
         <p style="margin:0 0 14px;">Hi \(name),</p>
-        <p style="margin:0 0 16px;">\(thanks)</p>
+        <p style="margin:0 0 16px;">\(htmlText(intro(paidInFull: paidInFull, business: business)))</p>
         \(EmailHTML.summaryBox(rows))
-        <p style="margin:0 0 16px;">If anything looks off, just reply to this message.</p>
+        <p style="margin:0 0 16px;">\(htmlText(closing(business: business)))</p>
         <p style="margin:20px 0 0;">\(signature)</p>
         """
         return EmailHTML.page(inner)
@@ -275,5 +289,10 @@ enum PaymentReceiptMessage {
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
             .replacingOccurrences(of: "\"", with: "&quot;")
+    }
+
+    /// Escapes user-entered prose for HTML and preserves their line breaks as `<br>`.
+    private static func htmlText(_ string: String) -> String {
+        esc(string).replacingOccurrences(of: "\n", with: "<br>")
     }
 }

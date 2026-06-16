@@ -21,6 +21,7 @@ struct ContractorPackageSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Query private var userProfiles: [UserProfile]
     let profile: BusinessProfile
 
     // The holder is intentionally NOT seeded from anything — it starts blank for every package so a
@@ -35,6 +36,14 @@ struct ContractorPackageSheet: View {
     @State private var includeWCInsurance: Bool
     @State private var includeWCExemption: Bool
     @State private var includeLicense: Bool
+
+    // W-9 signing — opt-in, mirroring the standalone W-9 sheet: off by default, Face ID unlocks the
+    // saved signature, and it's the person's signature so it lives on the UserProfile.
+    @State private var signW9 = false
+    @State private var signatureUnlocked = false
+    @State private var signatureImage: UIImage?
+    @State private var showingSignatureEditor = false
+    @State private var signatureTarget: UserProfile?
 
     @State private var coiImage: UIImage?
     @State private var placement: ContractorPackagePDF.HolderPlacement?
@@ -62,6 +71,10 @@ struct ContractorPackageSheet: View {
     private var hasHolder: Bool { !holderLines.isEmpty }
     private var canShare: Bool { profile.hasCOI && packageURL != nil }
 
+    private var hasUserSignature: Bool { userProfiles.first?.hasSignature ?? false }
+    /// True once the user opted in to signing and unlocked the signature with Face ID.
+    private var signingW9: Bool { signW9 && signatureUnlocked && signatureImage != nil }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -84,10 +97,8 @@ struct ContractorPackageSheet: View {
                 if canShare, let packageURL {
                     ToolbarItem(placement: .topBarTrailing) {
                         ShareLink(item: packageURL,
-                                  subject: Text(shareSubject),
-                                  message: Text(DocumentShareText.body(
-                                    "Attached is our contractor package — certificate of insurance, W-9, and supporting documents.",
-                                    from: profile.businessName))) {
+                                  subject: Text(ContractorPackageMessage.subject(business: profile)),
+                                  message: Text(ContractorPackageMessage.body(business: profile))) {
                             Image(systemName: "square.and.arrow.up")
                         }
                         .tint(gold)
@@ -102,15 +113,32 @@ struct ContractorPackageSheet: View {
             .onChange(of: offset) { _, _ in regenerate() }
             .onChange(of: coverExisting) { _, _ in regenerate() }
             .onChange(of: includeW9) { _, _ in regenerate() }
+            .onChange(of: signW9) { _, _ in regenerate() }
             .onChange(of: includeWCInsurance) { _, _ in regenerate() }
             .onChange(of: includeWCExemption) { _, _ in regenerate() }
             .onChange(of: includeLicense) { _, _ in regenerate() }
+            .onChange(of: showingSignatureEditor) { _, isShowing in
+                // When the signature editor closes: removal resets signing; a change refreshes the
+                // image if already unlocked. Adding a signature never auto-enables signing.
+                guard !isShowing else { return }
+                if userProfiles.first?.signatureData == nil {
+                    signW9 = false; signatureUnlocked = false; signatureImage = nil
+                } else if signatureUnlocked {
+                    signatureImage = userProfiles.first?.signatureData.flatMap { UIImage(data: $0) }
+                }
+                regenerate()
+            }
             .onDisappear { persist() }
             .sheet(isPresented: $showingDocuments, onDismiss: refreshAvailability) {
                 ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
             }
             .sheet(isPresented: $showingW9Edit, onDismiss: refreshAvailability) {
                 MyCompanyFormScreen(profile: profile).glAppearance(colorScheme)
+            }
+            .sheet(isPresented: $showingSignatureEditor) {
+                if let signatureTarget {
+                    SignatureEditorSheet(profile: signatureTarget).glAppearance(colorScheme)
+                }
             }
         }
     }
@@ -217,6 +245,7 @@ struct ContractorPackageSheet: View {
             if profile.w9IsComplete {
                 includedToggle(systemImage: "doc.plaintext", title: "W-9",
                                subtitle: "Generated from your tax details.", isOn: $includeW9)
+                if includeW9 { w9SignatureControl }
             } else {
                 missingRow(systemImage: "doc.plaintext", title: "W-9",
                            subtitle: "Finish your tax details to include it.") { showingW9Edit = true }
@@ -246,6 +275,75 @@ struct ContractorPackageSheet: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .glCardBackground()
+    }
+
+    /// Opt-in W-9 signing, shown indented under the W-9 row. Mirrors the standalone W-9 sheet.
+    @ViewBuilder
+    private var w9SignatureControl: some View {
+        Group {
+            if hasUserSignature {
+                Toggle(isOn: signatureInclusion) {
+                    signatureLabel("Sign the W-9", "Add your saved signature and today's date.")
+                }
+                .tint(gold)
+            } else {
+                Button { editSignature() } label: {
+                    HStack(spacing: 12) {
+                        signatureLabel("Add a signature", "Sign the bundled W-9 automatically.")
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.leading, 12)
+    }
+
+    private func signatureLabel(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "signature").font(.title3).frame(width: 28).foregroundStyle(gold)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.subheadline.weight(.semibold))
+                Text(subtitle).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    /// Enabling runs Face ID first and only turns on after it succeeds; disabling re-locks the signature.
+    private var signatureInclusion: Binding<Bool> {
+        Binding(
+            get: { signW9 },
+            set: { wantsOn in
+                if wantsOn {
+                    Task { await enableSignature() }
+                } else {
+                    signW9 = false; signatureUnlocked = false; signatureImage = nil
+                    regenerate()
+                }
+            }
+        )
+    }
+
+    private func enableSignature() async {
+        guard hasUserSignature else { return }
+        guard await BiometricGate.authenticate(
+            reason: String(localized: "Unlock your saved signature to sign the W-9.")) else { return }
+        if let data = userProfiles.first?.signatureData { signatureImage = UIImage(data: data) }
+        signatureUnlocked = true
+        signW9 = true
+        regenerate()
+    }
+
+    private func editSignature() {
+        let target = userProfiles.first ?? {
+            let new = UserProfile()
+            modelContext.insert(new)
+            return new
+        }()
+        signatureTarget = target
+        showingSignatureEditor = true
     }
 
     private func includedRow(systemImage: String, title: LocalizedStringKey,
@@ -316,10 +414,6 @@ struct ContractorPackageSheet: View {
 
     // MARK: - Generation
 
-    private var shareSubject: String {
-        profile.businessName.isEmpty ? "Contractor Package" : "Contractor Package — \(profile.businessName)"
-    }
-
     private func loadCOI() {
         guard let data = profile.coiData else { coiImage = nil; placement = nil; return }
         coiImage = ContractorPackagePDF.coiPageImage(from: data)
@@ -344,7 +438,10 @@ struct ContractorPackageSheet: View {
             sources.append(stamped)
         }
         if includeW9, profile.w9IsComplete,
-           let url = W9PDF.render(profile), let data = try? Data(contentsOf: url) {
+           let url = W9PDF.render(profile,
+                                  signatureImage: signingW9 ? signatureImage : nil,
+                                  signedDate: signingW9 ? Date() : nil),
+           let data = try? Data(contentsOf: url) {
             sources.append(data)
         }
         if includeWCInsurance, let data = profile.wcInsuranceData { sources.append(data) }

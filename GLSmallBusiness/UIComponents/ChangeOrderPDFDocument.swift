@@ -217,10 +217,26 @@ enum ChangeOrderPDF {
 // MARK: - Email / text wording
 
 enum ChangeOrderMessage {
+
+    static let defaultIntro = "Here's a change order for your approval covering an update to the project scope. Please review the attached document and reply to approve."
+    static let defaultClosing = "Reply to this message to approve, or with any questions."
+
     static func subject(_ co: ChangeOrder, business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.changeOrderMessageSubject)
+        if !custom.isEmpty { return custom }
         let company = trimmed(business?.businessName)
         let base = co.number.isEmpty ? "Change order" : "Change order \(co.number)"
         return company.isEmpty ? base : "\(base) from \(company)"
+    }
+
+    static func intro(business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.changeOrderMessageIntro)
+        return custom.isEmpty ? defaultIntro : custom
+    }
+
+    static func closing(business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.changeOrderMessageClosing)
+        return custom.isEmpty ? defaultClosing : custom
     }
 
     static func plainBody(_ co: ChangeOrder, business: BusinessProfile?) -> String {
@@ -235,9 +251,11 @@ enum ChangeOrderMessage {
         return """
         Hi \(name),
 
-        Here's a change order for your approval covering an update to the project scope. Please review the attached document and reply to approve.
+        \(intro(business: business))
 
-        \(lines.joined(separator: "\n"))\(signoff)
+        \(lines.joined(separator: "\n"))
+
+        \(closing(business: business))\(signoff)
         """
     }
 
@@ -265,9 +283,9 @@ enum ChangeOrderMessage {
         let inner = """
         \(logoTag)
         <p style="margin:0 0 14px;">Hi \(name),</p>
-        <p style="margin:0 0 16px;">Here's a change order for your approval covering an update to the project scope. The attached document has the full details and a line to sign.</p>
+        <p style="margin:0 0 16px;">\(htmlText(intro(business: business)))</p>
         \(EmailHTML.summaryBox(rows))
-        <p style="margin:0 0 16px;">Reply to this message to approve, or with any questions.</p>
+        <p style="margin:0 0 16px;">\(htmlText(closing(business: business)))</p>
         <p style="margin:20px 0 0;">\(signature)</p>
         """
         return EmailHTML.page(inner)
@@ -284,5 +302,10 @@ enum ChangeOrderMessage {
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
             .replacingOccurrences(of: "\"", with: "&quot;")
+    }
+
+    /// Escapes user-entered prose for HTML and preserves their line breaks as `<br>`.
+    private static func htmlText(_ string: String) -> String {
+        esc(string).replacingOccurrences(of: "\n", with: "<br>")
     }
 }

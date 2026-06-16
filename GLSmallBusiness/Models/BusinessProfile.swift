@@ -83,14 +83,35 @@ final class BusinessProfile {
     /// Optional dark-appearance logo. Falls back to `logoData` when not set.
     @Attribute(.externalStorage) var logoDataDark: Data?
 
-    /// Optional custom wording for the estimate email/text. Empty = use the prepared default,
-    /// so future default-wording improvements reach anyone who hasn't customized.
+    // Optional custom wording for each document's email/text — subject, intro, and closing. Empty =
+    // use the prepared default, so future default-wording improvements reach anyone who hasn't
+    // customized. Estimate intro/closing kept their original names (`messageIntro`/`messageClosing`)
+    // to avoid a storage migration; everything added since is namespaced per document.
+
+    /// Estimate email/text.
+    var estimateMessageSubject: String = ""
     var messageIntro: String = ""
     var messageClosing: String = ""
 
-    /// Same, for the invoice email/text.
+    /// Invoice email/text.
+    var invoiceMessageSubject: String = ""
     var invoiceMessageIntro: String = ""
     var invoiceMessageClosing: String = ""
+
+    /// Payment-receipt email/text.
+    var receiptMessageSubject: String = ""
+    var receiptMessageIntro: String = ""
+    var receiptMessageClosing: String = ""
+
+    /// Change-order email/text.
+    var changeOrderMessageSubject: String = ""
+    var changeOrderMessageIntro: String = ""
+    var changeOrderMessageClosing: String = ""
+
+    /// Contractor Package share (text/email).
+    var packageMessageSubject: String = ""
+    var packageMessageIntro: String = ""
+    var packageMessageClosing: String = ""
 
     // MARK: W-9 details (used to generate a W-9 PDF; all optional)
 

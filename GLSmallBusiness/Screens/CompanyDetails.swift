@@ -34,15 +34,43 @@ struct CompanyDetailsScreen: View {
                 }
 
                 GLCard(title: "Estimate message") {
+                    messageBlock("Subject", custom: profile.estimateMessageSubject, fallback: "Estimate # from your business")
+                    Divider()
                     messageBlock("Intro", custom: profile.messageIntro, fallback: EstimateMessage.defaultIntro)
                     Divider()
                     messageBlock("Closing", custom: profile.messageClosing, fallback: EstimateMessage.defaultClosing)
                 }
 
                 GLCard(title: "Invoice message") {
+                    messageBlock("Subject", custom: profile.invoiceMessageSubject, fallback: "Invoice # from your business")
+                    Divider()
                     messageBlock("Intro", custom: profile.invoiceMessageIntro, fallback: InvoiceMessage.defaultIntro)
                     Divider()
                     messageBlock("Closing", custom: profile.invoiceMessageClosing, fallback: InvoiceMessage.defaultClosing)
+                }
+
+                GLCard(title: "Receipt message") {
+                    messageBlock("Subject", custom: profile.receiptMessageSubject, fallback: "Receipt for invoice # from your business")
+                    Divider()
+                    messageBlock("Intro", custom: profile.receiptMessageIntro, fallback: "Thank you for your payment. Your receipt is attached.")
+                    Divider()
+                    messageBlock("Closing", custom: profile.receiptMessageClosing, fallback: PaymentReceiptMessage.defaultClosing)
+                }
+
+                GLCard(title: "Change order message") {
+                    messageBlock("Subject", custom: profile.changeOrderMessageSubject, fallback: "Change order # from your business")
+                    Divider()
+                    messageBlock("Intro", custom: profile.changeOrderMessageIntro, fallback: ChangeOrderMessage.defaultIntro)
+                    Divider()
+                    messageBlock("Closing", custom: profile.changeOrderMessageClosing, fallback: ChangeOrderMessage.defaultClosing)
+                }
+
+                GLCard(title: "Contractor package message") {
+                    messageBlock("Subject", custom: profile.packageMessageSubject, fallback: "Contractor package from your business")
+                    Divider()
+                    messageBlock("Intro", custom: profile.packageMessageIntro, fallback: ContractorPackageMessage.defaultIntro)
+                    Divider()
+                    messageBlock("Closing", custom: profile.packageMessageClosing, fallback: ContractorPackageMessage.defaultClosing)
                 }
 
                 GLCard(title: "Tax details (W-9)") {

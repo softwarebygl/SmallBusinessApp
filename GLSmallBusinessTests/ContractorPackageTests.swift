@@ -196,4 +196,33 @@ struct ContractorPackageTests {
         #expect(ComplianceKind.license.fileName(p) == "license.png")
         #expect(p.hasComplianceDocuments)
     }
+
+    // MARK: - ContractorPackageMessage
+
+    @Test func packageMessageDefaultSubjectNamesBusiness() {
+        let p = BusinessProfile(); p.businessName = "Gold Life LLC"
+        #expect(ContractorPackageMessage.subject(business: p) == "Contractor package from Gold Life LLC")
+        #expect(ContractorPackageMessage.subject(business: nil) == "Contractor package")
+    }
+
+    @Test func packageMessageBodyHasIntroClosingAndSignoff() {
+        let p = BusinessProfile(); p.businessName = "Gold Life LLC"
+        let body = ContractorPackageMessage.body(business: p)
+        #expect(body.contains(ContractorPackageMessage.defaultIntro))
+        #expect(body.contains(ContractorPackageMessage.defaultClosing))
+        #expect(body.contains("— Gold Life LLC"))
+    }
+
+    @Test func packageMessageCustomOverridesApply() {
+        let p = BusinessProfile()
+        p.businessName = "Gold Life LLC"
+        p.packageMessageSubject = "Our docs for you"
+        p.packageMessageIntro = "Everything you asked for is attached."
+        p.packageMessageClosing = "Thanks!"
+        #expect(ContractorPackageMessage.subject(business: p) == "Our docs for you")
+        let body = ContractorPackageMessage.body(business: p)
+        #expect(body.contains("Everything you asked for is attached."))
+        #expect(body.contains("Thanks!"))
+        #expect(body.contains("— Gold Life LLC"))
+    }
 }
