@@ -111,12 +111,14 @@ enum ContractorPackagePDF {
     }
 
     /// Produces a stamped copy of the COI as PDF data: every page preserved, the holder block (and
-    /// optional white cover) drawn onto page 1. Returns nil if the COI can't be read.
+    /// optional white cover) drawn onto page 1. `width`, when given, overrides the auto-detected box
+    /// width (the block still grows in height to fit every line). Returns nil if the COI can't be read.
     static func stampedCOIData(coiData: Data, lines: [String],
-                               offset: CGSize, coverExisting: Bool) -> Data? {
+                               offset: CGSize, coverExisting: Bool, width: CGFloat? = nil) -> Data? {
         guard let doc = document(from: coiData),
-              let placement = locateHolder(in: doc),
+              var placement = locateHolder(in: doc),
               let firstPage = doc.page(at: 0) else { return nil }
+        if let width { placement.width = max(width, 40) }
 
         var mediaBox = firstPage.bounds(for: .mediaBox)
         let data = NSMutableData()

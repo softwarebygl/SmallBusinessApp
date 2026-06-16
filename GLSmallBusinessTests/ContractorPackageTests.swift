@@ -147,6 +147,24 @@ struct ContractorPackageTests {
             coiData: Data([0x01]), lines: ["X"], offset: .zero, coverExisting: false) == nil)
     }
 
+    @Test func stampedCOIWidthOverrideHandlesLongLines() {
+        // Long holder lines + a narrow box must still produce a valid PDF — they shrink to fit, never
+        // truncate, and the block grows in height to show every line.
+        let coi = pdfData(text: "CERTIFICATE HOLDER", at: CGPoint(x: 36, y: 690))
+        let longLines = [
+            "A Very Long General Contractor Company Name LLC & Associates",
+            "1234 Exceptionally Long Street Address Boulevard, Suite 5600",
+            "Tallahassee, Florida 32301-0000",
+            "Attn: Accounts Payable / Reference PO-2026-0042",
+        ]
+        let narrow = ContractorPackagePDF.stampedCOIData(
+            coiData: coi, lines: longLines, offset: .zero, coverExisting: true, width: 90)
+        #expect(narrow.flatMap { PDFDocument(data: $0) } != nil)
+        let wide = ContractorPackagePDF.stampedCOIData(
+            coiData: coi, lines: longLines, offset: .zero, coverExisting: false, width: 420)
+        #expect(wide.flatMap { PDFDocument(data: $0) } != nil)
+    }
+
     // MARK: merge
 
     @Test func mergeConcatenatesPageCounts() {

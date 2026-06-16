@@ -31,6 +31,7 @@ struct ContractorPackageSheet: View {
     @State private var holderAddress = ""
     @State private var additionalDetails = ""
     @State private var offset: CGSize
+    @State private var boxWidth: CGFloat   // holder-box width in PDF points; 0 = auto-detected
     @State private var coverExisting: Bool
     @State private var includeW9: Bool
     @State private var includeWCInsurance: Bool
@@ -55,6 +56,7 @@ struct ContractorPackageSheet: View {
     init(profile: BusinessProfile) {
         self.profile = profile
         _offset = State(initialValue: profile.coiHolderOffset)
+        _boxWidth = State(initialValue: CGFloat(profile.coiHolderBoxWidth))
         _coverExisting = State(initialValue: profile.coiCoverExistingHolder)
         _includeW9 = State(initialValue: profile.w9IsComplete)
         _includeWCInsurance = State(initialValue: profile.hasWCInsurance)
@@ -70,6 +72,12 @@ struct ContractorPackageSheet: View {
     }
     private var hasHolder: Bool { !holderLines.isEmpty }
     private var canShare: Bool { profile.hasCOI && packageURL != nil }
+
+    /// The holder-box width to use — the saved/dragged width, falling back to the auto-detected one.
+    private var effectiveBoxWidth: CGFloat { boxWidth > 0 ? boxWidth : (placement?.width ?? 200) }
+    private var boxWidthBinding: Binding<CGFloat> {
+        Binding(get: { effectiveBoxWidth }, set: { boxWidth = $0 })
+    }
 
     private var hasUserSignature: Bool { userProfiles.first?.hasSignature ?? false }
     /// True once the user opted in to signing and unlocked the signature with Face ID.
@@ -111,6 +119,7 @@ struct ContractorPackageSheet: View {
             .onChange(of: holderAddress) { _, _ in regenerate() }
             .onChange(of: additionalDetails) { _, _ in regenerate() }
             .onChange(of: offset) { _, _ in regenerate() }
+            .onChange(of: boxWidth) { _, _ in regenerate() }
             .onChange(of: coverExisting) { _, _ in regenerate() }
             .onChange(of: includeW9) { _, _ in regenerate() }
             .onChange(of: signW9) { _, _ in regenerate() }
@@ -202,13 +211,13 @@ struct ContractorPackageSheet: View {
             VStack(spacing: 8) {
                 COIPlacementView(image: coiImage, placement: placement,
                                  lines: holderLines,
-                                 offset: $offset, coverExisting: coverExisting)
+                                 offset: $offset, width: boxWidthBinding, coverExisting: coverExisting)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(.black.opacity(0.1)))
                     .shadow(radius: 4, y: 2)
                 Label(placement.autoDetected
-                      ? "Drag the holder block to line it up with the certificate-holder box."
-                      : "We couldn't find the holder box automatically — drag the block to position it.",
+                      ? "Drag the block to line it up with the certificate-holder box; drag the gold handle to set its width. Everything you type is shown — the box grows to fit."
+                      : "We couldn't find the holder box automatically — drag the block to position it and the gold handle to set its width.",
                       systemImage: placement.autoDetected ? "hand.draw" : "exclamationmark.triangle")
                     .font(.caption)
                     .foregroundStyle(placement.autoDetected ? Color.secondary : Color.orange)
@@ -434,7 +443,7 @@ struct ContractorPackageSheet: View {
         if let coi = profile.coiData,
            let stamped = ContractorPackagePDF.stampedCOIData(
                 coiData: coi, lines: holderLines,
-                offset: offset, coverExisting: coverExisting) {
+                offset: offset, coverExisting: coverExisting, width: effectiveBoxWidth) {
             sources.append(stamped)
         }
         if includeW9, profile.w9IsComplete,
@@ -464,6 +473,7 @@ struct ContractorPackageSheet: View {
     /// starts blank so a previous GC can't be sent by mistake.
     private func persist() {
         profile.coiHolderOffset = offset
+        profile.coiHolderBoxWidth = Double(boxWidth)
         profile.coiCoverExistingHolder = coverExisting
         try? modelContext.save()
     }
@@ -480,10 +490,13 @@ private struct COIPlacementView: View {
     let placement: ContractorPackagePDF.HolderPlacement
     let lines: [String]
     @Binding var offset: CGSize
+    @Binding var width: CGFloat        // holder-box width, PDF points
     let coverExisting: Bool
 
     @GestureState private var drag: CGSize = .zero
+    @GestureState private var resizeDrag: CGFloat = .zero   // live width change, display points
 
+    private let layout = ContractorPackagePDF.HolderLayout.self
     private var aspect: CGFloat { placement.pageSize.width / max(placement.pageSize.height, 1) }
 
     var body: some View {
@@ -493,7 +506,13 @@ private struct COIPlacementView: View {
             let liveX = offset.width + drag.width / k
             let liveY = offset.height - drag.height / k          // screen y grows down; PDF y grows up
             let anchorX = (placement.anchor.x + liveX) * k
-            let anchorTop = (placement.pageSize.height - (placement.anchor.y + liveY)) * k
+            let blockTop = (placement.pageSize.height - (placement.anchor.y + liveY)) * k
+                - layout.topPadding * k
+            let lineHeight = layout.lineHeight * k
+            let displayWidth = max(20, width * k + resizeDrag)
+            let blockHeight = lines.isEmpty
+                ? lineHeight + layout.topPadding * 2 * k
+                : CGFloat(lines.count) * lineHeight
 
             ZStack(alignment: .topLeading) {
                 Image(uiImage: image)
@@ -501,8 +520,8 @@ private struct COIPlacementView: View {
                     .scaledToFit()
                     .frame(width: geo.size.width, height: geo.size.height)
 
-                holderBlock(k: k)
-                    .offset(x: anchorX, y: anchorTop - ContractorPackagePDF.HolderLayout.topPadding * k)
+                holderBlock(k: k, displayWidth: displayWidth, lineHeight: lineHeight)
+                    .offset(x: anchorX, y: blockTop)
                     .gesture(
                         DragGesture()
                             .updating($drag) { value, state, _ in state = value.translation }
@@ -511,31 +530,53 @@ private struct COIPlacementView: View {
                                 offset.height -= value.translation.height / k
                             }
                     )
+
+                // Width handle on the right edge — drag to fit your form's holder box.
+                resizeHandle
+                    .offset(x: anchorX + displayWidth - 7, y: blockTop + blockHeight / 2 - 16)
+                    .gesture(
+                        DragGesture()
+                            .updating($resizeDrag) { value, state, _ in state = value.translation.width }
+                            .onEnded { value in
+                                let maxW = max(50, placement.pageSize.width - (placement.anchor.x + offset.width) - 4)
+                                width = min(max(50, width + value.translation.width / k), maxW)
+                            }
+                    )
             }
         }
         .aspectRatio(aspect, contentMode: .fit)
     }
 
+    private var resizeHandle: some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Color.accentColor)
+            .frame(width: 14, height: 32)
+            .overlay(
+                Image(systemName: "arrow.left.and.right")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(.white)
+            )
+            .contentShape(Rectangle().inset(by: -8))   // generous touch target
+    }
+
     @ViewBuilder
-    private func holderBlock(k: CGFloat) -> some View {
-        let width = placement.width * k
-        let lineHeight = ContractorPackagePDF.HolderLayout.lineHeight * k
+    private func holderBlock(k: CGFloat, displayWidth: CGFloat, lineHeight: CGFloat) -> some View {
         if lines.isEmpty {
             // No holder entered yet — show the target area as a dashed outline.
             RoundedRectangle(cornerRadius: 3)
                 .strokeBorder(Color.accentColor.opacity(0.7), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
-                .frame(width: width, height: lineHeight + ContractorPackagePDF.HolderLayout.topPadding * 2 * k)
+                .frame(width: displayWidth, height: lineHeight + layout.topPadding * 2 * k)
                 .contentShape(Rectangle())
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
+                    let size = index == 0 ? layout.nameSize : layout.bodySize
                     Text(line)
-                        .font(.system(size: (index == 0 ? ContractorPackagePDF.HolderLayout.nameSize
-                                                          : ContractorPackagePDF.HolderLayout.bodySize) * k,
-                                      weight: index == 0 ? .semibold : .regular))
+                        .font(.system(size: size * k, weight: index == 0 ? .semibold : .regular))
                         .foregroundStyle(.black)
                         .lineLimit(1)
-                        .frame(width: width, height: lineHeight, alignment: .bottomLeading)
+                        .minimumScaleFactor(5.0 / size)   // shrink-to-fit, matching the PDF stamp
+                        .frame(width: displayWidth, height: lineHeight, alignment: .bottomLeading)
                 }
             }
             .background(coverExisting ? Color.white : Color.white.opacity(0.35))

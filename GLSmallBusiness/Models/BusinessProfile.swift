@@ -160,6 +160,9 @@ final class BusinessProfile {
     /// holder-box position, so the box only has to be lined up once per COI.
     var coiHolderOffsetX: Double = 0
     var coiHolderOffsetY: Double = 0
+    /// Remembered holder-box width (PDF points). 0 = use the auto-detected width. The box height
+    /// always grows to fit every line, so this only sizes the width to the user's own form.
+    var coiHolderBoxWidth: Double = 0
     /// Lays a white box over any certificate-holder text already printed on the uploaded COI before
     /// stamping the new holder — for COIs that arrive with a prior holder filled in.
     var coiCoverExistingHolder: Bool = false
