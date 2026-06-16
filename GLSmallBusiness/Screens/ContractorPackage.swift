@@ -52,6 +52,7 @@ struct ContractorPackageSheet: View {
 
     @State private var showingDocuments = false
     @State private var showingW9Edit = false
+    @State private var showingPreview = false
 
     init(profile: BusinessProfile) {
         self.profile = profile
@@ -149,6 +150,14 @@ struct ContractorPackageSheet: View {
                     SignatureEditorSheet(profile: signatureTarget).glAppearance(colorScheme)
                 }
             }
+            .sheet(isPresented: $showingPreview) {
+                if let packageURL {
+                    PackagePreviewSheet(url: packageURL,
+                                        subject: ContractorPackageMessage.subject(business: profile),
+                                        message: ContractorPackageMessage.body(business: profile))
+                        .glAppearance(colorScheme)
+                }
+            }
         }
     }
 
@@ -160,6 +169,17 @@ struct ContractorPackageSheet: View {
         placementPreview
         coverToggle
         includedCard
+        if packageURL != nil {
+            Button { showingPreview = true } label: {
+                Label("Preview full package", systemImage: "doc.text.magnifyingglass")
+                    .font(.headline)
+                    .foregroundStyle(gold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .glCardBackground()
+            }
+            .buttonStyle(.plain)
+        }
         Text(hasHolder
              ? "Review the certificate above, then tap Share to send everything as one PDF."
              : "Fill in the certificate holder above. Every field is optional — leave out anything that doesn't apply.")
@@ -476,6 +496,41 @@ struct ContractorPackageSheet: View {
         profile.coiHolderBoxWidth = Double(boxWidth)
         profile.coiCoverExistingHolder = coverExisting
         try? modelContext.save()
+    }
+}
+
+// MARK: - Full package preview
+
+/// Shows the assembled package PDF (stamped COI + W-9 + workers'-comp + license) so the whole thing
+/// can be reviewed before sharing — the "see exactly what you're sharing" flow, applied to the merged
+/// document. Scrollable / zoomable via the shared PDFKit viewer; Share sits in the navbar.
+private struct PackagePreviewSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let url: URL
+    let subject: String
+    let message: String
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if let document = PDFDocument(url: url) {
+                    CertificatePDFView(document: document)
+                } else {
+                    ContentUnavailableView("Couldn't open the package", systemImage: "doc.questionmark")
+                }
+            }
+            .ignoresSafeArea(edges: .bottom)
+            .navigationTitle("Package preview")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: url, subject: Text(subject), message: Text(message)) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+            }
+        }
     }
 }
 

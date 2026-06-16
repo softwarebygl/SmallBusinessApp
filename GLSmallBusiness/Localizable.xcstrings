@@ -3793,7 +3793,7 @@
         }
       }
     },
-    "Drag the holder block to line it up with the certificate-holder box." : {
+    "Drag the block to line it up with the certificate-holder box; drag the gold handle to set its width. Everything you type is shown — the box grows to fit." : {
 
     },
     "Draw" : {
@@ -11921,7 +11921,7 @@
     "W-9 — %@" : {
 
     },
-    "We couldn't find the holder box automatically — drag the block to position it." : {
+    "We couldn't find the holder box automatically — drag the block to position it and the gold handle to set its width." : {
 
     },
     "What it's for (e.g. 30% progress payment)" : {
