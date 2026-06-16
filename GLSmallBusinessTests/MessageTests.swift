@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+import UIKit
 @testable import GLSmallBusiness
 
 @MainActor
@@ -182,6 +183,26 @@ struct MessageTests {
         let plain = ChangeOrderMessage.plainBody(co, business: b)
         #expect(plain.contains("Please review this change."))
         #expect(plain.contains("Reply yes to approve."))
+    }
+
+    // MARK: - Logo (no fallback to the bundled mark)
+
+    @Test func emailOmitsLogoWhenNoneUploaded() {
+        let b = business()   // no logoData uploaded
+        let html = EstimateMessage.htmlBody(estimate: TS.estimate(lines: [(100, false)]), business: b)
+        #expect(!html.contains("data:image/png;base64"))         // no embedded logo
+        #expect(EstimateMessage.logoAttachmentURL(business: b) == nil)  // nothing attached to a text
+        #expect(EstimateMessage.logoPNGData(business: b) == nil)
+    }
+
+    @Test func emailEmbedsUploadedLogo() {
+        let b = business()
+        b.logoData = UIGraphicsImageRenderer(size: CGSize(width: 24, height: 24)).image { ctx in
+            UIColor.systemBlue.setFill(); ctx.fill(CGRect(x: 0, y: 0, width: 24, height: 24))
+        }.pngData()
+        let html = EstimateMessage.htmlBody(estimate: TS.estimate(lines: [(100, false)]), business: b)
+        #expect(html.contains("data:image/png;base64"))         // the uploaded logo is embedded
+        #expect(EstimateMessage.logoAttachmentURL(business: b) != nil)
     }
 
     @Test func emptyOverridesFallBackToDefaults() {

@@ -12,7 +12,7 @@ import UIKit
 /// texted to a customer. Single source of truth so email and Messages stay consistent.
 ///
 /// Branding logo: the business's own uploaded logo (`BusinessProfile.logoData`) when present,
-/// otherwise the bundled GL monogram (`glLogo` asset) as a fallback.
+/// otherwise no logo at all (the business name in the signature stands in) — never a fallback mark.
 enum EstimateMessage {
 
     // MARK: - Customizable wording (prepared defaults, overridable per business)
@@ -138,27 +138,13 @@ enum EstimateMessage {
         }
     }
 
-    /// Cached PNG of the GL-monogram fallback (it never changes), so emails for users without an
-    /// uploaded logo don't re-run a main-thread `ImageRenderer` on every build.
-    @MainActor private static var cachedFallbackLogo: Data?
-
-    /// PNG of the brand logo, downsized for email/Messages. Business logo first, GL monogram fallback.
+    /// PNG of the business's own uploaded logo, downsized for email/Messages. Returns nil when no logo
+    /// has been uploaded — we deliberately do NOT fall back to the bundled GL monogram, so a user's
+    /// documents never go out branded with someone else's mark. The name signature stands in instead.
     @MainActor
     static func logoPNGData(business: BusinessProfile?, maxDimension: CGFloat = 240) -> Data? {
-        if let data = business?.logoData, let image = UIImage(data: data) {
-            return resizedPNGData(image, maxDimension: maxDimension)
-        }
-        if maxDimension == 240, let cached = cachedFallbackLogo { return cached }
-        let renderer = ImageRenderer(content:
-            Image("glLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: maxDimension, height: maxDimension)
-        )
-        renderer.scale = 3
-        let data = renderer.uiImage?.pngData()
-        if maxDimension == 240 { cachedFallbackLogo = data }
-        return data
+        guard let data = business?.logoData, let image = UIImage(data: data) else { return nil }
+        return resizedPNGData(image, maxDimension: maxDimension)
     }
 
     // MARK: - Helpers

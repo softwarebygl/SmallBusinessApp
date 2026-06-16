@@ -1097,6 +1097,9 @@
         }
       }
     },
+    "Add new customer…" : {
+
+    },
     "Add photo" : {
 
     },
@@ -2748,7 +2751,7 @@
     "Collected (cash received)" : {
 
     },
-    "Company name" : {
+    "Company" : {
 
     },
     "Complete your business profile" : {
@@ -2830,6 +2833,9 @@
           }
         }
       }
+    },
+    "Contact name" : {
+
     },
     "Contractor License" : {
 
@@ -4929,9 +4935,6 @@
 
     },
     "Federal tax classification" : {
-
-    },
-    "Fill in the certificate holder above. Every field is optional — leave out anything that doesn't apply." : {
 
     },
     "Filter" : {
@@ -8134,9 +8137,6 @@
     "Owner last name" : {
 
     },
-    "Owner name" : {
-
-    },
     "Package preview" : {
 
     },
@@ -8479,6 +8479,9 @@
       }
     },
     "Photo" : {
+
+    },
+    "Pick the customer this COI is for above — or add a new one." : {
 
     },
     "Postal code" : {
@@ -10486,9 +10489,6 @@
         }
       }
     },
-    "Street, City, State ZIP" : {
-
-    },
     "Subject" : {
 
     },
@@ -11268,6 +11268,9 @@
     "That file couldn't be opened. Try a different file, or export it as a PDF first." : {
 
     },
+    "The customer this COI is made out to." : {
+
+    },
     "The General Liability file on file couldn't be opened. Replace it with a PDF or image." : {
 
     },
@@ -11361,6 +11364,9 @@
 
     },
     "This change" : {
+
+    },
+    "Tick what to print in the holder box." : {
 
     },
     "Total" : {
@@ -12052,9 +12058,6 @@
           }
         }
       }
-    },
-    "Who's requesting this COI. Everything here is optional." : {
-
     },
     "Win rate" : {
       "localizations" : {
