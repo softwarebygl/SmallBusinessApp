@@ -582,6 +582,9 @@
         }
       }
     },
+    "−" : {
+
+    },
     "0" : {
       "localizations" : {
         "ca" : {
@@ -2437,6 +2440,9 @@
     "Change signature" : {
 
     },
+    "Charge" : {
+
+    },
     "Check" : {
       "localizations" : {
         "ca" : {
@@ -2904,6 +2910,9 @@
           }
         }
       }
+    },
+    "Credit" : {
+
     },
     "Custom date" : {
       "localizations" : {
@@ -4095,6 +4104,9 @@
         }
       }
     },
+    "Edit invoice" : {
+
+    },
     "Edit Invoice" : {
       "localizations" : {
         "ca" : {
@@ -4302,9 +4314,6 @@
       }
     },
     "Email receipt" : {
-
-    },
-    "Enter a negative price to credit removed work." : {
 
     },
     "Enter Access Code" : {
@@ -6967,7 +6976,7 @@
         }
       }
     },
-    "New" : {
+    "New change order" : {
 
     },
     "New Change Order" : {
@@ -7582,7 +7591,7 @@
         }
       }
     },
-    "None yet. Add one when the job's scope changes." : {
+    "None yet. Add one from the ••• menu when the job's scope changes." : {
 
     },
     "Note (e.g. 5×3×8)" : {
@@ -7787,6 +7796,9 @@
           }
         }
       }
+    },
+    "Open change order" : {
+
     },
     "Optional W-9 exemption codes. Most small businesses leave these blank." : {
 
@@ -8797,6 +8809,7 @@
 
     },
     "Record" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -8835,6 +8848,9 @@
           }
         }
       }
+    },
+    "Record payment" : {
+
     },
     "Record Payment" : {
       "localizations" : {
@@ -9633,6 +9649,9 @@
     "Select…" : {
 
     },
+    "Send a receipt" : {
+
+    },
     "Sent" : {
       "localizations" : {
         "ca" : {
@@ -9753,7 +9772,11 @@
         }
       }
     },
+    "Set amount due" : {
+
+    },
     "Set Amount Due" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -9792,6 +9815,9 @@
           }
         }
       }
+    },
+    "Set an item to Credit to subtract for removed work." : {
+
     },
     "Set up business profile to send" : {
       "localizations" : {
@@ -9872,6 +9898,9 @@
           }
         }
       }
+    },
+    "Share invoice…" : {
+
     },
     "Share…" : {
       "localizations" : {

@@ -80,45 +80,45 @@ struct InvoiceDetailScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button {
-                        showingEdit = true
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
+                    Section {
+                        Button { showingEdit = true } label: { Label("Edit invoice", systemImage: "pencil") }
+                        Button { showingRecordPayment = true } label: { Label("Record payment", systemImage: "dollarsign.circle") }
+                        Button { showingSetAmountDue = true } label: { Label("Set amount due", systemImage: "banknote") }
                     }
-                    Button {
-                        showingRecordPayment = true
-                    } label: {
-                        Label("Record Payment", systemImage: "dollarsign.circle")
+                    Section {
+                        Button { showingNewChangeOrder = true } label: { Label("New change order", systemImage: "plus.rectangle.on.rectangle") }
+                        if !invoice.sortedChangeOrders.isEmpty {
+                            Menu {
+                                ForEach(invoice.sortedChangeOrders) { changeOrder in
+                                    Button { selectedChangeOrder = changeOrder } label: {
+                                        Text(changeOrder.title.isEmpty ? changeOrder.number : "\(changeOrder.number) · \(changeOrder.title)")
+                                    }
+                                }
+                            } label: { Label("Open change order", systemImage: "rectangle.on.rectangle") }
+                        }
                     }
-                    Button {
-                        showingSetAmountDue = true
-                    } label: {
-                        Label("Set Amount Due", systemImage: "banknote")
+                    if !invoice.sortedPayments.isEmpty {
+                        Menu {
+                            ForEach(invoice.sortedPayments) { payment in
+                                Button { receiptPayment = payment } label: {
+                                    Text("\(payment.amount.formatted(.currency(code: "USD"))) · \(payment.date.formatted(date: .abbreviated, time: .omitted))")
+                                }
+                            }
+                        } label: { Label("Send a receipt", systemImage: "doc.text") }
                     }
-                    Divider()
                     if let pdfURL {
-                        if !invoice.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
-                            Button {
-                                sendAction = .email
-                            } label: {
-                                Label("Email invoice", systemImage: "envelope")
+                        Section {
+                            if !invoice.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
+                                Button { sendAction = .email } label: { Label("Email invoice", systemImage: "envelope") }
                             }
-                        }
-                        if !invoice.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
-                            Button {
-                                sendAction = .text
-                            } label: {
-                                Label("Text invoice", systemImage: "message")
+                            if !invoice.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
+                                Button { sendAction = .text } label: { Label("Text invoice", systemImage: "message") }
                             }
-                        }
-                        ShareLink(item: pdfURL) {
-                            Label("Share…", systemImage: "square.and.arrow.up")
+                            ShareLink(item: pdfURL) { Label("Share invoice…", systemImage: "square.and.arrow.up") }
                         }
                     } else {
-                        Button {
-                            showingProfilePrompt = true
-                        } label: {
-                            Label("Set up business profile to send", systemImage: "exclamationmark.circle")
+                        Section {
+                            Button { showingProfilePrompt = true } label: { Label("Set up business profile to send", systemImage: "exclamationmark.circle") }
                         }
                     }
                 } label: {
@@ -343,55 +343,30 @@ struct InvoiceDetailScreen: View {
 
     private var paymentsCard: some View {
         card {
-            HStack {
-                Text("Payments").font(.headline)
-                Spacer()
-                Button {
-                    showingRecordPayment = true
-                } label: {
-                    Label("Record", systemImage: "plus.circle.fill")
-                        .font(.subheadline.weight(.medium))
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(gold)
-            }
+            Text("Payments").font(.headline)
             if invoice.sortedPayments.isEmpty {
                 Text("No payments recorded yet.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(invoice.sortedPayments) { payment in
-                    Button {
-                        receiptPayment = payment
-                    } label: {
-                        HStack(alignment: .center) {
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(payment.method.label)
-                                HStack(spacing: 6) {
-                                    Text(payment.date.formatted(date: .abbreviated, time: .omitted))
-                                    if !payment.note.isEmpty {
-                                        Text("· \(payment.note)").lineLimit(1)
-                                    }
+                    HStack(alignment: .firstTextBaseline) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(payment.method.label)
+                            HStack(spacing: 6) {
+                                Text(payment.date.formatted(date: .abbreviated, time: .omitted))
+                                if !payment.note.isEmpty {
+                                    Text("· \(payment.note)").lineLimit(1)
                                 }
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
                             }
-                            Spacer()
-                            VStack(alignment: .trailing, spacing: 1) {
-                                Text(payment.amount.formatted(.currency(code: "USD")))
-                                    .fontWeight(.medium)
-                                HStack(spacing: 2) {
-                                    Text("Receipt")
-                                    Image(systemName: "chevron.right")
-                                }
-                                .font(.caption2)
-                                .foregroundStyle(gold)
-                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
-                        .font(.subheadline)
-                        .contentShape(Rectangle())
+                        Spacer()
+                        Text(payment.amount.formatted(.currency(code: "USD")))
+                            .fontWeight(.medium)
                     }
-                    .buttonStyle(.plain)
+                    .font(.subheadline)
                     if payment.id != invoice.sortedPayments.last?.id {
                         Divider()
                     }
@@ -402,20 +377,9 @@ struct InvoiceDetailScreen: View {
 
     private var changeOrdersCard: some View {
         card {
-            HStack {
-                Text("Change Orders").font(.headline)
-                Spacer()
-                Button {
-                    showingNewChangeOrder = true
-                } label: {
-                    Label("New", systemImage: "plus.circle.fill")
-                        .font(.subheadline.weight(.medium))
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(gold)
-            }
+            Text("Change Orders").font(.headline)
             if invoice.sortedChangeOrders.isEmpty {
-                Text("None yet. Add one when the job's scope changes.")
+                Text("None yet. Add one from the ••• menu when the job's scope changes.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else {
@@ -429,31 +393,24 @@ struct InvoiceDetailScreen: View {
                     Divider()
                 }
                 ForEach(invoice.sortedChangeOrders) { changeOrder in
-                    Button {
-                        selectedChangeOrder = changeOrder
-                    } label: {
-                        HStack(alignment: .center) {
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(changeOrder.title.isEmpty ? changeOrder.number : changeOrder.title)
-                                    .fontWeight(.medium)
-                                    .lineLimit(1)
-                                HStack(spacing: 6) {
-                                    Text(changeOrder.number)
-                                    Text("· \(changeOrder.status.label)")
-                                    if changeOrder.appliedToInvoice { Text("· added") }
-                                }
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text((changeOrder.total >= 0 ? "+" : "") + changeOrder.total.formatted(.currency(code: "USD")))
+                    HStack(alignment: .firstTextBaseline) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(changeOrder.title.isEmpty ? changeOrder.number : changeOrder.title)
                                 .fontWeight(.medium)
-                            Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.secondary)
+                                .lineLimit(1)
+                            HStack(spacing: 6) {
+                                Text(changeOrder.number)
+                                Text("· \(changeOrder.status.label)")
+                                if changeOrder.appliedToInvoice { Text("· added") }
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
-                        .font(.subheadline)
-                        .contentShape(Rectangle())
+                        Spacer()
+                        Text((changeOrder.total >= 0 ? "+" : "") + changeOrder.total.formatted(.currency(code: "USD")))
+                            .fontWeight(.medium)
                     }
-                    .buttonStyle(.plain)
+                    .font(.subheadline)
                     if changeOrder.id != invoice.sortedChangeOrders.last?.id {
                         Divider()
                     }

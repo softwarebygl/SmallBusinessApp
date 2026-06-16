@@ -29,8 +29,10 @@ struct ChangeOrderFormScreen: View {
         var quantity: Double = 1
         var unit: UnitOfMeasure = .job
         var unitPrice: Double = 0
+        var isCredit = false
         var isTaxable = false
-        var lineTotal: Double { quantity * unitPrice }
+        /// Signed total — credits subtract from the change order (removed work).
+        var lineTotal: Double { quantity * abs(unitPrice) * (isCredit ? -1 : 1) }
     }
 
     init(invoice: Invoice, editing: ChangeOrder? = nil) {
@@ -40,7 +42,8 @@ struct ChangeOrderFormScreen: View {
         _note = State(initialValue: editing?.note ?? "")
         if let editing, !editing.sortedLineItems.isEmpty {
             _items = State(initialValue: editing.sortedLineItems.map {
-                DraftItem(name: $0.name, quantity: $0.quantity, unit: $0.unit, unitPrice: $0.unitPrice, isTaxable: $0.isTaxable)
+                DraftItem(name: $0.name, quantity: $0.quantity, unit: $0.unit,
+                          unitPrice: abs($0.unitPrice), isCredit: $0.unitPrice < 0, isTaxable: $0.isTaxable)
             })
         } else {
             _items = State(initialValue: [DraftItem()])
@@ -63,7 +66,7 @@ struct ChangeOrderFormScreen: View {
                 } header: {
                     Text("Change order")
                 } footer: {
-                    Text("Enter a negative price to credit removed work.")
+                    Text("Set an item to Credit to subtract for removed work.")
                 }
 
                 Section("Items") {
@@ -108,7 +111,7 @@ struct ChangeOrderFormScreen: View {
 
     @ViewBuilder
     private func itemEditor(_ item: Binding<DraftItem>) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             TextField("Description", text: item.name)
             HStack {
                 AutoClearNumberField(placeholder: "1", value: item.quantity, style: .number, clearsAt: 0)
@@ -118,13 +121,21 @@ struct ChangeOrderFormScreen: View {
                 }
                 .labelsHidden()
                 Spacer()
+                if item.wrappedValue.isCredit {
+                    Text("−").foregroundStyle(.red)
+                }
                 AutoClearNumberField(placeholder: "0", value: item.unitPrice, style: .currency, clearsAt: 0)
                     .multilineTextAlignment(.trailing)
             }
+            Picker("", selection: item.isCredit) {
+                Text("Charge").tag(false)
+                Text("Credit").tag(true)
+            }
+            .pickerStyle(.segmented)
             Toggle("Taxable", isOn: item.isTaxable)
-                .font(.caption)
+                .font(.subheadline)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
     }
 
     private func save() {
@@ -152,7 +163,7 @@ struct ChangeOrderFormScreen: View {
                 name: draft.name.trimmingCharacters(in: .whitespacesAndNewlines),
                 quantity: draft.quantity,
                 unit: draft.unit,
-                unitPrice: draft.unitPrice,
+                unitPrice: (draft.isCredit ? -1 : 1) * abs(draft.unitPrice),
                 isTaxable: draft.isTaxable,
                 sortIndex: index
             )
