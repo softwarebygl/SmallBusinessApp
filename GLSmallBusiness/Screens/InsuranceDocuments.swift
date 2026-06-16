@@ -20,6 +20,7 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
     case proofOfInsurance   // displayed as "General Liability Insurance"
     case wcInsurance
     case wcExemption
+    case license
 
     var id: String { rawValue }
 
@@ -28,6 +29,7 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
         case .proofOfInsurance: return String(localized: "General Liability Insurance")
         case .wcInsurance: return String(localized: "Workers' Comp Insurance")
         case .wcExemption: return String(localized: "Workers' Comp Exemption")
+        case .license: return String(localized: "Contractor License")
         }
     }
 
@@ -36,6 +38,7 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
         case .proofOfInsurance: return "checkmark.shield"
         case .wcInsurance: return "cross.case"
         case .wcExemption: return "shield.lefthalf.filled"
+        case .license: return "person.text.rectangle"
         }
     }
 
@@ -44,6 +47,7 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
         case .proofOfInsurance: return "General-Liability-Insurance.pdf"
         case .wcInsurance: return "Workers-Comp-Insurance.pdf"
         case .wcExemption: return "Workers-Comp-Exemption.pdf"
+        case .license: return "Contractor-License.pdf"
         }
     }
 
@@ -52,6 +56,7 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
         case .proofOfInsurance: return profile.proofOfInsuranceData
         case .wcInsurance: return profile.wcInsuranceData
         case .wcExemption: return profile.wcExemptionData
+        case .license: return profile.licenseDocumentData
         }
     }
 
@@ -60,6 +65,7 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
         case .proofOfInsurance: return profile.proofOfInsuranceName
         case .wcInsurance: return profile.wcInsuranceName
         case .wcExemption: return profile.wcExemptionName
+        case .license: return profile.licenseDocumentName
         }
     }
 
@@ -74,6 +80,9 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
         case .wcExemption:
             profile.wcExemptionData = data
             profile.wcExemptionName = name
+        case .license:
+            profile.licenseDocumentData = data
+            profile.licenseDocumentName = name
         }
     }
 }
@@ -117,7 +126,7 @@ struct ComplianceDocsManagerSheet: View {
             ScrollView {
                 VStack(spacing: 14) {
                     ForEach(ComplianceKind.allCases) { card($0) }
-                    Text("Upload each certificate once (PDF or image). Tap one to view, share, or replace it — or use the button above to share them all. Stored privately in your iCloud account.")
+                    Text("Upload each document once (PDF or image). Tap one to view, share, or replace it — or use the button above to share them all. Stored privately in your iCloud account.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -128,16 +137,16 @@ struct ComplianceDocsManagerSheet: View {
                 .frame(maxWidth: .infinity)
             }
             .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle("Insurance & Exemptions")
+            .navigationTitle("Insurance & Licensing")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
                 if !shareURLs.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
                         ShareLink(items: shareURLs,
-                                  subject: Text(profile.businessName.isEmpty ? "Insurance & Exemptions" : "Insurance & Exemptions — \(profile.businessName)"),
+                                  subject: Text(profile.businessName.isEmpty ? "Insurance & Licensing" : "Insurance & Licensing — \(profile.businessName)"),
                                   message: Text(DocumentShareText.body(
-                                    "Attached are our current insurance and exemption certificates.", from: profile.businessName))) {
+                                    "Attached are our current insurance, exemption, and license documents.", from: profile.businessName))) {
                             Image(systemName: "square.and.arrow.up")
                         }
                         .tint(gold)
@@ -288,7 +297,7 @@ struct ComplianceDocDetailScreen: View {
                     ShareLink(item: shareURL,
                               subject: Text(profile.businessName.isEmpty ? kind.title : "\(kind.title) — \(profile.businessName)"),
                               message: Text(DocumentShareText.body(
-                                "Attached is our \(kind.title) certificate.", from: profile.businessName))) {
+                                "Attached is our \(kind.title).", from: profile.businessName))) {
                         Image(systemName: "square.and.arrow.up")
                     }
                     .tint(gold)

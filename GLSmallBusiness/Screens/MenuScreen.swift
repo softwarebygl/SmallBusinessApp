@@ -52,12 +52,42 @@ struct MenuScreen: View {
 
                 Section("Records") {
                     NavigationLink {
+                        AllEstimatesScreen()
+                    } label: {
+                        Label {
+                            Text("All Estimates")
+                        } icon: {
+                            Image(systemName: "doc.text")
+                                .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                        }
+                    }
+                    NavigationLink {
                         AllInvoicesScreen()
                     } label: {
                         Label {
                             Text("All Invoices")
                         } icon: {
                             Image(systemName: "doc.plaintext")
+                                .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                        }
+                    }
+                    NavigationLink {
+                        AllChangeOrdersScreen()
+                    } label: {
+                        Label {
+                            Text("All Change Orders")
+                        } icon: {
+                            Image(systemName: "pencil.and.list.clipboard")
+                                .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                        }
+                    }
+                    NavigationLink {
+                        AllReceiptsScreen()
+                    } label: {
+                        Label {
+                            Text("All Receipts")
+                        } icon: {
+                            Image(systemName: "doc.viewfinder")
                                 .foregroundStyle(GLColor.gold.render(in: colorScheme))
                         }
                     }
@@ -119,7 +149,7 @@ struct MyCompanyDetailScreen: View {
     @State private var ensuredProfile = false
 
     private enum BusinessDocument: String, Identifiable {
-        case insurance, taxReport, w9
+        case contractorPackage, insurance, taxReport, w9
         var id: String { rawValue }
     }
 
@@ -148,6 +178,8 @@ struct MyCompanyDetailScreen: View {
         .sheet(item: $activeDocument) { document in
             if let profile = profiles.first {
                 switch document {
+                case .contractorPackage:
+                    ContractorPackageSheet(profile: profile).glAppearance(colorScheme)
                 case .insurance:
                     ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
                 case .taxReport:
@@ -192,7 +224,9 @@ struct MyCompanyDetailScreen: View {
                 }
                 .buttonStyle(.plain)
 
-                actionRow("Insurance & Exemptions", systemImage: "checkmark.shield",
+                actionRow("Contractor Package", systemImage: "shippingbox",
+                          badge: profile.contractorPackageReady) { activeDocument = .contractorPackage }
+                actionRow("Insurance & Licensing", systemImage: "checkmark.shield",
                           badge: profile.hasComplianceDocuments) { activeDocument = .insurance }
                 actionRow("Year-End Tax Report", systemImage: "doc.text") { activeDocument = .taxReport }
                 actionRow("Generate a W-9", systemImage: "doc.plaintext") { activeDocument = .w9 }

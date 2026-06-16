@@ -34,6 +34,9 @@ struct ReceiptListView: View {
     let defaultCustomer: Customer?
     var showsAssignee: Bool = false
     var enablesFilters: Bool = false
+    /// Navigation title. Defaults to "Receipts" for the tab; the Records-section "All Receipts"
+    /// entry overrides it so it reads consistently with the other Records lists.
+    var title: LocalizedStringResource = "Receipts"
     /// When provided, the view is an iPad master-detail sidebar: a row tap drives this selection
     /// (highlighting the row) instead of pushing the detail. The parent split renders the detail.
     var selectionID: Binding<PersistentIdentifier?>? = nil
@@ -87,7 +90,7 @@ struct ReceiptListView: View {
                 PrimaryBackground()
             }
         }
-        .navigationTitle("Receipts")
+        .navigationTitle(Text(title))
         // Large/leading title for the universal list (iPhone tab + iPad column), matching Customers;
         // inline only for the pushed per-customer / business lists.
         .toolbarTitleDisplayMode(enablesFilters ? .automatic : .inline)
