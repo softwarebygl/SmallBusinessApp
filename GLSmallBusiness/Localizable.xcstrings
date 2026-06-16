@@ -5448,6 +5448,9 @@
     "Import" : {
 
     },
+    "Import from Contacts" : {
+
+    },
     "In" : {
       "localizations" : {
         "ca" : {
@@ -6664,6 +6667,9 @@
         }
       }
     },
+    "Middle name (optional)" : {
+
+    },
     "Money In vs Out" : {
       "localizations" : {
         "ca" : {
@@ -7876,6 +7882,12 @@
         }
       }
     },
+    "Office" : {
+
+    },
+    "Office number (optional)" : {
+
+    },
     "OK" : {
       "localizations" : {
         "ca" : {
@@ -8776,6 +8788,9 @@
     "Project, reference #, anything else" : {
 
     },
+    "Pull a name, phone, email, and address straight from your phone's contacts." : {
+
+    },
     "Qty" : {
       "localizations" : {
         "ca" : {
@@ -9472,6 +9487,9 @@
           }
         }
       }
+    },
+    "Save to Contacts" : {
+
     },
     "Scan & track receipts" : {
       "localizations" : {
