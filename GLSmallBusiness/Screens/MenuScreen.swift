@@ -49,6 +49,19 @@ struct MenuScreen: View {
                         }
                     }
                 }
+
+                Section("Records") {
+                    NavigationLink {
+                        AllInvoicesScreen()
+                    } label: {
+                        Label {
+                            Text("All Invoices")
+                        } icon: {
+                            Image(systemName: "doc.plaintext")
+                                .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                        }
+                    }
+                }
             }
             .scrollContentBackground(.hidden)
             .safeAreaInset(edge: .bottom) {
