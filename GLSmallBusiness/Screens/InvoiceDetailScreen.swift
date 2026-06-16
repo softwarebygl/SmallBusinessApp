@@ -262,9 +262,10 @@ struct InvoiceDetailScreen: View {
                 if !group.note.isEmpty {
                     Text(group.note).font(.subheadline).foregroundStyle(.secondary)
                 }
-                ForEach(group.sortedLineItems) { item in
+                let items = group.sortedLineItems
+                ForEach(items) { item in
                     lineItemRow(item)
-                    if item.id != group.sortedLineItems.last?.id {
+                    if item.id != items.last?.id {
                         Divider()
                     }
                 }
@@ -343,13 +344,14 @@ struct InvoiceDetailScreen: View {
 
     private var paymentsCard: some View {
         card {
+            let payments = invoice.sortedPayments
             Text("Payments").font(.headline)
-            if invoice.sortedPayments.isEmpty {
+            if payments.isEmpty {
                 Text("No payments recorded yet.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(invoice.sortedPayments) { payment in
+                ForEach(payments) { payment in
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: 1) {
                             Text(payment.method.label)
@@ -367,7 +369,7 @@ struct InvoiceDetailScreen: View {
                             .fontWeight(.medium)
                     }
                     .font(.subheadline)
-                    if payment.id != invoice.sortedPayments.last?.id {
+                    if payment.id != payments.last?.id {
                         Divider()
                     }
                 }
@@ -377,8 +379,9 @@ struct InvoiceDetailScreen: View {
 
     private var changeOrdersCard: some View {
         card {
+            let orders = invoice.sortedChangeOrders
             Text("Change Orders").font(.headline)
-            if invoice.sortedChangeOrders.isEmpty {
+            if orders.isEmpty {
                 Text("None yet. Add one from the ••• menu when the job's scope changes.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -392,7 +395,7 @@ struct InvoiceDetailScreen: View {
                     .font(.subheadline)
                     Divider()
                 }
-                ForEach(invoice.sortedChangeOrders) { changeOrder in
+                ForEach(orders) { changeOrder in
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: 1) {
                             Text(changeOrder.title.isEmpty ? changeOrder.number : changeOrder.title)
@@ -411,7 +414,7 @@ struct InvoiceDetailScreen: View {
                             .fontWeight(.medium)
                     }
                     .font(.subheadline)
-                    if changeOrder.id != invoice.sortedChangeOrders.last?.id {
+                    if changeOrder.id != orders.last?.id {
                         Divider()
                     }
                 }

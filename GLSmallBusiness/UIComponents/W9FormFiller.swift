@@ -93,17 +93,21 @@ enum W9PDF {
         text(ctx, cityLine(profile.address), x: 62, y: 471, size: 9, maxWidth: 322)
 
         // Part I — TIN. SSN is split 3-2-4; EIN is split 2-7. Each cell is 14.4 pt wide.
+        // Only stamp a complete 9-digit number — a partial/wrong TIN on an official IRS form is
+        // worse than leaving it blank for the filer to write in by hand.
         let digits = profile.secureTIN.filter(\.isNumber)
-        switch profile.w9TINType {
-        case .ssn:
-            comb(ctx, String(digits.prefix(3)), x: 417.6, y: 402, cell: 14.4)
-            comb(ctx, String(digits.dropFirst(3).prefix(2)), x: 475.2, y: 402, cell: 14.4)
-            comb(ctx, String(digits.dropFirst(5).prefix(4)), x: 518.4, y: 402, cell: 14.4)
-        case .ein:
-            comb(ctx, String(digits.prefix(2)), x: 417.6, y: 354, cell: 14.4)
-            comb(ctx, String(digits.dropFirst(2).prefix(7)), x: 460.8, y: 354, cell: 14.4)
-        case .none:
-            break
+        if digits.count == 9 {
+            switch profile.w9TINType {
+            case .ssn:
+                comb(ctx, String(digits.prefix(3)), x: 417.6, y: 402, cell: 14.4)
+                comb(ctx, String(digits.dropFirst(3).prefix(2)), x: 475.2, y: 402, cell: 14.4)
+                comb(ctx, String(digits.dropFirst(5).prefix(4)), x: 518.4, y: 402, cell: 14.4)
+            case .ein:
+                comb(ctx, String(digits.prefix(2)), x: 417.6, y: 354, cell: 14.4)
+                comb(ctx, String(digits.dropFirst(2).prefix(7)), x: 460.8, y: 354, cell: 14.4)
+            case .none:
+                break
+            }
         }
 
         // Part II — signature + date (manual area; no form field).
@@ -152,7 +156,9 @@ enum W9PDF {
         for (i, ch) in digits.enumerated() {
             let line = CTLineCreateWithAttributedString(NSAttributedString(
                 string: String(ch), attributes: [.font: font, .foregroundColor: UIColor.black.cgColor]))
-            let b = CTLineGetImageBounds(line, ctx)
+            // Measure with a nil context (identity text matrix) so centering doesn't depend on the
+            // live PDF context's state, which can return wrong/zero bounds.
+            let b = CTLineGetImageBounds(line, nil)
             ctx.textPosition = CGPoint(x: x + (CGFloat(i) + 0.5) * cell - b.width / 2, y: y)
             CTLineDraw(line, ctx)
         }

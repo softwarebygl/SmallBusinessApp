@@ -116,6 +116,7 @@ struct MyCompanyDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Query private var profiles: [BusinessProfile]
     @State private var activeDocument: BusinessDocument?
+    @State private var ensuredProfile = false
 
     private enum BusinessDocument: String, Identifiable {
         case insurance, taxReport, w9
@@ -129,8 +130,15 @@ struct MyCompanyDetailScreen: View {
             if let profile = profiles.first {
                 detail(profile)
             } else {
-                Color.clear.onAppear { modelContext.insert(BusinessProfile()) }
+                Color.clear
             }
+        }
+        .task {
+            // Create the single profile once, and only if there genuinely isn't one — guarding
+            // against a transient empty state during sync (or a repeated onAppear) inserting a dup.
+            guard !ensuredProfile, profiles.isEmpty else { return }
+            ensuredProfile = true
+            modelContext.insert(BusinessProfile())
         }
         .background {
             GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()

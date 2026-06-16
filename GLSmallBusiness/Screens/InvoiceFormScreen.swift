@@ -63,6 +63,11 @@ struct InvoiceFormScreen: View {
     @Query private var allEstimateGroups: [EstimateGroup]
     @Query private var allEstimateLineItems: [EstimateLineItem]
 
+    // Type-ahead suggestion counts, computed once from history rather than rebuilt on every render
+    // (and every keystroke). History doesn't change while the form is open.
+    @State private var groupNameCountsCache: [String: Int] = [:]
+    @State private var lineNameCountsCache: [String: Int] = [:]
+
     @FocusState private var focusedField: SuggestionField?
 
     private enum SuggestionField: Hashable {
@@ -241,6 +246,7 @@ struct InvoiceFormScreen: View {
                 summarySection
             }
             .glFormBackground()
+            .task { groupNameCountsCache = groupNameCounts; lineNameCountsCache = lineNameCounts }
             .navigationTitle(editingInvoice == nil ? "New Invoice" : "Edit Invoice")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
@@ -260,7 +266,7 @@ struct InvoiceFormScreen: View {
                 group.name,
                 placeholder: "Group name (e.g. Master Shower)",
                 field: .groupName(group.wrappedValue.id),
-                counts: groupNameCounts
+                counts: groupNameCountsCache
             )
             TextField("Note (e.g. 5×3×8)", text: group.note)
                 .font(.subheadline)
@@ -304,7 +310,7 @@ struct InvoiceFormScreen: View {
                 line.name,
                 placeholder: "Item name",
                 field: .lineName(line.wrappedValue.id),
-                counts: lineNameCounts
+                counts: lineNameCountsCache
             )
             TextField("Description (optional)", text: line.details)
                 .font(.subheadline)

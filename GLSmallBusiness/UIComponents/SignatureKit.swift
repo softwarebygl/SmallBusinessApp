@@ -92,7 +92,13 @@ enum SignatureRender {
                                   bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
             return image.pngData()
         }
-        ctx.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
+        // Flatten any existing transparency onto white first, so every pixel is opaque before we
+        // threshold. Otherwise premultiplied RGB on semi-transparent light pixels reads low and
+        // leaves gray halos around the ink.
+        let rect = CGRect(x: 0, y: 0, width: width, height: height)
+        ctx.setFillColor(UIColor.white.cgColor)
+        ctx.fill(rect)
+        ctx.draw(cg, in: rect)
         var i = 0
         while i < pixels.count {
             if pixels[i] > 225, pixels[i + 1] > 225, pixels[i + 2] > 225 {

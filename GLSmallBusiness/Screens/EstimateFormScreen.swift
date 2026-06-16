@@ -61,6 +61,11 @@ struct EstimateFormScreen: View {
     @Query private var allGroups: [EstimateGroup]
     @Query private var allLineItems: [EstimateLineItem]
 
+    // Type-ahead suggestion counts, computed once from history (it doesn't change while editing)
+    // rather than rebuilt on every render/keystroke.
+    @State private var groupNameCountsCache: [String: Int] = [:]
+    @State private var lineNameCountsCache: [String: Int] = [:]
+
     @FocusState private var focusedField: SuggestionField?
 
     private enum SuggestionField: Hashable {
@@ -208,6 +213,7 @@ struct EstimateFormScreen: View {
                 summarySection
             }
             .glFormBackground()
+            .task { groupNameCountsCache = groupNameCounts; lineNameCountsCache = lineNameCounts }
             .navigationTitle(editingEstimate == nil ? "New Estimate" : "Edit Estimate")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
@@ -227,7 +233,7 @@ struct EstimateFormScreen: View {
                 group.name,
                 placeholder: "Group name (e.g. Master Shower)",
                 field: .groupName(group.wrappedValue.id),
-                counts: groupNameCounts
+                counts: groupNameCountsCache
             )
             TextField("Note (e.g. 5×3×8)", text: group.note)
                 .font(.subheadline)
@@ -271,7 +277,7 @@ struct EstimateFormScreen: View {
                 line.name,
                 placeholder: "Item name",
                 field: .lineName(line.wrappedValue.id),
-                counts: lineNameCounts
+                counts: lineNameCountsCache
             )
             TextField("Description (optional)", text: line.details)
                 .font(.subheadline)

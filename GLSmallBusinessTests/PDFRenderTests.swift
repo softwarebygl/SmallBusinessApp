@@ -78,4 +78,13 @@ struct PDFRenderTests {
         // The bundled W-9 template lives in the app bundle (the test host).
         #expect(isValidPDF(W9PDF.render(p, signatureImage: nil, signedDate: nil)))
     }
+
+    @Test func w9StillRendersWithIncompleteTIN() {
+        // A short TIN must not be stamped (and must not crash) — the form renders blank in Part I.
+        let p = business()
+        p.w9TaxClassificationRaw = W9TaxClassification.individual.rawValue
+        p.w9TINTypeRaw = W9TINType.ssn.rawValue
+        p.w9TIN = "123"   // too short
+        #expect(isValidPDF(W9PDF.render(p, signatureImage: nil, signedDate: nil)))
+    }
 }

@@ -7,6 +7,22 @@
 
 import SwiftUI
 
+/// Locale-aware parsing of a typed/formatted number. The decimal pad shows the *locale's* decimal
+/// separator, so a German user typing "1,5" means 1.5 — we must strip the locale grouping separator
+/// and normalize its decimal separator to "." before `Double` (which only understands ".").
+enum NumberParsing {
+    static func double(from string: String, locale: Locale = .current) -> Double? {
+        let decimal = locale.decimalSeparator ?? "."
+        let grouping = locale.groupingSeparator ?? ","
+        var s = string.trimmingCharacters(in: .whitespaces)
+        for symbol in [grouping, locale.currencySymbol ?? "", "$"] where !symbol.isEmpty {
+            s = s.replacingOccurrences(of: symbol, with: "")
+        }
+        if decimal != "." { s = s.replacingOccurrences(of: decimal, with: ".") }
+        return s.isEmpty ? nil : Double(s)
+    }
+}
+
 /// A numeric entry field that clears its default the moment it's tapped, so you can type a
 /// fresh number instead of deleting the prefilled value first.
 ///
@@ -40,8 +56,7 @@ struct AutoClearNumberField: View {
                 if isFocused {
                     text = (value == clearsAt) ? "" : editable(value)
                 } else {
-                    let trimmed = normalized(text)
-                    if !trimmed.isEmpty, let parsed = Double(trimmed) {
+                    if let parsed = NumberParsing.double(from: text) {
                         value = parsed
                     }
                     // Empty or unparseable on blur → keep the existing value.
@@ -50,17 +65,8 @@ struct AutoClearNumberField: View {
             }
             .onChange(of: text) { _, newText in
                 guard focused else { return }
-                let trimmed = normalized(newText)
-                if let parsed = Double(trimmed) { value = parsed }
+                if let parsed = NumberParsing.double(from: newText) { value = parsed }
             }
-    }
-
-    /// Strips currency/grouping symbols so a typed or formatted string parses as a Double.
-    private func normalized(_ string: String) -> String {
-        string
-            .trimmingCharacters(in: .whitespaces)
-            .replacingOccurrences(of: ",", with: "")
-            .replacingOccurrences(of: "$", with: "")
     }
 
     /// The value as the user reads it when not editing.

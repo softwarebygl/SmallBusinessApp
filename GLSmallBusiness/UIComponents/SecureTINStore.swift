@@ -32,8 +32,10 @@ enum SecureTINStore {
     }
 
     /// Replaces the stored taxpayer ID. Writing "" clears it. New items are iCloud-Keychain
-    /// synchronizable and accessible only while the device is unlocked.
-    static func write(_ value: String) {
+    /// synchronizable and accessible only while the device is unlocked. Returns false if the write
+    /// failed, so a silent loss of the most sensitive field can be noticed rather than swallowed.
+    @discardableResult
+    static func write(_ value: String) -> Bool {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         let base: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -45,11 +47,18 @@ enum SecureTINStore {
         delete[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
         SecItemDelete(delete as CFDictionary)
 
-        guard !trimmed.isEmpty, let data = trimmed.data(using: .utf8) else { return }
+        guard !trimmed.isEmpty, let data = trimmed.data(using: .utf8) else { return true }
         var add = base
         add[kSecValueData as String] = data
         add[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlocked
         add[kSecAttrSynchronizable as String] = true
-        SecItemAdd(add as CFDictionary, nil)
+        var status = SecItemAdd(add as CFDictionary, nil)
+        if status == errSecDuplicateItem {
+            // The delete hadn't propagated (e.g. a sync race) — update in place instead.
+            var query = base
+            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+            status = SecItemUpdate(query as CFDictionary, [kSecValueData as String: data] as CFDictionary)
+        }
+        return status == errSecSuccess
     }
 }
