@@ -167,6 +167,18 @@ extension Invoice {
         return "Customer"
     }
 
+    /// Recipient to pre-fill when emailing — the customer's CURRENT email, falling back to the
+    /// snapshot taken at creation, so contact info added or changed later is still used.
+    var recipientEmail: String {
+        let live = (customer?.email ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return live.isEmpty ? customerEmail : live
+    }
+    /// Same, for texting — the customer's current mobile, falling back to the snapshot.
+    var recipientPhone: String {
+        let live = (customer?.phoneNumber ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return live.isEmpty ? customerPhone : live
+    }
+
     var sortedGroups: [InvoiceGroup] {
         (groups ?? []).sorted { $0.sortIndex < $1.sortIndex }
     }

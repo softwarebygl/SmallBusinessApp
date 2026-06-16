@@ -17,10 +17,12 @@ struct CustomerFormScreen: View {
     var onSave: ((Customer) -> Void)? = nil
 
     @State private var firstName: String
+    @State private var middleName: String
     @State private var lastName: String
     @State private var businessName: String
     @State private var email: String
     @State private var phoneNumber: String
+    @State private var officePhone: String
     @State private var street1: String
     @State private var street2: String
     @State private var city: String
@@ -31,10 +33,12 @@ struct CustomerFormScreen: View {
         self.editing = editing
         self.onSave = onSave
         _firstName    = State(initialValue: editing?.firstName ?? "")
+        _middleName   = State(initialValue: editing?.middleName ?? "")
         _lastName     = State(initialValue: editing?.lastName ?? "")
         _businessName = State(initialValue: editing?.businessName ?? "")
         _email        = State(initialValue: editing?.email ?? "")
         _phoneNumber  = State(initialValue: editing?.phoneNumber ?? "")
+        _officePhone  = State(initialValue: editing?.officePhone ?? "")
         _street1      = State(initialValue: editing?.address.street1 ?? "")
         _street2      = State(initialValue: editing?.address.street2 ?? "")
         _city         = State(initialValue: editing?.address.city ?? "")
@@ -54,6 +58,8 @@ struct CustomerFormScreen: View {
                 Section("Name") {
                     TextField("First name", text: $firstName)
                         .textContentType(.givenName)
+                    TextField("Middle name (optional)", text: $middleName)
+                        .textContentType(.middleName)
                     TextField("Last name", text: $lastName)
                         .textContentType(.familyName)
                 }
@@ -70,6 +76,11 @@ struct CustomerFormScreen: View {
                         .autocorrectionDisabled()
                         #endif
                     TextField("Phone", text: $phoneNumber)
+                        .textContentType(.telephoneNumber)
+                        #if !os(macOS)
+                        .keyboardType(.phonePad)
+                        #endif
+                    TextField("Office number (optional)", text: $officePhone)
                         .textContentType(.telephoneNumber)
                         #if !os(macOS)
                         .keyboardType(.phonePad)
@@ -125,18 +136,22 @@ struct CustomerFormScreen: View {
         let saved: Customer
         if let customer = editing {
             customer.firstName = trim(firstName)
+            customer.middleName = trim(middleName)
             customer.lastName = trim(lastName)
             customer.email = trim(email)
             customer.phoneNumber = trim(phoneNumber)
+            customer.officePhone = trim(officePhone)
             customer.businessName = business
             customer.address = address
             saved = customer
         } else {
             let customer = Customer(
                 firstName: trim(firstName),
+                middleName: trim(middleName),
                 lastName: trim(lastName),
                 email: trim(email),
                 phoneNumber: trim(phoneNumber),
+                officePhone: trim(officePhone),
                 businessName: business,
                 address: address
             )

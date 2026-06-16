@@ -94,6 +94,9 @@ struct CustomerDetailScreen: View {
         card("Contact") {
             infoRow("Email", customer.email)
             infoRow("Phone", customer.phoneNumber)
+            if !customer.officePhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                infoRow("Office", customer.officePhone)
+            }
             if let business = customer.businessName?.trimmingCharacters(in: .whitespacesAndNewlines),
                !business.isEmpty {
                 infoRow("Business", business)

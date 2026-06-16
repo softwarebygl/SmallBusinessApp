@@ -173,7 +173,7 @@ struct InvoiceDetailScreen: View {
         switch action {
         case .email:
             MailComposeView(
-                recipients: [invoice.customerEmail],
+                recipients: [invoice.recipientEmail],
                 subject: InvoiceMessage.subject(invoice: invoice, business: business),
                 body: InvoiceMessage.htmlBody(invoice: invoice, business: business),
                 isHTML: true,
@@ -181,7 +181,7 @@ struct InvoiceDetailScreen: View {
             ) { sendAction = nil }
         case .text:
             MessageComposeView(
-                recipients: [invoice.customerPhone],
+                recipients: [invoice.recipientPhone],
                 body: InvoiceMessage.plainBody(invoice: invoice, business: business),
                 attachmentURLs: [EstimateMessage.logoAttachmentURL(business: business), pdfURL].compactMap { $0 }
             ) { sendAction = nil }
@@ -658,7 +658,7 @@ private struct PaymentReceiptSheet: View {
         switch action {
         case .email:
             MailComposeView(
-                recipients: [invoice.customerEmail],
+                recipients: [invoice.recipientEmail],
                 subject: PaymentReceiptMessage.subject(invoice: invoice, business: business),
                 body: PaymentReceiptMessage.htmlBody(invoice: invoice, payment: payment, business: business),
                 isHTML: true,
@@ -666,7 +666,7 @@ private struct PaymentReceiptSheet: View {
             ) { sendAction = nil }
         case .text:
             MessageComposeView(
-                recipients: [invoice.customerPhone],
+                recipients: [invoice.recipientPhone],
                 body: PaymentReceiptMessage.plainBody(invoice: invoice, payment: payment, business: business),
                 attachmentURLs: [pdfURL].compactMap { $0 }
             ) { sendAction = nil }

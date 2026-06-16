@@ -11,9 +11,13 @@ import SwiftData
 @Model
 final class Customer {
     var firstName: String = ""
+    var middleName: String = ""
     var lastName: String = ""
     var email: String = ""
+    /// Primary phone (mobile) — used as the text-message recipient.
     var phoneNumber: String = ""
+    /// Optional office / landline number — informational; not used for texting.
+    var officePhone: String = ""
     var businessName: String?
     var address: Address = Address()
     var createdAt: Date = Date.now
@@ -30,17 +34,21 @@ final class Customer {
 
     init(
         firstName: String = "",
+        middleName: String = "",
         lastName: String = "",
         email: String = "",
         phoneNumber: String = "",
+        officePhone: String = "",
         businessName: String? = nil,
         address: Address = Address(),
         createdAt: Date = .now
     ) {
         self.firstName = firstName
+        self.middleName = middleName
         self.lastName = lastName
         self.email = email
         self.phoneNumber = phoneNumber
+        self.officePhone = officePhone
         self.businessName = businessName
         self.address = address
         self.createdAt = createdAt
@@ -48,6 +56,14 @@ final class Customer {
 }
 
 nonisolated extension Customer {
+    /// The person's full name, "First Middle Last", trimmed; empty parts dropped.
+    var fullName: String {
+        [firstName, middleName, lastName]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+    }
+
     var listDisplayName: String {
         let first = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
         let last = lastName.trimmingCharacters(in: .whitespacesAndNewlines)

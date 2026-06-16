@@ -33,6 +33,7 @@ struct ContractorPackageSheet: View {
     @State private var includeName = true
     @State private var includeAddress = true
     @State private var includePhone = false
+    @State private var includeOffice = false
     @State private var includeEmail = false
     @State private var additionalDetails = ""
     @State private var showingAddCustomer = false
@@ -82,6 +83,7 @@ struct ContractorPackageSheet: View {
         let address = includeAddress ? addressBlock(c.address) : ""
         var extras: [String] = []
         if includePhone, !trimmed(c.phoneNumber).isEmpty { extras.append(trimmed(c.phoneNumber)) }
+        if includeOffice, !trimmed(c.officePhone).isEmpty { extras.append(trimmed(c.officePhone)) }
         if includeEmail, !trimmed(c.email).isEmpty { extras.append(trimmed(c.email)) }
         if !trimmed(additionalDetails).isEmpty { extras.append(trimmed(additionalDetails)) }
         return ContractorPackagePDF.holderLines(company: company, owner: name, address: address,
@@ -90,9 +92,7 @@ struct ContractorPackageSheet: View {
     private var hasHolder: Bool { !holderLines.isEmpty }
 
     private func trimmed(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
-    private func customerName(_ c: Customer) -> String {
-        [c.firstName, c.lastName].map(trimmed).filter { !$0.isEmpty }.joined(separator: " ")
-    }
+    private func customerName(_ c: Customer) -> String { c.fullName }
     private func addressBlock(_ a: Address) -> String {
         let cityLine = [a.city, a.state].map(trimmed).filter { !$0.isEmpty }.joined(separator: ", ")
         let cityZip = [cityLine, trimmed(a.postalCode)].filter { !$0.isEmpty }.joined(separator: " ")
@@ -246,6 +246,9 @@ struct ContractorPackageSheet: View {
                 if !trimmed(customer.phoneNumber).isEmpty {
                     detailCheck("Phone", customer.phoneNumber, isOn: $includePhone)
                 }
+                if !trimmed(customer.officePhone).isEmpty {
+                    detailCheck("Office", customer.officePhone, isOn: $includeOffice)
+                }
                 if !trimmed(customer.email).isEmpty {
                     detailCheck("Email", customer.email, isOn: $includeEmail)
                 }
@@ -316,6 +319,7 @@ struct ContractorPackageSheet: View {
         includeName = !customerName(customer).isEmpty
         includeAddress = !addressBlock(customer.address).isEmpty
         includePhone = false
+        includeOffice = false
         includeEmail = false
     }
 

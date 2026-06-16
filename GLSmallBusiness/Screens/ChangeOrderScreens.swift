@@ -316,7 +316,7 @@ struct ChangeOrderDetailSheet: View {
             switch action {
             case .email:
                 MailComposeView(
-                    recipients: [invoice.customerEmail],
+                    recipients: [invoice.recipientEmail],
                     subject: ChangeOrderMessage.subject(changeOrder, business: business),
                     body: ChangeOrderMessage.htmlBody(changeOrder, business: business),
                     isHTML: true,
@@ -324,7 +324,7 @@ struct ChangeOrderDetailSheet: View {
                 ) { sendAction = nil }
             case .text:
                 MessageComposeView(
-                    recipients: [invoice.customerPhone],
+                    recipients: [invoice.recipientPhone],
                     body: ChangeOrderMessage.plainBody(changeOrder, business: business),
                     attachmentURLs: [pdfURL].compactMap { $0 }
                 ) { sendAction = nil }

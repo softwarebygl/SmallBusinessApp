@@ -76,6 +76,40 @@ struct ProfileCustomerTests {
         #expect(Customer().initials == "?")
     }
 
+    @Test func customerFullNameIncludesMiddleWhenPresent() {
+        #expect(Customer(firstName: "Devin", lastName: "Odom").fullName == "Devin Odom")
+        let withMiddle = Customer(firstName: "Devin", middleName: "Ray", lastName: "Odom")
+        #expect(withMiddle.fullName == "Devin Ray Odom")
+        #expect(Customer().fullName == "")
+        #expect(withMiddle.officePhone == "")   // office defaults empty / optional
+    }
+
+    // MARK: - Recipient pre-fill (live customer, snapshot fallback)
+
+    @Test func estimateRecipientPrefersLiveCustomerThenSnapshot() {
+        let c = Customer(firstName: "Dana", email: "dana@x.com", phoneNumber: "555-1000")
+        let est = Estimate(customer: c)   // snapshots email/phone at creation
+        #expect(est.recipientEmail == "dana@x.com")
+        #expect(est.recipientPhone == "555-1000")
+
+        c.email = "new@x.com"; c.phoneNumber = "555-2000"   // updated after creation
+        #expect(est.recipientEmail == "new@x.com")
+        #expect(est.recipientPhone == "555-2000")
+
+        c.email = "  "; c.phoneNumber = ""                  // cleared → fall back to snapshot
+        #expect(est.recipientEmail == "dana@x.com")
+        #expect(est.recipientPhone == "555-1000")
+    }
+
+    @Test func invoiceRecipientFallsBackToSnapshotWithoutLiveCustomer() {
+        let inv = Invoice(number: "INV-1")
+        inv.customerEmail = "snap@x.com"
+        inv.customerPhone = "555-9999"
+        #expect(inv.customer == nil)
+        #expect(inv.recipientEmail == "snap@x.com")
+        #expect(inv.recipientPhone == "555-9999")
+    }
+
     // MARK: - Address
 
     @Test func addressFormatting() {

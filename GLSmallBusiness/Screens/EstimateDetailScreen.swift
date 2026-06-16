@@ -280,7 +280,7 @@ struct EstimateDetailScreen: View {
         switch action {
         case .email:
             MailComposeView(
-                recipients: [estimate.customerEmail],
+                recipients: [estimate.recipientEmail],
                 subject: EstimateMessage.subject(estimate: estimate, business: business),
                 body: EstimateMessage.htmlBody(estimate: estimate, business: business),
                 isHTML: true,
@@ -289,7 +289,7 @@ struct EstimateDetailScreen: View {
         case .text:
             // Logo first (renders as an inline image), then the estimate PDF.
             MessageComposeView(
-                recipients: [estimate.customerPhone],
+                recipients: [estimate.recipientPhone],
                 body: EstimateMessage.plainBody(estimate: estimate, business: business),
                 attachmentURLs: [EstimateMessage.logoAttachmentURL(business: business), pdfURL].compactMap { $0 }
             ) { sendAction = nil }
