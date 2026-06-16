@@ -227,13 +227,28 @@ no migration needed until the first post-launch change).
   `NSFaceIDUsageDescription` to Info.plist. New files: `UIComponents/W9FormFiller.swift`,
   `UIComponents/SignatureKit.swift`, `Screens/CompanyDocuments.swift`, `Screens/SignatureEditorSheet.swift`,
   and the bundled `Resources/W9Template.pdf` (official IRS form, public domain).
-- **Planned next (owner-requested) — Documents roadmap:** (1) **COI** (Certificate of Insurance) — owner
-  imports a blank COI PDF, app asks for the GC's info, fills + generates it (same fill-the-official-PDF
-  approach as the W-9). (2) **WC exemption certificate**. (3) **Send Compliance Packet** — bundle W-9 + COI
-  + WC into one email with a fixed header/body/sign-off (brand voice per evolvedbygl.com: clean, honest, no
-  shortcuts), owner just picks the outgoing account and sends (MFMailComposeViewController, device-only).
-  Reusable insurance data should live in **My Company** (new "Insurance" section); generation/sending stays
-  in the **Documents** hub.
+- **Done — committed to `main` (e9e2bab):** the W-9 / signature / Documents-hub work above.
+- **Done — NOT yet committed (built + verified on simulator):** **Insurance & WC Exemption.** The owner
+  *uploads* the certificate PDFs manually (no generation — superseding the earlier "fill a blank COI" idea):
+  a **Proof of Insurance** (COI) and a **Workers' Comp Exemption**, managed in **My Company → Insurance & WC
+  Exemption** (`ComplianceDocsManagerSheet`: upload / replace / remove via `.fileImporter` `[.pdf]`, stored on
+  `BusinessProfile` as `proofOfInsuranceData` / `wcExemptionData` + name fields, additive → still **V1**,
+  CloudKit-synced). A new **Documents → "Insurance & WC Exemption"** row (`InsuranceDocumentsSheet`) previews
+  the uploaded cert(s) and shares them (navbar `ShareLink`); if none uploaded it routes to the uploader
+  (same pattern as the W-9 "Add tax details"). Extracted the shared in-sheet `DocActionRow`. New file:
+  `Screens/InsuranceDocuments.swift`.
+- **Done — NOT yet committed (built + verified on simulator):** **My Company restructure + personal info.**
+  The My Company screen condensed to a hub: logo, business name, a **Contact** card (now incl. the owner's
+  **Name**), then rows — **Details**, Receipts, Signature, Insurance. New read-only **Details** screen
+  (`CompanyDetails.swift`) shows *everything* from the edit form categorized (Contact, License, Address,
+  Estimate/Invoice messages, W-9 tax details — **TIN masked to last 4**). New **`UserProfile` @Model**
+  (firstName/lastName/email/phone) for the account owner — **added to `GLSchemaV1.models`, so CloudKit gets a
+  new `CD_UserProfile` record type to deploy** (still V1, additive). New Menu row **My Personal Info**
+  (`PersonalInfo.swift`); the **My Company** Menu row + screen renamed **My Business Details**.
+- **Planned next (owner-requested):** **Send Compliance Packet** — bundle W-9 + Proof of Insurance + WC
+  Exemption into one email with a fixed header/body/sign-off (brand voice per evolvedbygl.com: clean, honest,
+  no shortcuts), owner just picks the outgoing account and sends (MFMailComposeViewController, device-only).
+  Lives in the **Documents** hub.
 - **CloudKit:** V1 (10 record types) deployed to Production. A one-time **completeness seed** (since removed)
   populated every field including the image/asset ones; `serviceAddress` + the dark-logo asset were deployed.
   ⏳ **Final deploy to confirm:** the `CD_Receipt` `scanData` + `customer` fields the seed surfaced — deploy

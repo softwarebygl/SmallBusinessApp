@@ -111,6 +111,14 @@ final class BusinessProfile {
     /// like the W-9. Synced privately through CloudKit like the rest of the profile.
     @Attribute(.externalStorage) var signatureData: Data?
 
+    /// Manually uploaded compliance certificates (PDFs) shared from the Documents hub — a
+    /// Certificate of Insurance / proof of liability insurance, and a workers' comp exemption
+    /// certificate. Stored as-is and synced privately through CloudKit.
+    @Attribute(.externalStorage) var proofOfInsuranceData: Data?
+    var proofOfInsuranceName: String = ""
+    @Attribute(.externalStorage) var wcExemptionData: Data?
+    var wcExemptionName: String = ""
+
     init() {}
 }
 
@@ -150,6 +158,13 @@ extension BusinessProfile {
 
     /// Whether a saved signature exists.
     var hasSignature: Bool { signatureData != nil }
+
+    // MARK: - Compliance documents
+
+    var hasProofOfInsurance: Bool { proofOfInsuranceData != nil }
+    var hasWCExemption: Bool { wcExemptionData != nil }
+    /// At least one compliance certificate has been uploaded.
+    var hasComplianceDocuments: Bool { hasProofOfInsurance || hasWCExemption }
 
     /// The minimum needed to produce a usable W-9: a name, a classification, and a TIN.
     var w9IsComplete: Bool { w9MissingRequirements.isEmpty }

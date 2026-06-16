@@ -28,10 +28,20 @@ struct MenuScreen: View {
         NavigationStack {
             List {
                 NavigationLink {
+                    MyPersonalInfoScreen()
+                } label: {
+                    Label {
+                        Text("My Personal Info")
+                    } icon: {
+                        Image(systemName: "person.crop.circle")
+                            .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                    }
+                }
+                NavigationLink {
                     MyCompanyDetailScreen()
                 } label: {
                     Label {
-                        Text("My Company")
+                        Text("My Business Details")
                     } icon: {
                         Image(systemName: "building.2")
                             .foregroundStyle(GLColor.gold.render(in: colorScheme))
@@ -100,8 +110,9 @@ struct MyCompanyDetailScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @Query private var profiles: [BusinessProfile]
-    @State private var showingEdit = false
+    @Query private var userProfiles: [UserProfile]
     @State private var showingSignature = false
+    @State private var showingCompliance = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -116,21 +127,16 @@ struct MyCompanyDetailScreen: View {
         .background {
             GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
         }
-        .navigationTitle("My Company")
+        .navigationTitle("My Business Details")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") { showingEdit = true }
-            }
-        }
-        .sheet(isPresented: $showingEdit) {
-            if let profile = profiles.first {
-                MyCompanyFormScreen(profile: profile).glAppearance(colorScheme)
-            }
-        }
         .sheet(isPresented: $showingSignature) {
             if let profile = profiles.first {
                 SignatureEditorSheet(profile: profile).glAppearance(colorScheme)
+            }
+        }
+        .sheet(isPresented: $showingCompliance) {
+            if let profile = profiles.first {
+                ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
             }
         }
     }
@@ -143,21 +149,30 @@ struct MyCompanyDetailScreen: View {
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(profile.businessName.isEmpty ? .secondary : .primary)
 
-                card("Contact") {
+                GLCard(title: "Contact") {
+                    infoRow("Name", userProfiles.first?.fullName ?? "")
                     infoRow("Email", profile.email)
                     infoRow("Phone", profile.phone)
                 }
-                if !profile.licenseNumber.isEmpty {
-                    card("License") {
-                        Text(profile.licenseNumber)
+
+                NavigationLink {
+                    CompanyDetailsScreen(profile: profile)
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "list.bullet.rectangle")
+                            .frame(width: 24)
+                            .foregroundStyle(gold)
+                        Text("Details")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.secondary)
                     }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .glCardBackground()
                 }
-                let address = formattedAddress(profile.address)
-                if !address.isEmpty {
-                    card("Address") {
-                        Text(address)
-                    }
-                }
+                .buttonStyle(.plain)
 
                 NavigationLink {
                     BusinessReceiptsScreen()
@@ -201,6 +216,30 @@ struct MyCompanyDetailScreen: View {
                     .glCardBackground()
                 }
                 .buttonStyle(.plain)
+
+                Button {
+                    showingCompliance = true
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "checkmark.shield")
+                            .frame(width: 24)
+                            .foregroundStyle(gold)
+                        Text("Insurance & WC Exemption")
+                        Spacer()
+                        if profile.hasComplianceDocuments {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.footnote)
+                                .foregroundStyle(gold)
+                        }
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .glCardBackground()
+                }
+                .buttonStyle(.plain)
             }
             .padding()
         }
@@ -230,25 +269,12 @@ struct MyCompanyDetailScreen: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func card<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
-        GLCard(title: title) { content() }
-    }
-
     private func infoRow(_ label: LocalizedStringKey, _ value: String) -> some View {
         HStack {
             Text(label).foregroundStyle(.secondary)
             Spacer()
             Text(value.isEmpty ? "—" : value).multilineTextAlignment(.trailing)
         }
-    }
-
-    private func formattedAddress(_ a: Address) -> String {
-        let cityLine = [a.city, a.state].filter { !$0.isEmpty }.joined(separator: ", ")
-        let cityZip = [cityLine, a.postalCode].filter { !$0.isEmpty }.joined(separator: " ")
-        return [a.street1, a.street2 ?? "", cityZip]
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .joined(separator: "\n")
     }
 }
 

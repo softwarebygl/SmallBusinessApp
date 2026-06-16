@@ -10,11 +10,45 @@
 import SwiftUI
 import SwiftData
 
+/// The in-sheet action card (icon · title · subtitle · chevron) used inside document sheets — e.g.
+/// "Update tax details", "Add a signature", "Add documents". Matches the signature/Documents rows.
+struct DocActionRow: View {
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
+    let systemImage: String
+    let action: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let gold = GLColor.gold.render(in: colorScheme)
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .font(.title3)
+                    .frame(width: 28)
+                    .foregroundStyle(gold)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.subheadline.weight(.semibold))
+                    Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glCardBackground()
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // MARK: - Documents hub
 
-/// A single home for generating and (soon) sending business documents: the year-end accountant
-/// export, the W-9, and — as they're added — the COI, WC exemption certificate, and a combined
-/// compliance-packet email. Each reads from the company details saved in My Company.
+/// A single home for generating and sending business documents: the year-end accountant export, the
+/// W-9, the insurance / WC-exemption certificates, and — as it's added — a combined compliance-packet
+/// email. Each reads from the company details saved in My Company.
 struct DocumentsScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
@@ -22,7 +56,7 @@ struct DocumentsScreen: View {
     @State private var activeDocument: ActiveDocument?
 
     private enum ActiveDocument: String, Identifiable {
-        case taxReport, w9
+        case taxReport, w9, insurance
         var id: String { rawValue }
     }
 
@@ -37,6 +71,9 @@ struct DocumentsScreen: View {
                 row("Generate a W-9",
                     subtitle: "Official IRS Form W-9, filled and ready to share",
                     systemImage: "doc.plaintext") { activeDocument = .w9 }
+                row("Insurance & WC Exemption",
+                    subtitle: "Share your proof of insurance or workers' comp exemption",
+                    systemImage: "checkmark.shield") { activeDocument = .insurance }
             }
             .padding()
             .frame(maxWidth: 640)
@@ -53,6 +90,10 @@ struct DocumentsScreen: View {
             case .w9:
                 if let profile = profiles.first {
                     W9DocumentSheet(profile: profile).glAppearance(colorScheme)
+                }
+            case .insurance:
+                if let profile = profiles.first {
+                    InsuranceDocumentsSheet(profile: profile).glAppearance(colorScheme)
                 }
             }
         }
@@ -251,9 +292,9 @@ struct W9DocumentSheet: View {
                 .shadow(radius: 4, y: 2)
         }
 
-        cardRow(title: "Update tax details",
-                subtitle: "Name, classification, and Tax ID.",
-                systemImage: "square.and.pencil") { showingEdit = true }
+        DocActionRow(title: "Update tax details",
+                     subtitle: "Name, classification, and Tax ID.",
+                     systemImage: "square.and.pencil") { showingEdit = true }
 
         signatureControls
 
@@ -268,31 +309,6 @@ struct W9DocumentSheet: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
-    }
-
-    /// A tappable card row (icon · title · subtitle · chevron) matching the signature and Documents rows.
-    private func cardRow(title: LocalizedStringKey, subtitle: LocalizedStringKey,
-                         systemImage: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: systemImage)
-                    .font(.title3)
-                    .frame(width: 28)
-                    .foregroundStyle(gold)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.subheadline.weight(.semibold))
-                    Text(subtitle).font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 8)
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glCardBackground()
-        }
-        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -315,9 +331,9 @@ struct W9DocumentSheet: View {
             .padding()
             .glCardBackground()
         } else {
-            cardRow(title: "Add a signature",
-                    subtitle: "Sign and date your W-9 automatically.",
-                    systemImage: "signature") { showingSignatureEditor = true }
+            DocActionRow(title: "Add a signature",
+                         subtitle: "Sign and date your W-9 automatically.",
+                         systemImage: "signature") { showingSignatureEditor = true }
         }
     }
 

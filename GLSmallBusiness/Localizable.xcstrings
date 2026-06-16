@@ -942,6 +942,9 @@
         }
       }
     },
+    "Add documents" : {
+
+    },
     "Add group" : {
       "localizations" : {
         "ca" : {
@@ -1184,6 +1187,9 @@
           }
         }
       }
+    },
+    "Add your certificates" : {
+
     },
     "Address" : {
       "localizations" : {
@@ -2554,6 +2560,9 @@
         }
       }
     },
+    "Classification" : {
+
+    },
     "Clear" : {
 
     },
@@ -2596,6 +2605,9 @@
           }
         }
       }
+    },
+    "Closing" : {
+
     },
     "Collected" : {
       "localizations" : {
@@ -3276,6 +3288,9 @@
           }
         }
       }
+    },
+    "Default" : {
+
     },
     "Defaults to the last completed year. Includes a receipts CSV and a tax summary — income collected, sales tax, expenses by category, and net — for the selected year." : {
 
@@ -4742,6 +4757,9 @@
     "Export with Signature and Date" : {
 
     },
+    "FATCA code" : {
+
+    },
     "FATCA exemption code" : {
 
     },
@@ -5280,6 +5298,12 @@
     "Individual / sole proprietor" : {
 
     },
+    "Insurance & WC Exemption" : {
+
+    },
+    "Intro" : {
+
+    },
     "Invoice" : {
       "localizations" : {
         "ca" : {
@@ -5759,6 +5783,9 @@
           }
         }
       }
+    },
+    "License #" : {
+
     },
     "License #%@" : {
       "localizations" : {
@@ -6606,6 +6633,9 @@
         }
       }
     },
+    "My Business Details" : {
+
+    },
     "My Company" : {
       "localizations" : {
         "ca" : {
@@ -6645,6 +6675,9 @@
           }
         }
       }
+    },
+    "My Personal Info" : {
+
     },
     "Name" : {
       "localizations" : {
@@ -8424,6 +8457,9 @@
         }
       }
     },
+    "Proof of Insurance" : {
+
+    },
     "Qty" : {
       "localizations" : {
         "ca" : {
@@ -8867,6 +8903,9 @@
         }
       }
     },
+    "Replace" : {
+
+    },
     "Required" : {
       "localizations" : {
         "ca" : {
@@ -8988,6 +9027,9 @@
       }
     },
     "Review the details. Print or send the W-9, then sign and date it by hand before giving it to the requester." : {
+
+    },
+    "Review, then share with the requester. Add or replace certificates anytime." : {
 
     },
     "Run your trade from your phone." : {
@@ -9637,6 +9679,9 @@
       }
     },
     "Share Report" : {
+
+    },
+    "Share your proof of insurance or workers' comp exemption" : {
 
     },
     "Share…" : {
@@ -10418,6 +10463,12 @@
 
     },
     "Tax details (for W-9)" : {
+
+    },
+    "Tax details (W-9)" : {
+
+    },
+    "Tax ID" : {
 
     },
     "Tax ID (SSN or EIN)" : {
@@ -11204,7 +11255,25 @@
         }
       }
     },
+    "Update documents" : {
+
+    },
     "Update tax details" : {
+
+    },
+    "Upload or replace your certificates." : {
+
+    },
+    "Upload PDF" : {
+
+    },
+    "Upload your certificate PDFs once here, then share them anytime from Documents. Stored privately in your iCloud account." : {
+
+    },
+    "Upload your certificate PDFs." : {
+
+    },
+    "Upload your proof of insurance and/or workers' comp exemption to share them with a requester." : {
 
     },
     "Use" : {
@@ -11570,6 +11639,9 @@
         }
       }
     },
+    "Workers' Comp Exemption" : {
+
+    },
     "Year" : {
       "localizations" : {
         "ca" : {
@@ -11692,6 +11764,9 @@
           }
         }
       }
+    },
+    "Your name" : {
+
     },
     "Your name (as shown on your tax return)" : {
 
