@@ -65,7 +65,10 @@ struct StatsControlsColumn: View {
         ScrollView {
             VStack(spacing: 18) {
                 periodSelector
-                if hasData { kpiGrid }
+                if hasData {
+                    let summary = self.summary   // compute once, not once per KPI
+                    kpiGrid(summary)
+                }
             }
             .padding()
         }
@@ -105,7 +108,7 @@ struct StatsControlsColumn: View {
         }
     }
 
-    private var kpiGrid: some View {
+    private func kpiGrid(_ summary: StatsSummary) -> some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
             kpi(String(localized: "Collected"), summary.collected, tint: gold)
             kpi(String(localized: "Expenses"), summary.expenses)
@@ -163,9 +166,10 @@ struct StatsDashboard: View {
         ScrollView {
             VStack(spacing: 18) {
                 if hasData {
-                    inOutCard
-                    expensesCard
-                    estimatesInvoicesCard
+                    let summary = self.summary   // compute once per render, not per card
+                    inOutCard(summary)
+                    expensesCard(summary)
+                    estimatesInvoicesCard(summary)
                     exportButton
                 } else {
                     ContentUnavailableView {
@@ -182,12 +186,12 @@ struct StatsDashboard: View {
         }
         .containerBackground(for: .navigation) { PrimaryBackground() }
         .navigationTitle(periodTitle)
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .onAppear { regenerateExport() }
         .onChange(of: selection.period) { _, _ in regenerateExport() }
     }
 
-    private var inOutCard: some View {
+    private func inOutCard(_ summary: StatsSummary) -> some View {
         GLCard(title: "Money In vs Out") {
             let inL = String(localized: "In")
             let outL = String(localized: "Out")
@@ -210,7 +214,7 @@ struct StatsDashboard: View {
     }
 
     @ViewBuilder
-    private var expensesCard: some View {
+    private func expensesCard(_ summary: StatsSummary) -> some View {
         GLCard(title: "Expenses by category") {
             if summary.expensesByCategory.isEmpty {
                 Text("No receipts in this period.")
@@ -244,7 +248,7 @@ struct StatsDashboard: View {
         }
     }
 
-    private var estimatesInvoicesCard: some View {
+    private func estimatesInvoicesCard(_ summary: StatsSummary) -> some View {
         GLCard(title: "Estimates & Invoices") {
             statRow("Estimates quoted", summary.estimatesQuoted.formatted(.currency(code: "USD")))
             statRow("Accepted / declined", "\(summary.estimatesAccepted) / \(summary.estimatesDeclined)")

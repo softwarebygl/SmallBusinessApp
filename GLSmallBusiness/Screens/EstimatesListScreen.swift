@@ -79,7 +79,7 @@ struct EstimatesListScreen: View {
             PrimaryBackground()
         }
         .navigationTitle("Estimates")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedEstimate) { estimate in
             EstimateDetailScreen(estimate: estimate)
         }
@@ -134,7 +134,7 @@ struct EstimatesListScreen: View {
     private func rowContent(_ estimate: Estimate) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(estimate.jobTitle.isEmpty ? String(localized: "Untitled job") : estimate.jobTitle)
+                Text(estimate.jobTitle.isEmpty ? String(localized: "Untitled estimate") : estimate.jobTitle)
                     .font(.headline)
                     .lineLimit(1)
                 Spacer()

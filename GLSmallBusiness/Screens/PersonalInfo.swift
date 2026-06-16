@@ -34,7 +34,7 @@ struct MyPersonalInfoScreen: View {
         }
         .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
         .navigationTitle("My Personal Info")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingSignature) {
             if let profile = profiles.first {
                 SignatureEditorSheet(profile: profile).glAppearance(colorScheme)
@@ -161,9 +161,16 @@ struct PersonalDetailsScreen: View {
         }
         .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
         .navigationTitle("More Info")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) { Button("Edit") { showingEdit = true } }
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button { showingEdit = true } label: { Label("Edit details", systemImage: "pencil") }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("More")
+            }
         }
         .sheet(isPresented: $showingEdit) {
             MyPersonalInfoFormScreen(profile: profile).glAppearance(colorScheme)

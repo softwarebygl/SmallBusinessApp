@@ -22,8 +22,12 @@ struct AllInvoicesScreen: View {
     var body: some View {
         List {
             if invoices.isEmpty {
-                ContentUnavailableView("No Invoices", systemImage: "doc.plaintext")
-                    .listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label("No Invoices", systemImage: "banknote")
+                } description: {
+                    Text("Invoices across all your customers will appear here.")
+                }
+                .listRowBackground(Color.clear)
             } else {
                 if orphanCount > 0 {
                     Text(orphanCount == 1
@@ -46,9 +50,9 @@ struct AllInvoicesScreen: View {
         }
         .scrollContentBackground(.hidden)
         .listStyle(.plain)
-        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+        .containerBackground(for: .navigation) { PrimaryBackground() }
         .navigationTitle("All Invoices")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedInvoice) { invoice in
             InvoiceDetailScreen(invoice: invoice)
         }
@@ -56,29 +60,34 @@ struct AllInvoicesScreen: View {
 
     private func row(_ invoice: Invoice) -> some View {
         let orphaned = invoice.customer == nil
-        return VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(invoice.jobTitle.isEmpty ? String(localized: "Untitled invoice") : invoice.jobTitle)
-                    .font(.headline)
-                    .lineLimit(1)
-                Spacer()
-                Text(invoice.total.formatted(.currency(code: "USD")))
-                    .font(.headline)
-            }
-            HStack(spacing: 8) {
-                Text(invoice.number)
-                Text("·")
-                Text(invoice.createdAt.formatted(date: .abbreviated, time: .omitted))
-                Spacer()
-                if orphaned {
-                    Label("No customer", systemImage: "person.crop.circle.badge.exclamationmark")
-                        .foregroundStyle(.orange)
-                } else {
-                    Text(invoice.customer?.listDisplayName ?? "")
+        return HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(invoice.jobTitle.isEmpty ? String(localized: "Untitled invoice") : invoice.jobTitle)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Spacer()
+                    Text(invoice.total.formatted(.currency(code: "USD")))
+                        .font(.headline)
                 }
+                HStack(spacing: 8) {
+                    Text(invoice.number)
+                    Text("·")
+                    Text(invoice.createdAt.formatted(date: .abbreviated, time: .omitted))
+                    Spacer()
+                    if orphaned {
+                        Label("No customer", systemImage: "person.crop.circle.badge.exclamationmark")
+                            .foregroundStyle(.orange)
+                    } else {
+                        Text(invoice.customer?.listDisplayName ?? "")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
         }
         .padding(.horizontal, GLLayout.rowContentPadding)
         .padding(.vertical, GLLayout.rowContentVerticalPadding)

@@ -41,10 +41,15 @@ struct ReceiptDetailScreen: View {
             PrimaryBackground()
         }
         .navigationTitle(receipt.displayVendor)
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") { showingEdit = true }
+                Menu {
+                    Button { showingEdit = true } label: { Label("Edit receipt", systemImage: "pencil") }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("More")
             }
         }
         .sheet(isPresented: $showingEdit) {

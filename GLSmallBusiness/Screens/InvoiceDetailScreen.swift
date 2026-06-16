@@ -76,7 +76,7 @@ struct InvoiceDetailScreen: View {
             PrimaryBackground()
         }
         .navigationTitle(invoice.number.isEmpty ? String(localized: "Invoice") : invoice.number)
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -634,7 +634,7 @@ private struct PaymentReceiptSheet: View {
                             Button { sendAction = .text } label: { Label("Text receipt", systemImage: "message") }
                         }
                         if let pdfURL {
-                            ShareLink(item: pdfURL) { Label("Share…", systemImage: "square.and.arrow.up") }
+                            ShareLink(item: pdfURL) { Label("Share receipt…", systemImage: "square.and.arrow.up") }
                         }
                     } label: {
                         Image(systemName: "square.and.arrow.up")

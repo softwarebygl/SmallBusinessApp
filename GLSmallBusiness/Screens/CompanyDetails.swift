@@ -59,10 +59,15 @@ struct CompanyDetailsScreen: View {
         }
         .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
         .navigationTitle("More Info")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") { showingEdit = true }
+                Menu {
+                    Button { showingEdit = true } label: { Label("Edit details", systemImage: "pencil") }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("More")
             }
         }
         .sheet(isPresented: $showingEdit) {

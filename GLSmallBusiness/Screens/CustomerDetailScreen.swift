@@ -36,10 +36,15 @@ struct CustomerDetailScreen: View {
             PrimaryBackground()
         }
         .navigationTitle(customer.listDisplayName)
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") { showingEdit = true }
+                Menu {
+                    Button { showingEdit = true } label: { Label("Edit customer", systemImage: "pencil") }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("More")
             }
         }
         .sheet(isPresented: $showingEdit) {

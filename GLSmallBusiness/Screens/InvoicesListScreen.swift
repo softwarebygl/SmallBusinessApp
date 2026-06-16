@@ -79,7 +79,7 @@ struct InvoicesListScreen: View {
             PrimaryBackground()
         }
         .navigationTitle("Invoices")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedInvoice) { invoice in
             InvoiceDetailScreen(invoice: invoice)
         }

@@ -72,47 +72,30 @@ struct EstimateDetailScreen: View {
             PrimaryBackground()
         }
         .navigationTitle(estimate.number.isEmpty ? String(localized: "Estimate") : estimate.number)
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .navigationDestination(item: $convertedInvoice) { invoice in
             InvoiceDetailScreen(invoice: invoice)
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button {
-                        showingEdit = true
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
+                    Section {
+                        Button { showingEdit = true } label: { Label("Edit estimate", systemImage: "pencil") }
+                        Button { convertToInvoice() } label: { Label("Convert to Invoice", systemImage: "arrow.right.doc.on.clipboard") }
                     }
-                    Button {
-                        convertToInvoice()
-                    } label: {
-                        Label("Convert to Invoice", systemImage: "arrow.right.doc.on.clipboard")
-                    }
-                    Divider()
                     if let pdfURL {
-                        if !estimate.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
-                            Button {
-                                sendAction = .email
-                            } label: {
-                                Label("Email estimate", systemImage: "envelope")
+                        Section {
+                            if !estimate.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
+                                Button { sendAction = .email } label: { Label("Email estimate", systemImage: "envelope") }
                             }
-                        }
-                        if !estimate.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
-                            Button {
-                                sendAction = .text
-                            } label: {
-                                Label("Text estimate", systemImage: "message")
+                            if !estimate.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
+                                Button { sendAction = .text } label: { Label("Text estimate", systemImage: "message") }
                             }
-                        }
-                        ShareLink(item: pdfURL) {
-                            Label("Share…", systemImage: "square.and.arrow.up")
+                            ShareLink(item: pdfURL) { Label("Share estimate…", systemImage: "square.and.arrow.up") }
                         }
                     } else {
-                        Button {
-                            showingProfilePrompt = true
-                        } label: {
-                            Label("Set up business profile to send", systemImage: "exclamationmark.circle")
+                        Section {
+                            Button { showingProfilePrompt = true } label: { Label("Set up business profile to send", systemImage: "exclamationmark.circle") }
                         }
                     }
                 } label: {
@@ -142,7 +125,7 @@ struct EstimateDetailScreen: View {
         card {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(estimate.jobTitle.isEmpty ? String(localized: "Untitled job") : estimate.jobTitle)
+                    Text(estimate.jobTitle.isEmpty ? String(localized: "Untitled estimate") : estimate.jobTitle)
                         .font(.title3.weight(.semibold))
                     Text(estimate.number)
                         .font(.subheadline)

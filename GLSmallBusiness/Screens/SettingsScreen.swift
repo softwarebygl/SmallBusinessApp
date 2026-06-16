@@ -139,7 +139,7 @@ struct SettingsScreen: View {
         }
         .glFormBackground()
         .navigationTitle("Settings")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .manageSubscriptionsSheet(isPresented: $managingSubscription)
         .offerCodeRedemption(isPresented: $redeemingCode) { _ in }
     }

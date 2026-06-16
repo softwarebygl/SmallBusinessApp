@@ -64,7 +64,7 @@ struct ChangeOrderFormScreen: View {
                 Section {
                     TextField("Summary (e.g. Add second coat of sealer)", text: $title)
                 } header: {
-                    Text("Change order")
+                    Text("Change Order")
                 } footer: {
                     Text("Set an item to Credit to subtract for removed work.")
                 }
@@ -77,7 +77,7 @@ struct ChangeOrderFormScreen: View {
                     Button {
                         items.append(DraftItem())
                     } label: {
-                        Label("Add item", systemImage: "plus.circle.fill")
+                        Label("Add line item", systemImage: "plus.circle.fill")
                     }
                 }
 
@@ -260,7 +260,7 @@ struct ChangeOrderDetailSheet: View {
                             Button { sendAction = .text } label: { Label("Text change order", systemImage: "message") }
                         }
                         if let pdfURL {
-                            ShareLink(item: pdfURL) { Label("Share…", systemImage: "square.and.arrow.up") }
+                            ShareLink(item: pdfURL) { Label("Share change order…", systemImage: "square.and.arrow.up") }
                         }
                     } label: {
                         Image(systemName: "square.and.arrow.up")

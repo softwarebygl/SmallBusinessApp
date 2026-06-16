@@ -144,7 +144,7 @@ struct MyCompanyDetailScreen: View {
             GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
         }
         .navigationTitle("My Business Details")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inline)
         .sheet(item: $activeDocument) { document in
             if let profile = profiles.first {
                 switch document {

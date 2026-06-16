@@ -16,7 +16,11 @@ struct ChangeOrderPDFDocument: View {
 
     private var gold: Color { GLColor.gold.render(in: .light) }
     private var invoice: Invoice? { changeOrder.invoice }
-    private var originalTotal: Double { invoice?.total ?? 0 }
+    /// The invoice total BEFORE this change order. Once a CO is applied its items live in the
+    /// invoice, so back them out to keep "original" and "revised" honest on the document.
+    private var originalTotal: Double {
+        (invoice?.total ?? 0) - (changeOrder.appliedToInvoice ? changeOrder.total : 0)
+    }
     private var revisedTotal: Double { originalTotal + changeOrder.total }
 
     private func money(_ value: Double) -> String { value.formatted(.currency(code: "USD")) }

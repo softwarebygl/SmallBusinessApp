@@ -145,7 +145,7 @@ struct IPadRootSplitView: View {
             }
         }
         .navigationTitle("Gold Life")
-        .navigationBarTitleDisplayMode(.large)   // leading-aligned title now the top-leading button is gone
+        .toolbarTitleDisplayMode(.large)   // leading-aligned title now the top-leading button is gone
         .contentMargins(.top, 16, for: .scrollContent)   // breathing room below the script title's descenders
         .containerBackground(for: .navigation) {
             GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
@@ -289,6 +289,9 @@ private struct CustomerListColumn: View {
 
     private func delete(at offsets: IndexSet) {
         for index in offsets { modelContext.delete(customers[index]) }
+        // Persist now (cascades to the customer's estimates/invoices/receipts) so Stats and the
+        // detail pane reflect it immediately — matching every other delete path in the app.
+        try? modelContext.save()
     }
 }
 
