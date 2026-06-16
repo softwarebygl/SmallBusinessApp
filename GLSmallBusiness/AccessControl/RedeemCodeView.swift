@@ -20,7 +20,7 @@ struct RedeemCodeView: View {
         Form {
             if access.isEnabled(AccessFlag.unlimitedLifeAccess) {
                 Section {
-                    Label("Unlimited access is active on this device.", systemImage: "checkmark.seal.fill")
+                    Label("Your code is active on this device.", systemImage: "checkmark.seal.fill")
                         .foregroundStyle(.green)
                 }
             }
@@ -31,7 +31,7 @@ struct RedeemCodeView: View {
                     .padding(.vertical, 8)
                     .listRowBackground(Color.clear)
             } footer: {
-                Text("Enter your GL access code to unlock full access on this device.")
+                Text("Have a code? Enter it to redeem on this device.")
             }
 
             if let result {
@@ -52,10 +52,10 @@ struct RedeemCodeView: View {
         switch result {
         case .success(_, let expires):
             let detail = expires.map { String(localized: "Active until \($0.formatted(date: .abbreviated, time: .omitted))") }
-                ?? String(localized: "Lifetime access — enjoy!")
+                ?? String(localized: "Your code is active — enjoy!")
             Label {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Access unlocked").fontWeight(.semibold)
+                    Text("Code redeemed").fontWeight(.semibold)
                     Text(detail).font(.footnote).foregroundStyle(.secondary)
                 }
             } icon: {

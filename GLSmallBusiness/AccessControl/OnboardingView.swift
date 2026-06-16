@@ -63,7 +63,7 @@ struct OnboardingView: View {
                 Image(systemName: "wifi.exclamationmark")
                     .font(.largeTitle).foregroundStyle(.secondary)
                 Text("Couldn't load plans right now").font(.headline)
-                Text("Check your connection and tap Retry — or unlock with a GL access code below.")
+                Text("Check your connection and tap Retry — or enter a GL code below.")
                     .font(.subheadline).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }

@@ -245,6 +245,14 @@ no migration needed until the first post-launch change).
   (firstName/lastName/email/phone) for the account owner — **added to `GLSchemaV1.models`, so CloudKit gets a
   new `CD_UserProfile` record type to deploy** (still V1, additive). New Menu row **My Personal Info**
   (`PersonalInfo.swift`); the **My Company** Menu row + screen renamed **My Business Details**.
+  Later refinements (also uncommitted): business **owner name** (`ownerFirstName`/`ownerLastName` on
+  `BusinessProfile`, separate parts) drives the Contact card; "Details" row → **"More Info"**; the duplicate
+  **Receipts** row removed (single source = the Receipts tab; deleted the orphaned `BusinessReceiptsScreen`);
+  "Insurance & WC Exemption" → **"Insurance & Exemptions"** everywhere; the uploader cards are now fully
+  tappable rows (tap to upload, or a Replace/Remove dialog when filled). **The saved signature moved off
+  `BusinessProfile` onto `UserProfile`** (`signatureData` — it's the person's, and the W-9 reads it from
+  there), so the **signature now syncs as part of `CD_UserProfile`, not `CD_BusinessProfile`**; the Signature
+  row moved from My Business Details to **My Personal Info**.
 - **Planned next (owner-requested):** **Send Compliance Packet** — bundle W-9 + Proof of Insurance + WC
   Exemption into one email with a fixed header/body/sign-off (brand voice per evolvedbygl.com: clean, honest,
   no shortcuts), owner just picks the outgoing account and sends (MFMailComposeViewController, device-only).
@@ -293,10 +301,13 @@ every line of customer-facing copy must clear that bar.
   `glassEffect` where it fits, the GL monogram backdrop (`PrimaryBackground`). Full **light + dark** support —
   never hard-code colors; resolve through `GLColor`. The company logo may replace the monogram (Settings
   toggle) — honor `BusinessProfile.logo(for:)` fallbacks.
-- **Information architecture — one screen, one purpose:** keep reusable *data* and *actions* apart. **My
-  Company** holds reusable identity/credentials (business info, tax details, signature, soon insurance); the
-  **Documents** hub holds the generate/send *actions*. When a screen starts collecting unrelated actions,
-  spin out a dedicated hub rather than piling on — the "without shortcuts" rule applied to IA.
+- **Information architecture — grouped by owner.** The Menu is a single **My Info** section with two rows,
+  **Business** (`MyCompanyDetailScreen`) and **Personal** (`MyPersonalInfoScreen`). Each is a hub: identity up
+  top (logo/photo, name, a Contact card), a **More Info** row → read-only categorized details (with the
+  **Edit** there), and that owner's actions as rows. The **Business** screen carries the business-document
+  actions — **Insurance & Exemptions**, **Year-End Tax Report**, **Generate a W-9**. (There is no separate
+  "Documents" hub anymore — it was consolidated onto the Business screen. The owner prefers one category over
+  a peer hub; group by owner, not by data-vs-actions.)
 - **Sheet dismissal (see §8):** **X close** (`Button(role: .close)`, `.topBarLeading`) for presentational
   sheets; **Cancel + Save** for editing; **Edit↔Done** for list edit mode. Never a bare "Done" just to close.
 - **Cross-device — iPhone *and* iPad:** ships on iPhone (`RootTabView`, compact width) and iPad / large-iPhone

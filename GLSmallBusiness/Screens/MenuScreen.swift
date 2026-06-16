@@ -27,34 +27,26 @@ struct MenuScreen: View {
     var body: some View {
         NavigationStack {
             List {
-                NavigationLink {
-                    MyPersonalInfoScreen()
-                } label: {
-                    Label {
-                        Text("My Personal Info")
-                    } icon: {
-                        Image(systemName: "person.crop.circle")
-                            .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                Section("My Info") {
+                    NavigationLink {
+                        MyCompanyDetailScreen()
+                    } label: {
+                        Label {
+                            Text("Business")
+                        } icon: {
+                            Image(systemName: "building.2")
+                                .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                        }
                     }
-                }
-                NavigationLink {
-                    MyCompanyDetailScreen()
-                } label: {
-                    Label {
-                        Text("My Business Details")
-                    } icon: {
-                        Image(systemName: "building.2")
-                            .foregroundStyle(GLColor.gold.render(in: colorScheme))
-                    }
-                }
-                NavigationLink {
-                    DocumentsScreen()
-                } label: {
-                    Label {
-                        Text("Documents")
-                    } icon: {
-                        Image(systemName: "doc.on.doc")
-                            .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                    NavigationLink {
+                        MyPersonalInfoScreen()
+                    } label: {
+                        Label {
+                            Text("Personal")
+                        } icon: {
+                            Image(systemName: "person.crop.circle")
+                                .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                        }
                     }
                 }
             }
@@ -110,9 +102,12 @@ struct MyCompanyDetailScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @Query private var profiles: [BusinessProfile]
-    @Query private var userProfiles: [UserProfile]
-    @State private var showingSignature = false
-    @State private var showingCompliance = false
+    @State private var activeDocument: BusinessDocument?
+
+    private enum BusinessDocument: String, Identifiable {
+        case insurance, taxReport, w9
+        var id: String { rawValue }
+    }
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -129,14 +124,16 @@ struct MyCompanyDetailScreen: View {
         }
         .navigationTitle("My Business Details")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showingSignature) {
+        .sheet(item: $activeDocument) { document in
             if let profile = profiles.first {
-                SignatureEditorSheet(profile: profile).glAppearance(colorScheme)
-            }
-        }
-        .sheet(isPresented: $showingCompliance) {
-            if let profile = profiles.first {
-                ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
+                switch document {
+                case .insurance:
+                    ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
+                case .taxReport:
+                    YearEndTaxReportSheet().glAppearance(colorScheme)
+                case .w9:
+                    W9DocumentSheet(profile: profile).glAppearance(colorScheme)
+                }
             }
         }
     }
@@ -150,7 +147,7 @@ struct MyCompanyDetailScreen: View {
                     .foregroundStyle(profile.businessName.isEmpty ? .secondary : .primary)
 
                 GLCard(title: "Contact") {
-                    infoRow("Name", userProfiles.first?.fullName ?? "")
+                    infoRow("Name", profile.ownerFullName)
                     infoRow("Email", profile.email)
                     infoRow("Phone", profile.phone)
                 }
@@ -162,7 +159,7 @@ struct MyCompanyDetailScreen: View {
                         Image(systemName: "list.bullet.rectangle")
                             .frame(width: 24)
                             .foregroundStyle(gold)
-                        Text("Details")
+                        Text("More Info")
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.footnote.weight(.semibold))
@@ -174,83 +171,38 @@ struct MyCompanyDetailScreen: View {
                 }
                 .buttonStyle(.plain)
 
-                NavigationLink {
-                    BusinessReceiptsScreen()
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "doc.viewfinder")
-                            .frame(width: 24)
-                            .foregroundStyle(gold)
-                        Text("Receipts")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .glCardBackground()
-                }
-                .buttonStyle(.plain)
-
-                Button {
-                    Task { await openSignature(profile) }
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "signature")
-                            .frame(width: 24)
-                            .foregroundStyle(gold)
-                        Text("Signature")
-                        Spacer()
-                        if profile.hasSignature {
-                            Image(systemName: "checkmark.seal.fill")
-                                .font(.footnote)
-                                .foregroundStyle(gold)
-                        }
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .glCardBackground()
-                }
-                .buttonStyle(.plain)
-
-                Button {
-                    showingCompliance = true
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "checkmark.shield")
-                            .frame(width: 24)
-                            .foregroundStyle(gold)
-                        Text("Insurance & WC Exemption")
-                        Spacer()
-                        if profile.hasComplianceDocuments {
-                            Image(systemName: "checkmark.seal.fill")
-                                .font(.footnote)
-                                .foregroundStyle(gold)
-                        }
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .glCardBackground()
-                }
-                .buttonStyle(.plain)
+                actionRow("Insurance & Exemptions", systemImage: "checkmark.shield",
+                          badge: profile.hasComplianceDocuments) { activeDocument = .insurance }
+                actionRow("Year-End Tax Report", systemImage: "doc.text") { activeDocument = .taxReport }
+                actionRow("Generate a W-9", systemImage: "doc.plaintext") { activeDocument = .w9 }
             }
             .padding()
         }
     }
 
-    /// Existing signatures are revealed only after Face ID; creating a first one needs no unlock.
-    private func openSignature(_ profile: BusinessProfile) async {
-        if profile.hasSignature {
-            guard await BiometricGate.authenticate(reason: String(localized: "Unlock your saved signature.")) else { return }
+    private func actionRow(_ title: LocalizedStringKey, systemImage: String,
+                           badge: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .frame(width: 24)
+                    .foregroundStyle(gold)
+                Text(title)
+                Spacer()
+                if badge {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.footnote)
+                        .foregroundStyle(gold)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glCardBackground()
         }
-        showingSignature = true
+        .buttonStyle(.plain)
     }
 
     private func logo(_ profile: BusinessProfile) -> some View {
@@ -292,6 +244,8 @@ struct MyCompanyFormScreen: View {
     let profile: BusinessProfile
 
     @State private var businessName: String
+    @State private var ownerFirstName: String
+    @State private var ownerLastName: String
     @State private var licenseNumber: String
     @State private var email: String
     @State private var phone: String
@@ -320,6 +274,8 @@ struct MyCompanyFormScreen: View {
     init(profile: BusinessProfile) {
         self.profile = profile
         _businessName = State(initialValue: profile.businessName)
+        _ownerFirstName = State(initialValue: profile.ownerFirstName)
+        _ownerLastName = State(initialValue: profile.ownerLastName)
         _licenseNumber = State(initialValue: profile.licenseNumber)
         _email = State(initialValue: profile.email)
         _phone = State(initialValue: profile.phone)
@@ -338,7 +294,7 @@ struct MyCompanyFormScreen: View {
         _w9LLCClassification = State(initialValue: profile.w9LLCClassification)
         _w9OtherClassification = State(initialValue: profile.w9OtherClassification)
         _w9TINType = State(initialValue: profile.w9TINType)
-        _w9TIN = State(initialValue: profile.w9TIN)
+        _w9TIN = State(initialValue: profile.secureTIN)
         _w9ExemptPayeeCode = State(initialValue: profile.w9ExemptPayeeCode)
         _w9FATCACode = State(initialValue: profile.w9FATCACode)
     }
@@ -390,6 +346,10 @@ struct MyCompanyFormScreen: View {
                 }
 
                 Section("Contact") {
+                    TextField("Owner first name", text: $ownerFirstName)
+                        .textContentType(.givenName)
+                    TextField("Owner last name", text: $ownerLastName)
+                        .textContentType(.familyName)
                     HStack {
                         TextField("Email", text: $email)
                             .textContentType(.emailAddress)
@@ -449,14 +409,21 @@ struct MyCompanyFormScreen: View {
                             Text(option.label).tag(W9TINType?.some(option))
                         }
                     }
-                    TextField(w9TINType == .ein ? "EIN" : "Taxpayer ID number", text: $w9TIN)
-                        #if !os(macOS)
-                        .keyboardType(.numbersAndPunctuation)
-                        #endif
+                    .onChange(of: w9TINType) { _, _ in
+                        // The SSN and EIN formats differ, so switching type clears the old number.
+                        w9TIN = ""
+                    }
+                    LabeledContent(w9TINType?.label ?? String(localized: "Tax ID")) {
+                        TextField(w9TINType == .ein ? "12-3456789" : "123-45-6789", text: $w9TIN)
+                            .multilineTextAlignment(.trailing)
+                            #if !os(macOS)
+                            .keyboardType(.numbersAndPunctuation)
+                            #endif
+                    }
                 } header: {
                     Text("Tax details (for W-9)")
                 } footer: {
-                    Text("Optional. Used to generate a W-9. Sign and date the form by hand after you print or send it.")
+                    Text("Optional. Used to generate a W-9. Your Tax ID is stored securely in your Keychain, not the synced database. Sign and date the form by hand after you print or send it.")
                         .textCase(nil)
                 }
 
@@ -493,7 +460,7 @@ struct MyCompanyFormScreen: View {
                 }
             }
             .glFormBackground()
-            .navigationTitle("My Company")
+            .navigationTitle("My Business Details")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -591,6 +558,8 @@ struct MyCompanyFormScreen: View {
 
     private func save() {
         profile.businessName = businessName.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.ownerFirstName = ownerFirstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.ownerLastName = ownerLastName.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.licenseNumber = licenseNumber.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.email = email.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.phone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -609,7 +578,7 @@ struct MyCompanyFormScreen: View {
         profile.w9LLCClassification = w9LLCClassification.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         profile.w9OtherClassification = w9OtherClassification.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.w9TINType = w9TINType
-        profile.w9TIN = w9TIN.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.updateTIN(w9TIN)
         profile.w9ExemptPayeeCode = w9ExemptPayeeCode.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.w9FATCACode = w9FATCACode.trimmingCharacters(in: .whitespacesAndNewlines)
         dismiss()

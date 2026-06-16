@@ -4,9 +4,9 @@
 //
 //  Created by Gold Life LLC on 6/15/26.
 //
-//  Manually-uploaded compliance certificates — a proof of insurance (COI) and a workers' comp
-//  exemption. Uploaded/managed in My Company; shared from the Documents hub. Mirrors the W-9 flow:
-//  if nothing's uploaded yet, the share sheet routes the user to the My Company upload screen.
+//  Manually-uploaded compliance certificates (PDF or image) — general liability insurance, workers'
+//  comp insurance, and a workers' comp exemption. Uploaded, managed, and shared from the Business
+//  screen's "Insurance & Exemptions" row (ComplianceDocsManagerSheet).
 
 import SwiftUI
 import SwiftData
@@ -15,16 +15,18 @@ import UniformTypeIdentifiers
 
 // MARK: - Certificate kinds
 
-/// The two compliance certificates, each backed by a pair of `BusinessProfile` properties.
+/// The compliance certificates, each backed by a pair of `BusinessProfile` properties.
 enum ComplianceKind: String, CaseIterable, Identifiable {
-    case proofOfInsurance
+    case proofOfInsurance   // displayed as "General Liability Insurance"
+    case wcInsurance
     case wcExemption
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .proofOfInsurance: return String(localized: "Proof of Insurance")
+        case .proofOfInsurance: return String(localized: "General Liability Insurance")
+        case .wcInsurance: return String(localized: "Workers' Comp Insurance")
         case .wcExemption: return String(localized: "Workers' Comp Exemption")
         }
     }
@@ -32,13 +34,15 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .proofOfInsurance: return "checkmark.shield"
+        case .wcInsurance: return "cross.case"
         case .wcExemption: return "shield.lefthalf.filled"
         }
     }
 
     var fallbackFileName: String {
         switch self {
-        case .proofOfInsurance: return "Proof-of-Insurance.pdf"
+        case .proofOfInsurance: return "General-Liability-Insurance.pdf"
+        case .wcInsurance: return "Workers-Comp-Insurance.pdf"
         case .wcExemption: return "Workers-Comp-Exemption.pdf"
         }
     }
@@ -46,6 +50,7 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
     func data(_ profile: BusinessProfile) -> Data? {
         switch self {
         case .proofOfInsurance: return profile.proofOfInsuranceData
+        case .wcInsurance: return profile.wcInsuranceData
         case .wcExemption: return profile.wcExemptionData
         }
     }
@@ -53,6 +58,7 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
     func fileName(_ profile: BusinessProfile) -> String {
         switch self {
         case .proofOfInsurance: return profile.proofOfInsuranceName
+        case .wcInsurance: return profile.wcInsuranceName
         case .wcExemption: return profile.wcExemptionName
         }
     }
@@ -62,6 +68,9 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
         case .proofOfInsurance:
             profile.proofOfInsuranceData = data
             profile.proofOfInsuranceName = name
+        case .wcInsurance:
+            profile.wcInsuranceData = data
+            profile.wcInsuranceName = name
         case .wcExemption:
             profile.wcExemptionData = data
             profile.wcExemptionName = name
@@ -70,23 +79,6 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
 }
 
 enum CompliancePDF {
-    /// Renders page 1 of an uploaded certificate to an image for in-app preview.
-    static func firstPageImage(_ data: Data, scale: CGFloat = 2) -> UIImage? {
-        guard let doc = PDFDocument(data: data), let page = doc.page(at: 0) else { return nil }
-        let box = page.bounds(for: .mediaBox)
-        guard box.width > 0, box.height > 0 else { return nil }
-        let format = UIGraphicsImageRendererFormat.default()
-        format.scale = scale
-        return UIGraphicsImageRenderer(size: box.size, format: format).image { rc in
-            let cg = rc.cgContext
-            UIColor.white.setFill()
-            cg.fill(CGRect(origin: .zero, size: box.size))
-            cg.translateBy(x: 0, y: box.size.height)
-            cg.scaleBy(x: 1, y: -1)
-            page.draw(with: .mediaBox, to: cg)
-        }
-    }
-
     /// Writes a certificate to a temp file for sharing; returns its URL.
     static func tempURL(_ data: Data, name: String, fallback: String) -> URL? {
         let fileName = name.isEmpty ? fallback : name
@@ -104,102 +96,14 @@ struct ComplianceDocsManagerSheet: View {
     @Environment(\.colorScheme) private var colorScheme
     let profile: BusinessProfile
 
-    @State private var importing: ComplianceKind?
-
-    private var gold: Color { GLColor.gold.render(in: colorScheme) }
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
-                    ForEach(ComplianceKind.allCases) { card($0) }
-                    Text("Upload your certificate PDFs once here, then share them anytime from Documents. Stored privately in your iCloud account.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, 4)
-                }
-                .padding()
-                .frame(maxWidth: 640)
-                .frame(maxWidth: .infinity)
-            }
-            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle("Insurance & WC Exemption")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
-            }
-            .fileImporter(isPresented: importingBinding, allowedContentTypes: [.pdf]) { result in
-                guard let kind = importing, case .success(let url) = result else { return }
-                let access = url.startAccessingSecurityScopedResource()
-                defer { if access { url.stopAccessingSecurityScopedResource() } }
-                if let data = try? Data(contentsOf: url) {
-                    kind.store(profile, data: data, name: url.lastPathComponent)
-                }
-            }
-        }
-    }
-
-    private var importingBinding: Binding<Bool> {
-        Binding(get: { importing != nil }, set: { if !$0 { importing = nil } })
-    }
-
-    private func card(_ kind: ComplianceKind) -> some View {
-        let uploaded = kind.data(profile) != nil
-        let name = kind.fileName(profile)
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                Image(systemName: kind.systemImage)
-                    .font(.title3)
-                    .frame(width: 28)
-                    .foregroundStyle(gold)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(kind.title).font(.subheadline.weight(.semibold))
-                    Text(uploaded ? (name.isEmpty ? "PDF uploaded" : name) : "Not added")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-                Spacer(minLength: 8)
-                if uploaded {
-                    Image(systemName: "checkmark.seal.fill").font(.footnote).foregroundStyle(gold)
-                }
-            }
-            HStack(spacing: 16) {
-                Button { importing = kind } label: {
-                    Label(uploaded ? "Replace" : "Upload PDF", systemImage: "arrow.up.doc")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(gold)
-                }
-                .buttonStyle(.plain)
-                if uploaded {
-                    Spacer()
-                    Button(role: .destructive) {
-                        kind.store(profile, data: nil, name: "")
-                    } label: {
-                        Text("Remove").font(.subheadline).foregroundStyle(.red)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glCardBackground()
-    }
-}
-
-// MARK: - Documents: preview & share
-
-/// Previews the uploaded certificate(s) and shares them; routes to the My Company uploader when none
-/// exist yet (same pattern as the W-9 sheet's "Add tax details").
-struct InsuranceDocumentsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
-    let profile: BusinessProfile
-
-    @State private var showingManager = false
+    /// `importTarget` (which slot is being filled) is kept separate from `showingImporter` (the
+    /// presentation flag) on purpose: if the two shared one state, dismissing the importer could
+    /// clear the target before the completion handler reads it — and the upload would silently no-op.
+    @State private var importTarget: ComplianceKind?
+    @State private var showingImporter = false
+    @State private var actionKind: ComplianceKind?
+    @State private var shareItem: ShareItem?
+    @State private var uploadFailed = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -213,86 +117,123 @@ struct InsuranceDocumentsSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    if profile.hasComplianceDocuments {
-                        ForEach(ComplianceKind.allCases) { kind in
-                            if let data = kind.data(profile) { preview(kind, data) }
-                        }
-                        DocActionRow(title: "Update documents",
-                                     subtitle: "Upload or replace your certificates.",
-                                     systemImage: "square.and.pencil") { showingManager = true }
-                        Text("Review, then share with the requester. Add or replace certificates anytime.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    } else {
-                        incompleteContent
-                    }
+                VStack(spacing: 14) {
+                    ForEach(ComplianceKind.allCases) { card($0) }
+                    Text("Upload each certificate once (PDF or image). Share them with the requester using the button above. Stored privately in your iCloud account.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 4)
                 }
                 .padding()
                 .frame(maxWidth: 640)
                 .frame(maxWidth: .infinity)
             }
             .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle("Insurance & WC Exemption")
+            .navigationTitle("Insurance & Exemptions")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
                 if !shareURLs.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
-                        ShareLink(items: shareURLs) { Image(systemName: "square.and.arrow.up") }
-                            .tint(gold)
+                        ShareLink(items: shareURLs,
+                                  subject: Text(profile.businessName.isEmpty ? "Insurance & Exemptions" : "Insurance & Exemptions — \(profile.businessName)"),
+                                  message: Text(DocumentShareText.body(
+                                    "Attached are our current insurance and exemption certificates.", from: profile.businessName))) {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .tint(gold)
                     }
                 }
             }
-            .sheet(isPresented: $showingManager) {
-                ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
+            .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.pdf, .image]) { result in
+                guard let kind = importTarget else { return }
+                importTarget = nil
+                guard case .success(let url) = result else { return }
+                let access = url.startAccessingSecurityScopedResource()
+                defer { if access { url.stopAccessingSecurityScopedResource() } }
+                if let data = try? Data(contentsOf: url), !data.isEmpty {
+                    kind.store(profile, data: data, name: url.lastPathComponent)
+                } else {
+                    uploadFailed = true
+                }
+            }
+            .confirmationDialog(actionKind?.title ?? "",
+                                isPresented: actionDialogBinding,
+                                titleVisibility: .visible,
+                                presenting: actionKind) { kind in
+                Button("Share") {
+                    if let data = kind.data(profile),
+                       let url = CompliancePDF.tempURL(data, name: kind.fileName(profile), fallback: kind.fallbackFileName) {
+                        shareItem = ShareItem(url: url)
+                    }
+                }
+                // Let the dialog finish dismissing before presenting the file importer.
+                Button("Replace file") { DispatchQueue.main.async { importTarget = kind; showingImporter = true } }
+                Button("Remove", role: .destructive) { kind.store(profile, data: nil, name: "") }
+            }
+            .sheet(item: $shareItem) { ActivityView(items: [$0.url]) }
+            .alert("Couldn't read that file", isPresented: $uploadFailed) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("That file couldn't be opened. Try a different file, or export it as a PDF first.")
             }
         }
     }
 
-    private func preview(_ kind: ComplianceKind, _ data: Data) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: kind.systemImage).foregroundStyle(gold)
-                Text(kind.title).font(.subheadline.weight(.semibold))
-                Spacer()
-            }
-            if let image = CompliancePDF.firstPageImage(data) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(.black.opacity(0.1)))
-                    .shadow(radius: 4, y: 2)
-            } else {
-                Label(kind.fileName(profile).isEmpty ? "PDF" : kind.fileName(profile), systemImage: "doc.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .glCardBackground()
-            }
-        }
+    private var actionDialogBinding: Binding<Bool> {
+        Binding(get: { actionKind != nil }, set: { if !$0 { actionKind = nil } })
     }
 
-    private var incompleteContent: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "shield.lefthalf.filled")
-                .font(.system(size: 44))
-                .foregroundStyle(gold)
-            Text("Add your certificates")
-                .font(.title3.weight(.semibold))
-            Text("Upload your proof of insurance and/or workers' comp exemption to share them with a requester.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            DocActionRow(title: "Add documents",
-                         subtitle: "Upload your certificate PDFs.",
-                         systemImage: "arrow.up.doc") { showingManager = true }
+    /// The whole row is the button: tap to upload when empty, or to replace/remove when filled.
+    private func card(_ kind: ComplianceKind) -> some View {
+        let uploaded = kind.data(profile) != nil
+        let name = kind.fileName(profile)
+        return Button {
+            if uploaded { actionKind = kind } else { importTarget = kind; showingImporter = true }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: kind.systemImage)
+                    .font(.title3)
+                    .frame(width: 28)
+                    .foregroundStyle(gold)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(kind.title).font(.subheadline.weight(.semibold))
+                    Text(uploaded ? (name.isEmpty ? "Uploaded" : name) : "Tap to upload (PDF or image)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                Spacer(minLength: 8)
+                if uploaded {
+                    Image(systemName: "checkmark.seal.fill").font(.footnote).foregroundStyle(gold)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                } else {
+                    Image(systemName: "arrow.up.doc").font(.footnote.weight(.semibold)).foregroundStyle(gold)
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glCardBackground()
         }
-        .padding(.top, 32)
+        .buttonStyle(.plain)
     }
+}
+
+// MARK: - Per-file share
+
+/// Wraps a single certificate URL for `.sheet(item:)` presentation.
+struct ShareItem: Identifiable {
+    let url: URL
+    var id: String { url.path }
+}
+
+/// Presents the system share sheet (UIActivityViewController) for one uploaded certificate.
+struct ActivityView: UIViewControllerRepresentable {
+    let items: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }

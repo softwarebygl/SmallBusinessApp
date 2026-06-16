@@ -53,15 +53,3 @@ struct ReceiptsTabScreen: View {
         selectedReceiptID = allReceipts.first?.persistentModelID
     }
 }
-
-/// The business's own receipts (those not assigned to a customer), shown from My Company.
-struct BusinessReceiptsScreen: View {
-    @Query(sort: \Receipt.date, order: .reverse) private var allReceipts: [Receipt]
-
-    var body: some View {
-        ReceiptListView(
-            receipts: allReceipts.filter { $0.customer == nil },
-            defaultCustomer: nil
-        )
-    }
-}

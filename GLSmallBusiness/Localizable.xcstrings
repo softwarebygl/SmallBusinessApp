@@ -619,6 +619,12 @@
         }
       }
     },
+    "12-3456789" : {
+
+    },
+    "123-45-6789" : {
+
+    },
     "Accepted" : {
       "localizations" : {
         "ca" : {
@@ -780,6 +786,7 @@
       }
     },
     "Access unlocked" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -942,9 +949,6 @@
         }
       }
     },
-    "Add documents" : {
-
-    },
     "Add group" : {
       "localizations" : {
         "ca" : {
@@ -1064,6 +1068,9 @@
           }
         }
       }
+    },
+    "Add photo" : {
+
     },
     "Add Receipt" : {
       "localizations" : {
@@ -1187,9 +1194,6 @@
           }
         }
       }
-    },
-    "Add your certificates" : {
-
     },
     "Address" : {
       "localizations" : {
@@ -2151,7 +2155,7 @@
         }
       }
     },
-    "C corporation" : {
+    "C Corporation" : {
 
     },
     "Cancel" : {
@@ -2394,6 +2398,9 @@
         }
       }
     },
+    "Change signature" : {
+
+    },
     "Check" : {
       "localizations" : {
         "ca" : {
@@ -2434,7 +2441,11 @@
         }
       }
     },
+    "Check your connection and tap Retry — or enter a GL code below." : {
+
+    },
     "Check your connection and tap Retry — or unlock with a GL access code below." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -2609,6 +2620,9 @@
     "Closing" : {
 
     },
+    "Code redeemed" : {
+
+    },
     "Collected" : {
       "localizations" : {
         "ca" : {
@@ -2648,6 +2662,9 @@
           }
         }
       }
+    },
+    "Collected (cash received)" : {
+
     },
     "Complete your business profile" : {
       "localizations" : {
@@ -2808,6 +2825,9 @@
           }
         }
       }
+    },
+    "Couldn't read that file" : {
+
     },
     "Created" : {
       "localizations" : {
@@ -3292,9 +3312,6 @@
     "Default" : {
 
     },
-    "Defaults to the last completed year. Includes a receipts CSV and a tax summary — income collected, sales tax, expenses by category, and net — for the selected year." : {
-
-    },
     "Delete" : {
       "localizations" : {
         "ca" : {
@@ -3580,9 +3597,6 @@
           }
         }
       }
-    },
-    "Documents" : {
-
     },
     "Done" : {
       "localizations" : {
@@ -4271,6 +4285,7 @@
       }
     },
     "Enter your GL access code to unlock full access on this device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -4754,9 +4769,6 @@
         }
       }
     },
-    "Export with Signature and Date" : {
-
-    },
     "FATCA code" : {
 
     },
@@ -4929,6 +4941,9 @@
         }
       }
     },
+    "Form W-9" : {
+
+    },
     "From %@" : {
       "localizations" : {
         "ca" : {
@@ -4968,6 +4983,9 @@
           }
         }
       }
+    },
+    "General Liability Insurance" : {
+
     },
     "Generate a W-9" : {
 
@@ -5132,6 +5150,12 @@
         }
       }
     },
+    "Have a code? Enter it to redeem on this device." : {
+
+    },
+    "Have a code? Redeem it on this device." : {
+
+    },
     "Have a GL access code?" : {
       "localizations" : {
         "ca" : {
@@ -5295,10 +5319,19 @@
         }
       }
     },
-    "Individual / sole proprietor" : {
+    "Include signature and date." : {
 
     },
-    "Insurance & WC Exemption" : {
+    "Income" : {
+
+    },
+    "Individual / Sole Proprietor" : {
+
+    },
+    "Insurance & Exemptions" : {
+
+    },
+    "Insurance & Exemptions — %@" : {
 
     },
     "Intro" : {
@@ -5423,6 +5456,9 @@
           }
         }
       }
+    },
+    "Invoiced (billed)" : {
+
     },
     "Invoices" : {
       "localizations" : {
@@ -5868,6 +5904,7 @@
       }
     },
     "Lifetime access — enjoy!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -5947,7 +5984,7 @@
         }
       }
     },
-    "Limited liability company" : {
+    "Limited Liability Company" : {
 
     },
     "Line Items" : {
@@ -6553,6 +6590,9 @@
         }
       }
     },
+    "More Info" : {
+
+    },
     "Move & Scale" : {
       "localizations" : {
         "ca" : {
@@ -6637,6 +6677,7 @@
 
     },
     "My Company" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -6675,6 +6716,9 @@
           }
         }
       }
+    },
+    "My Info" : {
+
     },
     "My Personal Info" : {
 
@@ -6764,6 +6808,9 @@
           }
         }
       }
+    },
+    "Net (collected − expenses)" : {
+
     },
     "Net 15" : {
       "localizations" : {
@@ -7405,6 +7452,9 @@
         }
       }
     },
+    "No receipts recorded" : {
+
+    },
     "None" : {
       "localizations" : {
         "ca" : {
@@ -7605,9 +7655,6 @@
         }
       }
     },
-    "Official IRS Form W-9, filled and ready to share" : {
-
-    },
     "OK" : {
       "localizations" : {
         "ca" : {
@@ -7651,6 +7698,9 @@
     "Optional W-9 exemption codes. Most small businesses leave these blank." : {
 
     },
+    "Optional. A photo of you for your personal profile." : {
+
+    },
     "Optional. Appears on your estimates and invoices." : {
       "localizations" : {
         "ca" : {
@@ -7691,7 +7741,7 @@
         }
       }
     },
-    "Optional. Used to generate a W-9. Sign and date the form by hand after you print or send it." : {
+    "Optional. Used to generate a W-9. Your Tax ID is stored securely in your Keychain, not the synced database. Sign and date the form by hand after you print or send it." : {
 
     },
     "Other" : {
@@ -7814,6 +7864,9 @@
         }
       }
     },
+    "Outstanding (unpaid)" : {
+
+    },
     "Overdue" : {
       "localizations" : {
         "ca" : {
@@ -7853,6 +7906,12 @@
           }
         }
       }
+    },
+    "Owner first name" : {
+
+    },
+    "Owner last name" : {
+
     },
     "Paid" : {
       "localizations" : {
@@ -8097,6 +8156,9 @@
         }
       }
     },
+    "Personal" : {
+
+    },
     "Personalize the app with your uploaded company logo — it appears on the Menu button and faintly behind your screens. Turn this off to use the app’s built-in monogram instead." : {
       "localizations" : {
         "ca" : {
@@ -8176,6 +8238,9 @@
           }
         }
       }
+    },
+    "Photo" : {
+
     },
     "Postal code" : {
       "localizations" : {
@@ -8457,9 +8522,6 @@
         }
       }
     },
-    "Proof of Insurance" : {
-
-    },
     "Qty" : {
       "localizations" : {
         "ca" : {
@@ -8620,9 +8682,6 @@
         }
       }
     },
-    "Receipts CSV + tax summary for your accountant" : {
-
-    },
     "Record" : {
       "localizations" : {
         "ca" : {
@@ -8744,6 +8803,7 @@
       }
     },
     "Redeem an access code to unlock full access on this device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -8782,6 +8842,9 @@
           }
         }
       }
+    },
+    "Redraw, retype, or remove your saved signature." : {
+
     },
     "Ref: %@" : {
       "localizations" : {
@@ -8903,7 +8966,7 @@
         }
       }
     },
-    "Replace" : {
+    "Replace file" : {
 
     },
     "Required" : {
@@ -9029,9 +9092,6 @@
     "Review the details. Print or send the W-9, then sign and date it by hand before giving it to the requester." : {
 
     },
-    "Review, then share with the requester. Add or replace certificates anytime." : {
-
-    },
     "Run your trade from your phone." : {
       "localizations" : {
         "ca" : {
@@ -9072,7 +9132,10 @@
         }
       }
     },
-    "S corporation" : {
+    "S Corporation" : {
+
+    },
+    "Sales tax (on invoices)" : {
 
     },
     "Save" : {
@@ -9678,10 +9741,7 @@
         }
       }
     },
-    "Share Report" : {
-
-    },
-    "Share your proof of insurance or workers' comp exemption" : {
+    "Share" : {
 
     },
     "Share…" : {
@@ -9723,6 +9783,9 @@
           }
         }
       }
+    },
+    "Sharing sends two files for %@ — this tax summary and a receipts CSV listing every expense. Hand them to your accountant or keep them for your records." : {
+
     },
     "Sign and date your W-9 automatically." : {
 
@@ -10514,6 +10577,9 @@
         }
       }
     },
+    "Tax Summary · %@" : {
+
+    },
     "Tax year" : {
 
     },
@@ -10556,9 +10622,6 @@
           }
         }
       }
-    },
-    "Taxpayer ID number" : {
-
     },
     "Taxpayer ID type" : {
 
@@ -10843,6 +10906,9 @@
         }
       }
     },
+    "That file couldn't be opened. Try a different file, or export it as a PDF first." : {
+
+    },
     "The specific job site or lot this estimate is for. Optional — leave blank if it's at the customer's own address." : {
       "localizations" : {
         "ca" : {
@@ -10922,6 +10988,9 @@
           }
         }
       }
+    },
+    "The year these records cover." : {
+
     },
     "Total" : {
       "localizations" : {
@@ -11003,7 +11072,10 @@
         }
       }
     },
-    "Trust / estate" : {
+    "Total expenses" : {
+
+    },
+    "Trust / Estate" : {
 
     },
     "Type" : {
@@ -11130,6 +11202,7 @@
       }
     },
     "Unlimited access is active on this device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -11169,7 +11242,7 @@
         }
       }
     },
-    "Unlock signature with Face ID" : {
+    "Unlock your saved signature to add it to your W-9." : {
 
     },
     "Unlock your saved signature." : {
@@ -11255,25 +11328,10 @@
         }
       }
     },
-    "Update documents" : {
-
-    },
     "Update tax details" : {
 
     },
-    "Upload or replace your certificates." : {
-
-    },
-    "Upload PDF" : {
-
-    },
-    "Upload your certificate PDFs once here, then share them anytime from Documents. Stored privately in your iCloud account." : {
-
-    },
-    "Upload your certificate PDFs." : {
-
-    },
-    "Upload your proof of insurance and/or workers' comp exemption to share them with a requester." : {
+    "Upload each certificate once (PDF or image). Share them with the requester using the button above. Stored privately in your iCloud account." : {
 
     },
     "Use" : {
@@ -11479,6 +11537,9 @@
         }
       }
     },
+    "W-9 — %@" : {
+
+    },
     "What it's for (e.g. 30% progress payment)" : {
       "localizations" : {
         "ca" : {
@@ -11642,6 +11703,9 @@
     "Workers' Comp Exemption" : {
 
     },
+    "Workers' Comp Insurance" : {
+
+    },
     "Year" : {
       "localizations" : {
         "ca" : {
@@ -11683,6 +11747,9 @@
       }
     },
     "Year-End Tax Report" : {
+
+    },
+    "Year-End Tax Report — %@" : {
 
     },
     "You have lifetime access" : {
@@ -11764,6 +11831,12 @@
           }
         }
       }
+    },
+    "Your code is active — enjoy!" : {
+
+    },
+    "Your code is active on this device." : {
+
     },
     "Your name" : {
 

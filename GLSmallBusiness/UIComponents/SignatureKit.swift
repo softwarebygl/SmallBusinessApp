@@ -23,6 +23,9 @@ struct SignatureCanvas: UIViewRepresentable {
         canvas.tool = PKInkingTool(.pen, color: .black, width: 4)
         canvas.backgroundColor = .clear
         canvas.isOpaque = false
+        // The signing area is always white, so keep PencilKit in light mode — otherwise it inverts
+        // black ink to white in dark mode and the stroke disappears on the white background.
+        canvas.overrideUserInterfaceStyle = .light
         canvas.delegate = context.coordinator
         canvas.drawing = drawing
         return canvas
@@ -46,22 +49,27 @@ struct SignatureCanvas: UIViewRepresentable {
 // MARK: - Rendering to a transparent PNG
 
 enum SignatureRender {
-    /// A drawn signature, cropped to its strokes, as a transparent PNG.
+    /// A drawn signature, cropped to its strokes, as a transparent PNG. Rendered in a light trait so
+    /// the strokes are always black (not inverted to white when drawn in dark mode).
     @MainActor
     static func png(from drawing: PKDrawing) -> Data? {
         let bounds = drawing.bounds
         guard !bounds.isEmpty, bounds.width > 1, bounds.height > 1 else { return nil }
-        return drawing.image(from: bounds, scale: 3).pngData()
+        var image: UIImage?
+        UITraitCollection(userInterfaceStyle: .light).performAsCurrent {
+            image = drawing.image(from: bounds, scale: 3)
+        }
+        return image?.pngData()
     }
 
-    /// A typed name rendered in the calligraphic brand font as a transparent PNG.
+    /// A typed name rendered in a signature-style script (Snell Roundhand) as a transparent PNG.
     @MainActor
     static func png(typed name: String) -> Data? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
         let renderer = ImageRenderer(content:
             Text(trimmed)
-                .font(.custom("Italianno-Regular", size: 64))
+                .font(.custom("SnellRoundhand-Bold", size: 64))
                 .foregroundStyle(.black)
                 .padding(8)
         )

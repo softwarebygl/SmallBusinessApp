@@ -17,6 +17,15 @@ final class UserProfile {
     var email: String = ""
     var phone: String = ""
 
+    /// An optional profile photo of the account owner (square PNG, displayed in a circle). Synced
+    /// privately through CloudKit.
+    @Attribute(.externalStorage) var photoData: Data?
+
+    /// The owner's saved signature as a transparent PNG, applied (after Face ID) to documents like
+    /// the W-9. It's the person's signature, so it lives here rather than on the business. Synced
+    /// privately through CloudKit.
+    @Attribute(.externalStorage) var signatureData: Data?
+
     init() {}
 }
 
@@ -34,4 +43,7 @@ extension UserProfile {
             || !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             || !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
+
+    /// Whether a saved signature exists.
+    var hasSignature: Bool { signatureData != nil }
 }

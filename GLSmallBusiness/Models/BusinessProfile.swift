@@ -26,12 +26,12 @@ enum W9TaxClassification: String, CaseIterable, Identifiable, Sendable {
     /// Plain label used in the My Company picker.
     var label: String {
         switch self {
-        case .individual: return String(localized: "Individual / sole proprietor")
-        case .cCorporation: return String(localized: "C corporation")
-        case .sCorporation: return String(localized: "S corporation")
+        case .individual: return String(localized: "Individual / Sole Proprietor")
+        case .cCorporation: return String(localized: "C Corporation")
+        case .sCorporation: return String(localized: "S Corporation")
         case .partnership: return String(localized: "Partnership")
-        case .trustEstate: return String(localized: "Trust / estate")
-        case .llc: return String(localized: "Limited liability company")
+        case .trustEstate: return String(localized: "Trust / Estate")
+        case .llc: return String(localized: "Limited Liability Company")
         case .other: return String(localized: "Other")
         }
     }
@@ -70,6 +70,10 @@ enum W9TINType: String, CaseIterable, Identifiable, Sendable {
 @Model
 final class BusinessProfile {
     var businessName: String = ""
+    /// The business owner's name, kept as separate parts so it can be formatted however a given
+    /// context needs ("First Last", "Last, First", first-only, …).
+    var ownerFirstName: String = ""
+    var ownerLastName: String = ""
     var phone: String = ""
     var email: String = ""
     var licenseNumber: String = ""
@@ -100,22 +104,22 @@ final class BusinessProfile {
     var w9OtherClassification: String = ""
     /// `W9TINType.rawValue`; "" = not set.
     var w9TINTypeRaw: String = ""
-    /// The taxpayer ID digits (SSN or EIN), formatted when rendered.
+    /// Legacy plaintext taxpayer ID. No longer the source of truth — the TIN now lives in the
+    /// Keychain (see `secureTIN`). Kept only so existing values can migrate; cleared on first save.
     var w9TIN: String = ""
     /// Line 4 — exempt payee code (optional; most filers leave blank).
     var w9ExemptPayeeCode: String = ""
     /// Line 4 — exemption from FATCA reporting code (optional; most filers leave blank).
     var w9FATCACode: String = ""
 
-    /// The user's saved signature as a transparent PNG, applied (after Face ID) to documents
-    /// like the W-9. Synced privately through CloudKit like the rest of the profile.
-    @Attribute(.externalStorage) var signatureData: Data?
-
-    /// Manually uploaded compliance certificates (PDFs) shared from the Documents hub — a
-    /// Certificate of Insurance / proof of liability insurance, and a workers' comp exemption
-    /// certificate. Stored as-is and synced privately through CloudKit.
+    /// Manually uploaded compliance certificates (PDFs) shared from the Business screen — general
+    /// liability insurance, workers' comp insurance, and a workers' comp exemption certificate.
+    /// (`proofOfInsuranceData` predates the "General Liability Insurance" rename; kept to avoid a
+    /// storage migration.) Stored as-is and synced privately through CloudKit.
     @Attribute(.externalStorage) var proofOfInsuranceData: Data?
     var proofOfInsuranceName: String = ""
+    @Attribute(.externalStorage) var wcInsuranceData: Data?
+    var wcInsuranceName: String = ""
     @Attribute(.externalStorage) var wcExemptionData: Data?
     var wcExemptionName: String = ""
 
@@ -123,6 +127,14 @@ final class BusinessProfile {
 }
 
 extension BusinessProfile {
+    /// The owner's name as "First Last", trimmed; empty when no name is set.
+    var ownerFullName: String {
+        [ownerFirstName, ownerLastName]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+    }
+
     /// The required fields (business name, phone, email) are all filled —
     /// gates sending an estimate.
     var isComplete: Bool {
@@ -150,21 +162,32 @@ extension BusinessProfile {
         set { w9TINTypeRaw = newValue?.rawValue ?? "" }
     }
 
+    /// The taxpayer ID (SSN/EIN), read from the Keychain. Falls back to the legacy plaintext value
+    /// until the owner next saves the form, which migrates it into the Keychain and clears the copy.
+    var secureTIN: String {
+        let stored = SecureTINStore.read()
+        return stored.isEmpty ? w9TIN : stored
+    }
+
+    /// Writes the taxpayer ID to the Keychain and purges any legacy plaintext copy from the store.
+    func updateTIN(_ value: String) {
+        SecureTINStore.write(value)
+        if !w9TIN.isEmpty { w9TIN = "" }
+    }
+
     /// Line 1 of the W-9 — the name as shown on the tax return, falling back to the business name.
     var w9LegalName: String {
         let trimmed = w9Name.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? businessName : trimmed
     }
 
-    /// Whether a saved signature exists.
-    var hasSignature: Bool { signatureData != nil }
-
     // MARK: - Compliance documents
 
     var hasProofOfInsurance: Bool { proofOfInsuranceData != nil }
+    var hasWCInsurance: Bool { wcInsuranceData != nil }
     var hasWCExemption: Bool { wcExemptionData != nil }
     /// At least one compliance certificate has been uploaded.
-    var hasComplianceDocuments: Bool { hasProofOfInsurance || hasWCExemption }
+    var hasComplianceDocuments: Bool { hasProofOfInsurance || hasWCInsurance || hasWCExemption }
 
     /// The minimum needed to produce a usable W-9: a name, a classification, and a TIN.
     var w9IsComplete: Bool { w9MissingRequirements.isEmpty }
@@ -179,7 +202,7 @@ extension BusinessProfile {
         if w9TaxClassification == nil {
             missing.append(String(localized: "Federal tax classification"))
         }
-        if w9TINType == nil || w9TIN.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if w9TINType == nil || secureTIN.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             missing.append(String(localized: "Tax ID (SSN or EIN)"))
         }
         return missing

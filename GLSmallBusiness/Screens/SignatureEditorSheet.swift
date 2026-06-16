@@ -14,7 +14,7 @@ import PencilKit
 struct SignatureEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    let profile: BusinessProfile
+    let profile: UserProfile
 
     enum Mode: String, CaseIterable, Identifiable {
         case draw, type, importPhoto
@@ -94,7 +94,8 @@ struct SignatureEditorSheet: View {
             ZStack(alignment: .bottom) {
                 SignatureCanvas(drawing: $drawing)
                     .frame(height: 180)
-                Rectangle().fill(.secondary.opacity(0.5)).frame(height: 1)
+                // Fixed dark guide line so it stays visible on the white area in dark mode.
+                Rectangle().fill(Color.black.opacity(0.25)).frame(height: 1)
                     .padding(.horizontal, 16).padding(.bottom, 36)
             }
             .background(Color.white)
@@ -114,7 +115,7 @@ struct SignatureEditorSheet: View {
                 .textContentType(.name)
             if !typedName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 Text(typedName)
-                    .font(.custom("Italianno-Regular", size: 52))
+                    .font(.custom("SnellRoundhand-Bold", size: 44))
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity, minHeight: 90)
                     .background(Color.white)

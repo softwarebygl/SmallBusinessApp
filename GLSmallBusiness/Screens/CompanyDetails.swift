@@ -9,11 +9,9 @@
 //  backend uses but that were previously only visible in edit mode. Edit opens the same form.
 
 import SwiftUI
-import SwiftData
 
 struct CompanyDetailsScreen: View {
     @Environment(\.colorScheme) private var colorScheme
-    @Query private var userProfiles: [UserProfile]
     let profile: BusinessProfile
     @State private var showingEdit = false
 
@@ -21,7 +19,7 @@ struct CompanyDetailsScreen: View {
         ScrollView {
             VStack(spacing: 20) {
                 GLCard(title: "Contact") {
-                    infoRow("Name", userProfiles.first?.fullName ?? "")
+                    infoRow("Name", profile.ownerFullName)
                     infoRow("Email", profile.email)
                     infoRow("Phone", profile.phone)
                 }
@@ -60,7 +58,7 @@ struct CompanyDetailsScreen: View {
             .frame(maxWidth: .infinity)
         }
         .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-        .navigationTitle("Details")
+        .navigationTitle("More Info")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -128,7 +126,7 @@ struct CompanyDetailsScreen: View {
     /// Masks the taxpayer ID to its last four digits — it's an SSN/EIN, so it isn't shown in full
     /// on this read-only screen.
     private var maskedTIN: String {
-        let digits = profile.w9TIN.filter(\.isNumber)
+        let digits = profile.secureTIN.filter(\.isNumber)
         guard let type = profile.w9TINType, !digits.isEmpty else { return "—" }
         let last4 = String(digits.suffix(4))
         return "\(type.label) ••• \(last4)"

@@ -100,7 +100,7 @@ struct SettingsScreen: View {
             } header: {
                 Text("Access")
             } footer: {
-                Text("Redeem an access code to unlock full access on this device.")
+                Text("Have a code? Redeem it on this device.")
             }
         }
         .glFormBackground()

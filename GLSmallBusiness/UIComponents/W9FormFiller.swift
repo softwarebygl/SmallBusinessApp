@@ -93,7 +93,7 @@ enum W9PDF {
         text(ctx, cityLine(profile.address), x: 62, y: 471, size: 9, maxWidth: 322)
 
         // Part I — TIN. SSN is split 3-2-4; EIN is split 2-7. Each cell is 14.4 pt wide.
-        let digits = profile.w9TIN.filter(\.isNumber)
+        let digits = profile.secureTIN.filter(\.isNumber)
         switch profile.w9TINType {
         case .ssn:
             comb(ctx, String(digits.prefix(3)), x: 417.6, y: 402, cell: 14.4)
