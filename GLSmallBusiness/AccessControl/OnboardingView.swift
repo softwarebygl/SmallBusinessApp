@@ -4,9 +4,11 @@
 //
 //  Created by Gold Life LLC.
 //
-//  The first screen for anyone without access: subscribe, or enter a GL access code.
-//  Uses Apple's `SubscriptionStoreView` (compliant paywall) when products are available, and a
-//  friendly retry state if they can't load — so the user always has a clear path, never a dead end.
+//  The first screen for anyone without an active subscription. Uses Apple's `SubscriptionStoreView`
+//  (a compliant paywall that shows title / length / price and links to the Terms of Use and Privacy
+//  Policy) when products are available, with a friendly retry state if they can't load. Comp or
+//  discounted access is handled by Apple offer codes via the built-in Redeem Code button — never a
+//  custom code mechanism.
 //
 
 import SwiftUI
@@ -14,7 +16,6 @@ import StoreKit
 
 struct OnboardingView: View {
     @Environment(SubscriptionManager.self) private var subs
-    @State private var showCode = false
     @State private var retrying = false
 
     private let privacyURL = URL(string: "https://evolvedbygl.github.io/privacy/")!
@@ -22,8 +23,6 @@ struct OnboardingView: View {
 
     var body: some View {
         content
-            .safeAreaInset(edge: .bottom) { codeButton }
-            .sheet(isPresented: $showCode) { codeSheet }
     }
 
     @ViewBuilder
@@ -44,6 +43,7 @@ struct OnboardingView: View {
             marketingHeader
         }
         .storeButton(.visible, for: .restorePurchases)
+        .storeButton(.visible, for: .redeemCode)   // Apple offer-code redemption (compliant)
         .subscriptionStorePolicyDestination(url: privacyURL, for: .privacyPolicy)
         .subscriptionStorePolicyDestination(url: termsURL, for: .termsOfService)
     }
@@ -52,6 +52,8 @@ struct OnboardingView: View {
         VStack(spacing: 28) {
             marketingHeader
             ProgressView("Loading plans…")
+            Spacer()
+            legalFooter
         }
         .padding()
     }
@@ -63,7 +65,7 @@ struct OnboardingView: View {
                 Image(systemName: "wifi.exclamationmark")
                     .font(.largeTitle).foregroundStyle(.secondary)
                 Text("Couldn't load plans right now").font(.headline)
-                Text("Check your connection and tap Retry — or enter a GL code below.")
+                Text("Check your connection and tap Retry.")
                     .font(.subheadline).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
@@ -78,31 +80,24 @@ struct OnboardingView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
+            Spacer()
+            legalFooter
         }
         .padding()
     }
 
     // MARK: - Shared pieces
 
-    private var codeButton: some View {
-        Button { showCode = true } label: {
-            Text("Have a GL access code?")
-                .font(.subheadline.weight(.semibold))
-                .padding(.vertical, 6)
+    /// Always-visible Terms of Use + Privacy Policy links. Required for subscription apps, and kept
+    /// here so the links are present even when the paywall itself can't load.
+    private var legalFooter: some View {
+        HStack(spacing: 14) {
+            Link("Terms of Use", destination: termsURL)
+            Text("·").foregroundStyle(.secondary)
+            Link("Privacy Policy", destination: privacyURL)
         }
+        .font(.footnote)
         .padding(.bottom, 4)
-    }
-
-    private var codeSheet: some View {
-        NavigationStack {
-            RedeemCodeView()
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { showCode = false }
-                    }
-                }
-        }
-        .presentationDetents([.medium, .large])
     }
 
     private var marketingHeader: some View {

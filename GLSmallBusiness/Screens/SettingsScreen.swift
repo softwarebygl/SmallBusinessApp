@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import StoreKit
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -62,6 +63,13 @@ struct SettingsScreen: View {
     @AppStorage(AppColorScheme.storageKey) private var appColorSchemeRaw = AppColorScheme.system.rawValue
     @AppStorage(AppBranding.useCompanyLogoKey) private var useCompanyLogo = true
 
+    @State private var managingSubscription = false
+    @State private var redeemingCode = false
+    @State private var restoring = false
+
+    private let privacyURL = URL(string: "https://evolvedbygl.github.io/privacy/")!
+    private let termsURL   = URL(string: "https://evolvedbygl.github.io/terms/")!
+
     private var appearance: Binding<AppColorScheme> {
         Binding(
             get: { AppColorScheme(rawValue: appColorSchemeRaw) ?? .system },
@@ -92,20 +100,48 @@ struct SettingsScreen: View {
             }
 
             Section {
-                NavigationLink {
-                    RedeemCodeView()
+                Button {
+                    managingSubscription = true
                 } label: {
-                    Label("Enter Access Code", systemImage: "key.fill")
+                    Label("Manage Subscription", systemImage: "creditcard")
+                }
+                Button {
+                    restoring = true
+                    Task { try? await AppStore.sync(); restoring = false }
+                } label: {
+                    if restoring {
+                        ProgressView()
+                    } else {
+                        Label("Restore Purchases", systemImage: "arrow.clockwise")
+                    }
+                }
+                Button {
+                    redeemingCode = true
+                } label: {
+                    Label("Redeem Code", systemImage: "gift")
                 }
             } header: {
-                Text("Access")
+                Text("Subscription")
             } footer: {
-                Text("Have a code? Redeem it on this device.")
+                Text("Manage or restore your subscription, or redeem an App Store code.")
+            }
+
+            Section {
+                Link(destination: termsURL) {
+                    Label("Terms of Use", systemImage: "doc.text")
+                }
+                Link(destination: privacyURL) {
+                    Label("Privacy Policy", systemImage: "hand.raised")
+                }
+            } header: {
+                Text("Legal")
             }
         }
         .glFormBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+        .manageSubscriptionsSheet(isPresented: $managingSubscription)
+        .offerCodeRedemption(isPresented: $redeemingCode) { _ in }
     }
 }
 
