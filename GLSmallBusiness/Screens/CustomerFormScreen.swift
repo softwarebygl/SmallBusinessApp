@@ -28,6 +28,7 @@ struct CustomerFormScreen: View {
     @State private var city: String
     @State private var state: String
     @State private var postalCode: String
+    @State private var showingContactPicker = false
 
     init(editing: Customer? = nil, onSave: ((Customer) -> Void)? = nil) {
         self.editing = editing
@@ -55,6 +56,19 @@ struct CustomerFormScreen: View {
     var body: some View {
         NavigationStack {
             Form {
+                if editing == nil {
+                    Section {
+                        Button {
+                            showingContactPicker = true
+                        } label: {
+                            Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
+                        }
+                    } footer: {
+                        Text("Pull a name, phone, email, and address straight from your phone's contacts.")
+                            .textCase(nil)
+                    }
+                }
+
                 Section("Name") {
                     TextField("First name", text: $firstName)
                         .textContentType(.givenName)
@@ -103,6 +117,15 @@ struct CustomerFormScreen: View {
                 }
             }
             .glFormBackground()
+            .sheet(isPresented: $showingContactPicker) {
+                ContactPickerView { contact in
+                    fill(from: ContactsBridge.draft(from: contact))
+                    showingContactPicker = false
+                } onCancel: {
+                    showingContactPicker = false
+                }
+                .ignoresSafeArea()
+            }
             .navigationTitle(editing == nil ? "New Customer" : "Edit Customer")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
@@ -119,6 +142,22 @@ struct CustomerFormScreen: View {
 
     private func trim(_ s: String) -> String {
         s.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Seeds the form fields from an imported contact, for the user to review before saving.
+    private func fill(from draft: ContactsBridge.Draft) {
+        firstName = draft.firstName
+        middleName = draft.middleName
+        lastName = draft.lastName
+        businessName = draft.businessName
+        email = draft.email
+        phoneNumber = draft.phoneNumber
+        officePhone = draft.officePhone
+        street1 = draft.street1
+        street2 = draft.street2
+        city = draft.city
+        state = draft.state
+        postalCode = draft.postalCode
     }
 
     private func save() {

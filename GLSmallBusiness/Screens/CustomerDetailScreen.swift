@@ -21,6 +21,7 @@ struct CustomerDetailScreen: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var imageToCrop: CroppableImage?
     @State private var showingEdit = false
+    @State private var showingSaveToContacts = false
 
     var body: some View {
         ScrollView {
@@ -41,6 +42,9 @@ struct CustomerDetailScreen: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button { showingEdit = true } label: { Label("Edit customer", systemImage: "pencil") }
+                    Button { showingSaveToContacts = true } label: {
+                        Label("Save to Contacts", systemImage: "person.crop.circle.badge.plus")
+                    }
                 } label: {
                     Image(systemName: "ellipsis")
                 }
@@ -49,6 +53,12 @@ struct CustomerDetailScreen: View {
         }
         .sheet(isPresented: $showingEdit) {
             CustomerFormScreen(editing: customer).glAppearance(colorScheme)
+        }
+        .sheet(isPresented: $showingSaveToContacts) {
+            NewContactView(contact: ContactsBridge.contact(from: customer)) {
+                showingSaveToContacts = false
+            }
+            .ignoresSafeArea()
         }
         .task(id: photoItem) {
             guard let photoItem,
