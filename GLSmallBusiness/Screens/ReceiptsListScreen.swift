@@ -481,12 +481,14 @@ struct ReceiptListView: View {
             }
             selection.removeAll()
         }
+        try? modelContext.save()
     }
 
     private func delete(at offsets: IndexSet) {
         for receipt in offsets.map({ displayed[$0] }) {
             modelContext.delete(receipt)
         }
+        try? modelContext.save()
     }
 }
 

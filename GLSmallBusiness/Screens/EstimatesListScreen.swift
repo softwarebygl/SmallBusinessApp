@@ -176,6 +176,7 @@ struct EstimatesListScreen: View {
             }
             selection.removeAll()
         }
+        try? modelContext.save()
     }
 
     private func delete(at offsets: IndexSet) {
@@ -183,6 +184,7 @@ struct EstimatesListScreen: View {
         for estimate in toDelete {
             modelContext.delete(estimate)
         }
+        try? modelContext.save()
     }
 }
 

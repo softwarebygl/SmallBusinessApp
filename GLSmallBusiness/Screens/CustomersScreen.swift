@@ -237,6 +237,9 @@ struct CustomersScreen: View {
         for index in offsets {
             modelContext.delete(customers[index])
         }
+        // Cascades to the customer's invoices/estimates/receipts; commit now so Stats and CloudKit
+        // reflect it immediately instead of waiting on deferred autosave.
+        try? modelContext.save()
     }
 
     private func toggleSelection(_ customer: Customer) {
@@ -258,6 +261,7 @@ struct CustomersScreen: View {
             }
             selection.removeAll()
         }
+        try? modelContext.save()
     }
 }
 
