@@ -59,10 +59,13 @@ struct StatsScreen: View {
                 VStack(spacing: 18) {
                     periodSelector
                     if hasData {
-                        kpiGrid
-                        inOutCard
-                        expensesCard
-                        estimatesInvoicesCard
+                        // Compute the summary ONCE per render — it scans the whole store, and the
+                        // cards below would otherwise each re-trigger it (a dozen full scans/render).
+                        let summary = self.summary
+                        kpiGrid(summary)
+                        inOutCard(summary)
+                        expensesCard(summary)
+                        estimatesInvoicesCard(summary)
                         exportButton.id("exportAnchor")
                     } else {
                         ContentUnavailableView {
@@ -149,7 +152,7 @@ struct StatsScreen: View {
 
     // MARK: - KPI cards (glass)
 
-    private var kpiGrid: some View {
+    private func kpiGrid(_ summary: StatsSummary) -> some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
             kpi(String(localized: "Collected"), summary.collected, tint: gold)
             kpi(String(localized: "Expenses"), summary.expenses)
@@ -178,7 +181,7 @@ struct StatsScreen: View {
 
     // MARK: - Money in vs out
 
-    private var inOutCard: some View {
+    private func inOutCard(_ summary: StatsSummary) -> some View {
         GLCard(title: "Money In vs Out") {
             let inL = String(localized: "In")
             let outL = String(localized: "Out")
@@ -203,7 +206,7 @@ struct StatsScreen: View {
     // MARK: - Expenses by category
 
     @ViewBuilder
-    private var expensesCard: some View {
+    private func expensesCard(_ summary: StatsSummary) -> some View {
         GLCard(title: "Expenses by category") {
             if summary.expensesByCategory.isEmpty {
                 Text("No receipts in this period.")
@@ -239,7 +242,7 @@ struct StatsScreen: View {
 
     // MARK: - Estimates & invoices
 
-    private var estimatesInvoicesCard: some View {
+    private func estimatesInvoicesCard(_ summary: StatsSummary) -> some View {
         GLCard(title: "Estimates & Invoices") {
             statRow("Estimates quoted", summary.estimatesQuoted.formatted(.currency(code: "USD")))
             statRow("Accepted / declined", "\(summary.estimatesAccepted) / \(summary.estimatesDeclined)")

@@ -58,7 +58,9 @@ final class AccessManager {
             guard date > Date() else { return .expired }
             expiry = date
         case .days(let n):
-            expiry = Calendar.current.date(byAdding: .day, value: n, to: Date()) ?? .distantFuture
+            // Fall back to "now" (effectively no grant) rather than .distantFuture, so a date-math
+            // failure can never silently turn a time-limited trial into lifetime access.
+            expiry = Calendar.current.date(byAdding: .day, value: n, to: Date()) ?? Date()
         }
         store.enable(entry.flag, codeHash: entry.codeHash, until: expiry)
         revalidate()

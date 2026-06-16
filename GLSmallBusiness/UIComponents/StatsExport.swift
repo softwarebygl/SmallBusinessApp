@@ -100,7 +100,15 @@ enum StatsExport {
     }
 
     private static func csvField(_ field: String) -> String {
-        guard field.contains(",") || field.contains("\"") || field.contains("\n") else { return field }
-        return "\"" + field.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        // Formula-injection guard: a field starting with = + - @ (or tab) is executed as a formula
+        // by Excel/Numbers, so neutralize it with a leading apostrophe before quoting.
+        var value = field
+        if let first = value.first, "=+-@\t".contains(first) {
+            value = "'" + value
+        }
+        guard value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r") else {
+            return value
+        }
+        return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
     }
 }

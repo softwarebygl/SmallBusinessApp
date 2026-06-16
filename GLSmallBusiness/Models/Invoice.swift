@@ -222,12 +222,16 @@ extension Invoice {
         (changeOrders ?? []).sorted { $0.createdAt < $1.createdAt }
     }
 
-    /// Net price change from all approved change orders.
+    /// Net price change from approved change orders that have NOT yet been pushed onto the invoice.
+    /// Once a change order is "added to invoice" its items live in `groups`, so `total` already
+    /// reflects it — counting it here too would double it.
     var approvedChangeOrderTotal: Double {
-        sortedChangeOrders.filter { $0.status == .approved }.reduce(0) { $0 + $1.total }
+        sortedChangeOrders
+            .filter { $0.status == .approved && !$0.appliedToInvoice }
+            .reduce(0) { $0 + $1.total }
     }
 
-    /// Invoice total plus approved change orders — the figure the job is now worth.
+    /// Invoice total plus approved-but-not-yet-applied change orders — the figure the job is now worth.
     var revisedTotal: Double { total + approvedChangeOrderTotal }
 
     var balanceDue: Double {

@@ -131,7 +131,7 @@ struct PaymentReceiptPDFDocument: View {
                 summaryLine("Paid to date", money(paidToDate))
                 Rectangle().fill(gold.opacity(0.4)).frame(height: 1).padding(.vertical, 2)
                 HStack {
-                    Text(paidInFull ? "Remaining balance" : "Remaining balance").font(.subheadline.bold())
+                    Text("Remaining balance").font(.subheadline.bold())
                     Spacer()
                     Text(paidInFull ? "PAID IN FULL" : money(remaining))
                         .font(.subheadline.bold())

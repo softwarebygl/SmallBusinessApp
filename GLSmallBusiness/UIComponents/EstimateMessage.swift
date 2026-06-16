@@ -136,12 +136,17 @@ enum EstimateMessage {
         }
     }
 
+    /// Cached PNG of the GL-monogram fallback (it never changes), so emails for users without an
+    /// uploaded logo don't re-run a main-thread `ImageRenderer` on every build.
+    @MainActor private static var cachedFallbackLogo: Data?
+
     /// PNG of the brand logo, downsized for email/Messages. Business logo first, GL monogram fallback.
     @MainActor
     static func logoPNGData(business: BusinessProfile?, maxDimension: CGFloat = 240) -> Data? {
         if let data = business?.logoData, let image = UIImage(data: data) {
             return resizedPNGData(image, maxDimension: maxDimension)
         }
+        if maxDimension == 240, let cached = cachedFallbackLogo { return cached }
         let renderer = ImageRenderer(content:
             Image("glLogo")
                 .resizable()
@@ -149,7 +154,9 @@ enum EstimateMessage {
                 .frame(width: maxDimension, height: maxDimension)
         )
         renderer.scale = 3
-        return renderer.uiImage?.pngData()
+        let data = renderer.uiImage?.pngData()
+        if maxDimension == 240 { cachedFallbackLogo = data }
+        return data
     }
 
     // MARK: - Helpers

@@ -324,6 +324,8 @@ struct EstimateDetailScreen: View {
     private func convertToInvoice() {
         let number = Invoice.nextNumber(after: allInvoices)
         convertedInvoice = Invoice.make(from: estimate, number: number, in: modelContext)
+        // Persist the new invoice immediately so it's safe and shows in Stats right away.
+        try? modelContext.save()
     }
 
     private var formattedAddress: String {
