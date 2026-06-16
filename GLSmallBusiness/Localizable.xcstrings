@@ -496,6 +496,9 @@
         }
       }
     },
+    "%lld invoices have no customer — they still count in Stats. Swipe left to delete any you don't want." : {
+
+    },
     "%lld receipt%@" : {
       "localizations" : {
         "ca" : {
@@ -626,6 +629,9 @@
       }
     },
     "1" : {
+
+    },
+    "1 invoice has no customer — it still counts in Stats. Swipe left to delete it." : {
 
     },
     "12-3456789" : {
@@ -1252,6 +1258,9 @@
           }
         }
       }
+    },
+    "All Invoices" : {
+
     },
     "All Receipts" : {
       "localizations" : {
@@ -7222,6 +7231,9 @@
         }
       }
     },
+    "No customer" : {
+
+    },
     "No Customers" : {
       "localizations" : {
         "ca" : {
@@ -8891,6 +8903,9 @@
           }
         }
       }
+    },
+    "Records" : {
+
     },
     "Redeem" : {
       "localizations" : {
