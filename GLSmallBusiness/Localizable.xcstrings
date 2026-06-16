@@ -2920,6 +2920,9 @@
         }
       }
     },
+    "Couldn't open the package" : {
+
+    },
     "Couldn't preview the COI" : {
 
     },
@@ -8134,6 +8137,9 @@
     "Owner name" : {
 
     },
+    "Package preview" : {
+
+    },
     "Paid" : {
       "localizations" : {
         "ca" : {
@@ -8594,6 +8600,9 @@
           }
         }
       }
+    },
+    "Preview full package" : {
+
     },
     "Preview unavailable" : {
 

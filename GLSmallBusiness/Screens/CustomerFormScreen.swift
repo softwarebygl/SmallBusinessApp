@@ -13,6 +13,8 @@ struct CustomerFormScreen: View {
     @Environment(\.dismiss) private var dismiss
 
     let editing: Customer?
+    /// Called with the saved customer (created or edited) — lets a caller auto-select a new one.
+    var onSave: ((Customer) -> Void)? = nil
 
     @State private var firstName: String
     @State private var lastName: String
@@ -25,8 +27,9 @@ struct CustomerFormScreen: View {
     @State private var state: String
     @State private var postalCode: String
 
-    init(editing: Customer? = nil) {
+    init(editing: Customer? = nil, onSave: ((Customer) -> Void)? = nil) {
         self.editing = editing
+        self.onSave = onSave
         _firstName    = State(initialValue: editing?.firstName ?? "")
         _lastName     = State(initialValue: editing?.lastName ?? "")
         _businessName = State(initialValue: editing?.businessName ?? "")
@@ -119,6 +122,7 @@ struct CustomerFormScreen: View {
         let trimmedBusiness = trim(businessName)
         let business: String? = trimmedBusiness.isEmpty ? nil : trimmedBusiness
 
+        let saved: Customer
         if let customer = editing {
             customer.firstName = trim(firstName)
             customer.lastName = trim(lastName)
@@ -126,6 +130,7 @@ struct CustomerFormScreen: View {
             customer.phoneNumber = trim(phoneNumber)
             customer.businessName = business
             customer.address = address
+            saved = customer
         } else {
             let customer = Customer(
                 firstName: trim(firstName),
@@ -136,7 +141,9 @@ struct CustomerFormScreen: View {
                 address: address
             )
             modelContext.insert(customer)
+            saved = customer
         }
+        onSave?(saved)
         dismiss()
     }
 }

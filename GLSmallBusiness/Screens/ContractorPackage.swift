@@ -22,14 +22,20 @@ struct ContractorPackageSheet: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
     @Query private var userProfiles: [UserProfile]
+    @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
+    private var customers: [Customer]
     let profile: BusinessProfile
 
-    // The holder is intentionally NOT seeded from anything — it starts blank for every package so a
-    // previous GC can never be sent by accident. Only the box placement on the user's COI is reused.
-    @State private var companyName = ""
-    @State private var ownerName = ""
-    @State private var holderAddress = ""
+    // The holder is the customer this COI is made out to. It starts UNSELECTED every time (never
+    // seeded), so a previous holder can't be sent by accident. Only the box placement is reused.
+    @State private var selectedCustomer: Customer?
+    @State private var includeCompany = true
+    @State private var includeName = true
+    @State private var includeAddress = true
+    @State private var includePhone = false
+    @State private var includeEmail = false
     @State private var additionalDetails = ""
+    @State private var showingAddCustomer = false
     @State private var offset: CGSize
     @State private var boxWidth: CGFloat   // holder-box width in PDF points; 0 = auto-detected
     @State private var coverExisting: Bool
@@ -66,12 +72,33 @@ struct ContractorPackageSheet: View {
     }
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
-    /// The holder block lines, composed once and shared by the preview and the stamp.
+
+    /// The holder block lines, composed from the selected customer's checked details plus any extra
+    /// notes — shared by the preview and the stamp.
     private var holderLines: [String] {
-        ContractorPackagePDF.holderLines(company: companyName, owner: ownerName,
-                                         address: holderAddress, details: additionalDetails)
+        guard let c = selectedCustomer else { return [] }
+        let company = includeCompany ? (c.businessName ?? "") : ""
+        let name = includeName ? customerName(c) : ""
+        let address = includeAddress ? addressBlock(c.address) : ""
+        var extras: [String] = []
+        if includePhone, !trimmed(c.phoneNumber).isEmpty { extras.append(trimmed(c.phoneNumber)) }
+        if includeEmail, !trimmed(c.email).isEmpty { extras.append(trimmed(c.email)) }
+        if !trimmed(additionalDetails).isEmpty { extras.append(trimmed(additionalDetails)) }
+        return ContractorPackagePDF.holderLines(company: company, owner: name, address: address,
+                                                details: extras.joined(separator: "\n"))
     }
     private var hasHolder: Bool { !holderLines.isEmpty }
+
+    private func trimmed(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private func customerName(_ c: Customer) -> String {
+        [c.firstName, c.lastName].map(trimmed).filter { !$0.isEmpty }.joined(separator: " ")
+    }
+    private func addressBlock(_ a: Address) -> String {
+        let cityLine = [a.city, a.state].map(trimmed).filter { !$0.isEmpty }.joined(separator: ", ")
+        let cityZip = [cityLine, trimmed(a.postalCode)].filter { !$0.isEmpty }.joined(separator: " ")
+        return [trimmed(a.street1), trimmed(a.street2 ?? ""), cityZip]
+            .filter { !$0.isEmpty }.joined(separator: "\n")
+    }
     private var canShare: Bool { profile.hasCOI && packageURL != nil }
 
     /// The holder-box width to use — the saved/dragged width, falling back to the auto-detected one.
@@ -83,6 +110,18 @@ struct ContractorPackageSheet: View {
     private var hasUserSignature: Bool { userProfiles.first?.hasSignature ?? false }
     /// True once the user opted in to signing and unlocked the signature with Face ID.
     private var signingW9: Bool { signW9 && signatureUnlocked && signatureImage != nil }
+
+    /// Everything the generated PDF depends on, in one Equatable value, so a single `onChange`
+    /// rebuilds the package (and the body stays simple enough for the type-checker).
+    private struct RegenKey: Equatable {
+        var lines: [String]; var offset: CGSize; var width: CGFloat; var cover: Bool
+        var w9: Bool; var sign: Bool; var wcIns: Bool; var wcExe: Bool; var license: Bool
+    }
+    private var regenKey: RegenKey {
+        RegenKey(lines: holderLines, offset: offset, width: boxWidth, cover: coverExisting,
+                 w9: includeW9, sign: signingW9, wcIns: includeWCInsurance,
+                 wcExe: includeWCExemption, license: includeLicense)
+    }
 
     var body: some View {
         NavigationStack {
@@ -115,18 +154,7 @@ struct ContractorPackageSheet: View {
                 }
             }
             .onAppear { loadCOI(); regenerate() }
-            .onChange(of: companyName) { _, _ in regenerate() }
-            .onChange(of: ownerName) { _, _ in regenerate() }
-            .onChange(of: holderAddress) { _, _ in regenerate() }
-            .onChange(of: additionalDetails) { _, _ in regenerate() }
-            .onChange(of: offset) { _, _ in regenerate() }
-            .onChange(of: boxWidth) { _, _ in regenerate() }
-            .onChange(of: coverExisting) { _, _ in regenerate() }
-            .onChange(of: includeW9) { _, _ in regenerate() }
-            .onChange(of: signW9) { _, _ in regenerate() }
-            .onChange(of: includeWCInsurance) { _, _ in regenerate() }
-            .onChange(of: includeWCExemption) { _, _ in regenerate() }
-            .onChange(of: includeLicense) { _, _ in regenerate() }
+            .onChange(of: regenKey) { _, _ in regenerate() }
             .onChange(of: showingSignatureEditor) { _, isShowing in
                 // When the signature editor closes: removal resets signing; a change refreshes the
                 // image if already unlocked. Adding a signature never auto-enables signing.
@@ -144,6 +172,9 @@ struct ContractorPackageSheet: View {
             }
             .sheet(isPresented: $showingW9Edit, onDismiss: refreshAvailability) {
                 MyCompanyFormScreen(profile: profile).glAppearance(colorScheme)
+            }
+            .sheet(isPresented: $showingAddCustomer) {
+                CustomerFormScreen { select($0) }.glAppearance(colorScheme)
             }
             .sheet(isPresented: $showingSignatureEditor) {
                 if let signatureTarget {
@@ -182,7 +213,7 @@ struct ContractorPackageSheet: View {
         }
         Text(hasHolder
              ? "Review the certificate above, then tap Share to send everything as one PDF."
-             : "Fill in the certificate holder above. Every field is optional — leave out anything that doesn't apply.")
+             : "Pick the customer this COI is for above — or add a new one.")
             .font(.footnote)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
@@ -193,22 +224,38 @@ struct ContractorPackageSheet: View {
             Label("Certificate holder", systemImage: "person.text.rectangle")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(gold)
-            Text("Who's requesting this COI. Everything here is optional.")
+            Text("The customer this COI is made out to.")
                 .font(.caption).foregroundStyle(.secondary)
-            holderField("Company name", text: $companyName, capitalization: .words)
-            Divider()
-            holderField("Owner name", text: $ownerName, capitalization: .words)
-            Divider()
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Address").font(.caption).foregroundStyle(.secondary)
-                TextField("Street, City, State ZIP", text: $holderAddress, axis: .vertical)
-                    .lineLimit(2...4)
-            }
-            Divider()
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Additional details").font(.caption).foregroundStyle(.secondary)
-                TextField("Project, reference #, anything else", text: $additionalDetails, axis: .vertical)
-                    .lineLimit(1...3)
+
+            customerSelector
+
+            if let customer = selectedCustomer {
+                Divider()
+                Text("Tick what to print in the holder box.")
+                    .font(.caption).foregroundStyle(.secondary)
+
+                if let company = nonEmpty(customer.businessName) {
+                    detailCheck("Company", company, isOn: $includeCompany)
+                }
+                if case let name = customerName(customer), !name.isEmpty {
+                    detailCheck("Contact name", name, isOn: $includeName)
+                }
+                if case let addr = addressBlock(customer.address), !addr.isEmpty {
+                    detailCheck("Address", addr, isOn: $includeAddress)
+                }
+                if !trimmed(customer.phoneNumber).isEmpty {
+                    detailCheck("Phone", customer.phoneNumber, isOn: $includePhone)
+                }
+                if !trimmed(customer.email).isEmpty {
+                    detailCheck("Email", customer.email, isOn: $includeEmail)
+                }
+
+                Divider()
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Additional details").font(.caption).foregroundStyle(.secondary)
+                    TextField("Project, reference #, anything else", text: $additionalDetails, axis: .vertical)
+                        .lineLimit(1...3)
+                }
             }
         }
         .padding()
@@ -216,13 +263,65 @@ struct ContractorPackageSheet: View {
         .glCardBackground()
     }
 
-    private func holderField(_ label: LocalizedStringKey, text: Binding<String>,
-                             capitalization: TextInputAutocapitalization) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.caption).foregroundStyle(.secondary)
-            TextField("", text: text, axis: .vertical)
-                .textInputAutocapitalization(capitalization)
+    /// A menu to pick the holder from existing customers, or add a new one inline.
+    private var customerSelector: some View {
+        Menu {
+            ForEach(customers) { customer in
+                Button { select(customer) } label: { Text(customer.listDisplayName) }
+            }
+            if !customers.isEmpty { Divider() }
+            Button { showingAddCustomer = true } label: {
+                Label("Add new customer…", systemImage: "plus")
+            }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "person.crop.circle").foregroundStyle(gold)
+                Text(selectedCustomer?.listDisplayName ?? "Select a customer")
+                    .foregroundStyle(selectedCustomer == nil ? .secondary : .primary)
+                    .lineLimit(1)
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.12)))
         }
+    }
+
+    /// A tappable detail row with a leading checkbox.
+    private func detailCheck(_ label: LocalizedStringKey, _ value: String, isOn: Binding<Bool>) -> some View {
+        Button { isOn.wrappedValue.toggle() } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Image(systemName: isOn.wrappedValue ? "checkmark.square.fill" : "square")
+                    .font(.title3)
+                    .foregroundStyle(isOn.wrappedValue ? gold : Color.secondary)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(label).font(.caption).foregroundStyle(.secondary)
+                    Text(value).font(.subheadline).foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Selects a customer and resets which details are ticked: name/company/address on when present,
+    /// phone/email off (a holder box is conventionally just name + mailing address).
+    private func select(_ customer: Customer) {
+        selectedCustomer = customer
+        includeCompany = nonEmpty(customer.businessName) != nil
+        includeName = !customerName(customer).isEmpty
+        includeAddress = !addressBlock(customer.address).isEmpty
+        includePhone = false
+        includeEmail = false
+    }
+
+    private func nonEmpty(_ s: String?) -> String? {
+        let t = trimmed(s ?? "")
+        return t.isEmpty ? nil : t
     }
 
     @ViewBuilder
