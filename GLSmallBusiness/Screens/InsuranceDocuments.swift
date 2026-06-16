@@ -101,8 +101,6 @@ struct ComplianceDocsManagerSheet: View {
     /// clear the target before the completion handler reads it — and the upload would silently no-op.
     @State private var importTarget: ComplianceKind?
     @State private var showingImporter = false
-    @State private var actionKind: ComplianceKind?
-    @State private var shareItem: ShareItem?
     @State private var uploadFailed = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
@@ -119,7 +117,7 @@ struct ComplianceDocsManagerSheet: View {
             ScrollView {
                 VStack(spacing: 14) {
                     ForEach(ComplianceKind.allCases) { card($0) }
-                    Text("Upload each certificate once (PDF or image). Share them with the requester using the button above. Stored privately in your iCloud account.")
+                    Text("Upload each certificate once (PDF or image). Tap one to view, share, or replace it — or use the button above to share them all. Stored privately in your iCloud account.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -158,21 +156,6 @@ struct ComplianceDocsManagerSheet: View {
                     uploadFailed = true
                 }
             }
-            .confirmationDialog(actionKind?.title ?? "",
-                                isPresented: actionDialogBinding,
-                                titleVisibility: .visible,
-                                presenting: actionKind) { kind in
-                Button("Share") {
-                    if let data = kind.data(profile),
-                       let url = CompliancePDF.tempURL(data, name: kind.fileName(profile), fallback: kind.fallbackFileName) {
-                        shareItem = ShareItem(url: url)
-                    }
-                }
-                // Let the dialog finish dismissing before presenting the file importer.
-                Button("Replace file") { DispatchQueue.main.async { importTarget = kind; showingImporter = true } }
-                Button("Remove", role: .destructive) { kind.store(profile, data: nil, name: "") }
-            }
-            .sheet(item: $shareItem) { ActivityView(items: [$0.url]) }
             .alert("Couldn't read that file", isPresented: $uploadFailed) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -181,59 +164,196 @@ struct ComplianceDocsManagerSheet: View {
         }
     }
 
-    private var actionDialogBinding: Binding<Bool> {
-        Binding(get: { actionKind != nil }, set: { if !$0 { actionKind = nil } })
+    /// Uploaded slots push a detail screen (view / share / replace / remove); empty slots upload.
+    @ViewBuilder
+    private func card(_ kind: ComplianceKind) -> some View {
+        if kind.data(profile) != nil {
+            NavigationLink {
+                ComplianceDocDetailScreen(kind: kind, profile: profile)
+            } label: {
+                cardLabel(kind, uploaded: true)
+            }
+            .buttonStyle(.plain)
+        } else {
+            Button {
+                importTarget = kind
+                showingImporter = true
+            } label: {
+                cardLabel(kind, uploaded: false)
+            }
+            .buttonStyle(.plain)
+        }
     }
 
-    /// The whole row is the button: tap to upload when empty, or to replace/remove when filled.
-    private func card(_ kind: ComplianceKind) -> some View {
-        let uploaded = kind.data(profile) != nil
+    private func cardLabel(_ kind: ComplianceKind, uploaded: Bool) -> some View {
         let name = kind.fileName(profile)
-        return Button {
-            if uploaded { actionKind = kind } else { importTarget = kind; showingImporter = true }
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: kind.systemImage)
-                    .font(.title3)
-                    .frame(width: 28)
-                    .foregroundStyle(gold)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(kind.title).font(.subheadline.weight(.semibold))
-                    Text(uploaded ? (name.isEmpty ? "Uploaded" : name) : "Tap to upload (PDF or image)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
+        return HStack(spacing: 12) {
+            Image(systemName: kind.systemImage)
+                .font(.title3)
+                .frame(width: 28)
+                .foregroundStyle(gold)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(kind.title).font(.subheadline.weight(.semibold))
+                Text(uploaded ? (name.isEmpty ? "Uploaded" : name) : "Tap to upload (PDF or image)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            Spacer(minLength: 8)
+            if uploaded {
+                Image(systemName: "checkmark.seal.fill").font(.footnote).foregroundStyle(gold)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+            } else {
+                Image(systemName: "arrow.up.doc").font(.footnote.weight(.semibold)).foregroundStyle(gold)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glCardBackground()
+    }
+}
+
+// MARK: - Certificate detail
+
+/// View one uploaded certificate, mirroring the Generate-a-W-9 flow: the file itself fills the
+/// screen (scrollable / zoomable), Share sits in the navbar, and replace / remove are at the bottom.
+struct ComplianceDocDetailScreen: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    let kind: ComplianceKind
+    let profile: BusinessProfile
+
+    @State private var showingImporter = false
+    @State private var confirmRemove = false
+    @State private var uploadFailed = false
+
+    private var gold: Color { GLColor.gold.render(in: colorScheme) }
+    private var data: Data? { kind.data(profile) }
+    private var displayName: String {
+        let name = kind.fileName(profile)
+        return name.isEmpty ? kind.fallbackFileName : name
+    }
+    private var shareURL: URL? {
+        data.flatMap { CompliancePDF.tempURL($0, name: kind.fileName(profile), fallback: kind.fallbackFileName) }
+    }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            if let data {
+                CertificatePreview(data: data)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(.black.opacity(0.12)))
+                Text(displayName)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            } else {
+                Spacer()
+                ContentUnavailableView("No file", systemImage: "doc", description: Text("This certificate hasn't been uploaded yet."))
+                Spacer()
+            }
+
+            DocActionRow(title: "Replace file",
+                         subtitle: "Upload a new PDF or image.",
+                         systemImage: "arrow.up.doc") { showingImporter = true }
+
+            Button(role: .destructive) { confirmRemove = true } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "trash").font(.title3).frame(width: 28).foregroundStyle(.red)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Remove document").font(.subheadline.weight(.semibold)).foregroundStyle(.red)
+                        Text("Delete this certificate from your records.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 8)
                 }
-                Spacer(minLength: 8)
-                if uploaded {
-                    Image(systemName: "checkmark.seal.fill").font(.footnote).foregroundStyle(gold)
-                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
-                } else {
-                    Image(systemName: "arrow.up.doc").font(.footnote.weight(.semibold)).foregroundStyle(gold)
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .glCardBackground()
+            }
+            .buttonStyle(.plain)
+        }
+        .padding()
+        .frame(maxWidth: 640)
+        .frame(maxWidth: .infinity)
+        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+        .navigationTitle(kind.title)
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            if let shareURL {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: shareURL,
+                              subject: Text(profile.businessName.isEmpty ? kind.title : "\(kind.title) — \(profile.businessName)"),
+                              message: Text(DocumentShareText.body(
+                                "Attached is our \(kind.title) certificate.", from: profile.businessName))) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .tint(gold)
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glCardBackground()
         }
-        .buttonStyle(.plain)
+        .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.pdf, .image]) { result in
+            guard case .success(let url) = result else { return }
+            let access = url.startAccessingSecurityScopedResource()
+            defer { if access { url.stopAccessingSecurityScopedResource() } }
+            if let data = try? Data(contentsOf: url), !data.isEmpty {
+                kind.store(profile, data: data, name: url.lastPathComponent)
+            } else {
+                uploadFailed = true
+            }
+        }
+        .confirmationDialog("Remove this certificate?", isPresented: $confirmRemove, titleVisibility: .visible) {
+            Button("Remove", role: .destructive) {
+                kind.store(profile, data: nil, name: "")
+                dismiss()
+            }
+        }
+        .alert("Couldn't read that file", isPresented: $uploadFailed) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("That file couldn't be opened. Try a different file, or export it as a PDF first.")
+        }
     }
 }
 
-// MARK: - Per-file share
+/// Renders the actual certificate — a scrollable, zoomable PDF, or the uploaded image.
+struct CertificatePreview: View {
+    let data: Data
 
-/// Wraps a single certificate URL for `.sheet(item:)` presentation.
-struct ShareItem: Identifiable {
-    let url: URL
-    var id: String { url.path }
+    var body: some View {
+        if let document = PDFDocument(data: data) {
+            CertificatePDFView(document: document)
+        } else if let image = UIImage(data: data) {
+            ScrollView([.horizontal, .vertical]) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+            }
+            .background(Color.white)
+        } else {
+            ContentUnavailableView("Preview unavailable", systemImage: "doc.questionmark")
+                .background(Color.white)
+        }
+    }
 }
 
-/// Presents the system share sheet (UIActivityViewController) for one uploaded certificate.
-struct ActivityView: UIViewControllerRepresentable {
-    let items: [Any]
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
+/// PDFKit-backed view so multi-page certificates can be scrolled and pinch-zoomed in place.
+struct CertificatePDFView: UIViewRepresentable {
+    let document: PDFDocument
+    func makeUIView(context: Context) -> PDFView {
+        let view = PDFView()
+        view.autoScales = true
+        view.displayMode = .singlePageContinuous
+        view.displaysPageBreaks = true
+        view.backgroundColor = .white
+        view.document = document
+        return view
     }
-    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
+    func updateUIView(_ view: PDFView, context: Context) {
+        if view.document !== document { view.document = document }
+    }
 }

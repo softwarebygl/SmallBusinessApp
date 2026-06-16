@@ -96,42 +96,39 @@ enum InvoiceMessage {
 
         var logoTag = ""
         if let data = EstimateMessage.logoPNGData(business: business) {
-            logoTag = "<img src=\"data:image/png;base64,\(data.base64EncodedString())\" width=\"150\" style=\"display:block;margin:0 0 18px;max-width:150px;height:auto;\" alt=\"\(esc(company))\" />"
+            logoTag = "<img src=\"data:image/png;base64,\(data.base64EncodedString())\" width=\"140\" style=\"display:block;margin:0 0 20px;max-width:140px;height:auto;\" alt=\"\(esc(company))\" />"
         }
 
         let job = esc(trimmed(invoice.jobTitle))
-        var summary = ""
-        if !job.isEmpty { summary += "<strong>Project:</strong> \(job)<br>" }
-        if !number.isEmpty { summary += "<strong>Invoice:</strong> \(number)<br>" }
-        summary += "<strong>Total:</strong> \(total)<br>"
+        var rows: [(label: String, value: String, strong: Bool)] = []
+        if !job.isEmpty { rows.append(("Project", job, false)) }
+        if !number.isEmpty { rows.append(("Invoice", number, false)) }
+        rows.append(("Total", total, true))
         if invoice.amountPaid > 0 {
-            summary += "<strong>Paid:</strong> \(esc(invoice.amountPaid.formatted(.currency(code: "USD"))))<br>"
+            rows.append(("Paid", esc(invoice.amountPaid.formatted(.currency(code: "USD"))), false))
         }
-        summary += "<strong>Balance:</strong> \(balance)<br>"
+        rows.append(("Balance", balance, true))
         if invoice.hasAmountDueRequest {
-            let dueNow = esc(invoice.currentAmountDue.formatted(.currency(code: "USD")))
             let detail = trimmed(invoice.amountDueDetail)
-            summary += "<strong style=\"color:#9C7A2E;\">Amount due now: \(dueNow)</strong>"
-            if !detail.isEmpty { summary += " — \(esc(detail))" }
-            summary += "<br>"
+            let label = detail.isEmpty ? "Amount due now" : "Amount due now (\(esc(detail)))"
+            rows.append((label, esc(invoice.currentAmountDue.formatted(.currency(code: "USD"))), true))
         }
-        summary += "<strong>Due by:</strong> \(due)"
+        rows.append(("Due by", due, false))
 
         var signature = "<strong style=\"color:#9C7A2E;\">\(esc(company))</strong>"
         if !phone.isEmpty { signature += "<br>\(esc(phone))" }
         if !email.isEmpty { signature += "<br>\(esc(email))" }
         if !license.isEmpty { signature += "<br>License #\(esc(license))" }
 
-        return """
-        <div style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:#1c1c1e;font-size:15px;line-height:1.5;max-width:560px;">
+        let inner = """
         \(logoTag)
         <p style="margin:0 0 14px;">Hi \(esc(name)),</p>
-        <p style="margin:0 0 14px;">\(htmlText(intro(invoice: invoice, business: business)))</p>
-        <p style="margin:0 0 14px;">\(summary)</p>
-        <p style="margin:0 0 14px;">\(htmlText(closing(invoice: invoice, business: business)))</p>
-        <p style="margin:18px 0 0;">\(signature)</p>
-        </div>
+        <p style="margin:0 0 16px;">\(htmlText(intro(invoice: invoice, business: business)))</p>
+        \(EmailHTML.summaryBox(rows))
+        <p style="margin:0 0 16px;">\(htmlText(closing(invoice: invoice, business: business)))</p>
+        <p style="margin:20px 0 0;">\(signature)</p>
         """
+        return EmailHTML.page(inner)
     }
 
     // MARK: - Helpers

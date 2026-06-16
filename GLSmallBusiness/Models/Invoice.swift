@@ -122,6 +122,9 @@ final class Invoice {
     @Relationship(deleteRule: .cascade, inverse: \InvoicePayment.invoice)
     var payments: [InvoicePayment]?
 
+    @Relationship(deleteRule: .cascade, inverse: \ChangeOrder.invoice)
+    var changeOrders: [ChangeOrder]?
+
     init(
         number: String = "",
         jobTitle: String = "",
@@ -197,6 +200,35 @@ extension Invoice {
     var amountPaid: Double {
         (payments ?? []).reduce(0) { $0 + $1.amount }
     }
+
+    /// Cumulative amount paid up to and including `payment`, in payment order — the figure a payment
+    /// receipt reflects (the state of the invoice at the time of that payment).
+    func paidThrough(_ payment: InvoicePayment) -> Double {
+        var sum = 0.0
+        for entry in sortedPayments {
+            sum += entry.amount
+            if entry.id == payment.id { break }
+        }
+        return sum
+    }
+
+    /// Balance left after `payment` was applied. Shown on a receipt as "remaining balance".
+    func remainingAfter(_ payment: InvoicePayment) -> Double {
+        max(0, total - paidThrough(payment))
+    }
+
+    // Change orders
+    var sortedChangeOrders: [ChangeOrder] {
+        (changeOrders ?? []).sorted { $0.createdAt < $1.createdAt }
+    }
+
+    /// Net price change from all approved change orders.
+    var approvedChangeOrderTotal: Double {
+        sortedChangeOrders.filter { $0.status == .approved }.reduce(0) { $0 + $1.total }
+    }
+
+    /// Invoice total plus approved change orders — the figure the job is now worth.
+    var revisedTotal: Double { total + approvedChangeOrderTotal }
 
     var balanceDue: Double {
         max(0, total - amountPaid)

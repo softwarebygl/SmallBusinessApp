@@ -201,6 +201,9 @@
         }
       }
     },
+    "· added" : {
+
+    },
     "· non-taxable" : {
       "localizations" : {
         "ca" : {
@@ -619,6 +622,9 @@
         }
       }
     },
+    "1" : {
+
+    },
     "12-3456789" : {
 
     },
@@ -989,6 +995,12 @@
         }
       }
     },
+    "Add item" : {
+
+    },
+    "Add items to invoice" : {
+
+    },
     "Add line item" : {
       "localizations" : {
         "ca" : {
@@ -1194,6 +1206,9 @@
           }
         }
       }
+    },
+    "Added to invoice" : {
+
     },
     "Address" : {
       "localizations" : {
@@ -1555,6 +1570,9 @@
         }
       }
     },
+    "Append this change to the invoice's line items." : {
+
+    },
     "Applied only to line items marked taxable." : {
       "localizations" : {
         "ca" : {
@@ -1594,6 +1612,9 @@
           }
         }
       }
+    },
+    "Approved" : {
+
     },
     "Apt / Suite (optional)" : {
       "localizations" : {
@@ -2155,6 +2176,9 @@
         }
       }
     },
+    "By signing below, the customer approves this change to the project scope and the revised total above." : {
+
+    },
     "C Corporation" : {
 
     },
@@ -2397,6 +2421,18 @@
           }
         }
       }
+    },
+    "Change order" : {
+
+    },
+    "Change Order" : {
+
+    },
+    "CHANGE ORDER" : {
+
+    },
+    "Change Orders" : {
+
     },
     "Change signature" : {
 
@@ -3392,7 +3428,16 @@
         }
       }
     },
+    "Delete change order" : {
+
+    },
     "Delete saved signature" : {
+
+    },
+    "Delete this certificate from your records." : {
+
+    },
+    "Delete this change order?" : {
 
     },
     "Deposit" : {
@@ -3436,6 +3481,9 @@
       }
     },
     "Describe classification" : {
+
+    },
+    "Description" : {
 
     },
     "Description (optional)" : {
@@ -3961,6 +4009,12 @@
         }
       }
     },
+    "Edit change order" : {
+
+    },
+    "Edit Change Order" : {
+
+    },
     "Edit Customer" : {
       "localizations" : {
         "ca" : {
@@ -4164,6 +4218,9 @@
         }
       }
     },
+    "Email change order" : {
+
+    },
     "Email estimate" : {
       "localizations" : {
         "ca" : {
@@ -4243,6 +4300,12 @@
           }
         }
       }
+    },
+    "Email receipt" : {
+
+    },
+    "Enter a negative price to credit removed work." : {
+
     },
     "Enter Access Code" : {
       "localizations" : {
@@ -4941,6 +5004,12 @@
         }
       }
     },
+    "FOR" : {
+
+    },
+    "For Invoice %@" : {
+
+    },
     "Form W-9" : {
 
     },
@@ -5417,6 +5486,9 @@
         }
       }
     },
+    "Invoice %@" : {
+
+    },
     "Invoice message" : {
       "localizations" : {
         "ca" : {
@@ -5539,6 +5611,9 @@
           }
         }
       }
+    },
+    "Items" : {
+
     },
     "job" : {
       "localizations" : {
@@ -6892,6 +6967,12 @@
         }
       }
     },
+    "New" : {
+
+    },
+    "New Change Order" : {
+
+    },
     "New Customer" : {
       "localizations" : {
         "ca" : {
@@ -7212,6 +7293,9 @@
         }
       }
     },
+    "No file" : {
+
+    },
     "No Invoices" : {
       "localizations" : {
         "ca" : {
@@ -7251,6 +7335,9 @@
           }
         }
       }
+    },
+    "No line items." : {
+
     },
     "No name" : {
       "localizations" : {
@@ -7495,6 +7582,9 @@
         }
       }
     },
+    "None yet. Add one when the job's scope changes." : {
+
+    },
     "Note (e.g. 5×3×8)" : {
       "localizations" : {
         "ca" : {
@@ -7614,6 +7704,9 @@
           }
         }
       }
+    },
+    "Notes (optional)" : {
+
     },
     "Notes for the customer" : {
       "localizations" : {
@@ -7953,6 +8046,9 @@
         }
       }
     },
+    "PAID IN FULL" : {
+
+    },
     "Partially Paid" : {
       "localizations" : {
         "ca" : {
@@ -8036,6 +8132,12 @@
         }
       }
     },
+    "Payment Receipt" : {
+
+    },
+    "PAYMENT RECEIVED" : {
+
+    },
     "Payments" : {
       "localizations" : {
         "ca" : {
@@ -8075,6 +8177,9 @@
           }
         }
       }
+    },
+    "Pending" : {
+
     },
     "Percentage" : {
       "localizations" : {
@@ -8362,6 +8467,9 @@
         }
       }
     },
+    "Preview unavailable" : {
+
+    },
     "Price" : {
       "localizations" : {
         "ca" : {
@@ -8642,6 +8750,9 @@
         }
       }
     },
+    "RECEIPT" : {
+
+    },
     "Receipts" : {
       "localizations" : {
         "ca" : {
@@ -8681,6 +8792,9 @@
           }
         }
       }
+    },
+    "RECEIVED FROM" : {
+
     },
     "Record" : {
       "localizations" : {
@@ -8886,6 +9000,9 @@
         }
       }
     },
+    "Remaining balance" : {
+
+    },
     "Remove" : {
       "localizations" : {
         "ca" : {
@@ -8926,6 +9043,9 @@
         }
       }
     },
+    "Remove document" : {
+
+    },
     "Remove group" : {
       "localizations" : {
         "ca" : {
@@ -8965,6 +9085,12 @@
           }
         }
       }
+    },
+    "Remove this certificate?" : {
+
+    },
+    "Remove this change order." : {
+
     },
     "Replace file" : {
 
@@ -9090,6 +9216,9 @@
       }
     },
     "Review the details. Print or send the W-9, then sign and date it by hand before giving it to the requester." : {
+
+    },
+    "Revised total" : {
 
     },
     "Run your trade from your phone." : {
@@ -9297,6 +9426,9 @@
           }
         }
       }
+    },
+    "Scope changes" : {
+
     },
     "Search vendor, customer, notes" : {
       "localizations" : {
@@ -9740,9 +9872,6 @@
           }
         }
       }
-    },
-    "Share" : {
-
     },
     "Share…" : {
       "localizations" : {
@@ -10282,6 +10411,9 @@
         }
       }
     },
+    "Summary (e.g. Add second coat of sealer)" : {
+
+    },
     "Tap + to add a receipt. Scanning needs a device with a camera." : {
       "localizations" : {
         "ca" : {
@@ -10746,6 +10878,9 @@
         }
       }
     },
+    "Text change order" : {
+
+    },
     "Text estimate" : {
       "localizations" : {
         "ca" : {
@@ -10825,6 +10960,15 @@
           }
         }
       }
+    },
+    "Text receipt" : {
+
+    },
+    "Thank you — this invoice is now paid in full. We appreciate your business." : {
+
+    },
+    "Thank you for your payment. This receipt confirms the amount received above." : {
+
     },
     "That code has expired." : {
       "localizations" : {
@@ -10990,6 +11134,12 @@
       }
     },
     "The year these records cover." : {
+
+    },
+    "This certificate hasn't been uploaded yet." : {
+
+    },
+    "This change" : {
 
     },
     "Total" : {
@@ -11331,7 +11481,13 @@
     "Update tax details" : {
 
     },
-    "Upload each certificate once (PDF or image). Share them with the requester using the button above. Stored privately in your iCloud account." : {
+    "Update the summary, items, or notes." : {
+
+    },
+    "Upload a new PDF or image." : {
+
+    },
+    "Upload each certificate once (PDF or image). Tap one to view, share, or replace it — or use the button above to share them all. Stored privately in your iCloud account." : {
 
     },
     "Use" : {

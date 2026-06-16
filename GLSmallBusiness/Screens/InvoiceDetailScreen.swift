@@ -43,6 +43,9 @@ struct InvoiceDetailScreen: View {
     @State private var sendAction: SendAction?
     @State private var pdfURL: URL?
     @State private var showingProfilePrompt = false
+    @State private var receiptPayment: InvoicePayment?
+    @State private var showingNewChangeOrder = false
+    @State private var selectedChangeOrder: ChangeOrder?
 
     private enum SendAction: Int, Identifiable {
         case email, text
@@ -62,6 +65,7 @@ struct InvoiceDetailScreen: View {
                 groupsView
                 totalsCard
                 paymentsCard
+                changeOrdersCard
                 if !invoice.customerNotes.isEmpty || !invoice.terms.isEmpty {
                     notesCard
                 }
@@ -145,6 +149,16 @@ struct InvoiceDetailScreen: View {
         .sheet(item: $sendAction) { action in
             sendSheet(for: action).glAppearance(colorScheme)
         }
+        .sheet(item: $receiptPayment) { payment in
+            PaymentReceiptSheet(invoice: invoice, payment: payment).glAppearance(colorScheme)
+        }
+        .sheet(isPresented: $showingNewChangeOrder) {
+            ChangeOrderFormScreen(invoice: invoice).glAppearance(colorScheme)
+        }
+        .sheet(item: $selectedChangeOrder) { changeOrder in
+            ChangeOrderDetailSheet(changeOrder: changeOrder).glAppearance(colorScheme)
+        }
+        .onChange(of: showingNewChangeOrder) { _, isShowing in if !isShowing { regeneratePDF() } }
         .alert("Complete your business profile", isPresented: $showingProfilePrompt) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -347,24 +361,100 @@ struct InvoiceDetailScreen: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(invoice.sortedPayments) { payment in
-                    HStack(alignment: .firstTextBaseline) {
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(payment.method.label)
-                            HStack(spacing: 6) {
-                                Text(payment.date.formatted(date: .abbreviated, time: .omitted))
-                                if !payment.note.isEmpty {
-                                    Text("· \(payment.note)").lineLimit(1)
+                    Button {
+                        receiptPayment = payment
+                    } label: {
+                        HStack(alignment: .center) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(payment.method.label)
+                                HStack(spacing: 6) {
+                                    Text(payment.date.formatted(date: .abbreviated, time: .omitted))
+                                    if !payment.note.isEmpty {
+                                        Text("· \(payment.note)").lineLimit(1)
+                                    }
                                 }
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 1) {
+                                Text(payment.amount.formatted(.currency(code: "USD")))
+                                    .fontWeight(.medium)
+                                HStack(spacing: 2) {
+                                    Text("Receipt")
+                                    Image(systemName: "chevron.right")
+                                }
+                                .font(.caption2)
+                                .foregroundStyle(gold)
+                            }
                         }
+                        .font(.subheadline)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    if payment.id != invoice.sortedPayments.last?.id {
+                        Divider()
+                    }
+                }
+            }
+        }
+    }
+
+    private var changeOrdersCard: some View {
+        card {
+            HStack {
+                Text("Change Orders").font(.headline)
+                Spacer()
+                Button {
+                    showingNewChangeOrder = true
+                } label: {
+                    Label("New", systemImage: "plus.circle.fill")
+                        .font(.subheadline.weight(.medium))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(gold)
+            }
+            if invoice.sortedChangeOrders.isEmpty {
+                Text("None yet. Add one when the job's scope changes.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                if invoice.approvedChangeOrderTotal != 0 {
+                    HStack {
+                        Text("Revised total").foregroundStyle(.secondary)
                         Spacer()
-                        Text(payment.amount.formatted(.currency(code: "USD")))
-                            .fontWeight(.medium)
+                        Text(invoice.revisedTotal.formatted(.currency(code: "USD"))).fontWeight(.semibold)
                     }
                     .font(.subheadline)
-                    if payment.id != invoice.sortedPayments.last?.id {
+                    Divider()
+                }
+                ForEach(invoice.sortedChangeOrders) { changeOrder in
+                    Button {
+                        selectedChangeOrder = changeOrder
+                    } label: {
+                        HStack(alignment: .center) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(changeOrder.title.isEmpty ? changeOrder.number : changeOrder.title)
+                                    .fontWeight(.medium)
+                                    .lineLimit(1)
+                                HStack(spacing: 6) {
+                                    Text(changeOrder.number)
+                                    Text("· \(changeOrder.status.label)")
+                                    if changeOrder.appliedToInvoice { Text("· added") }
+                                }
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Text((changeOrder.total >= 0 ? "+" : "") + changeOrder.total.formatted(.currency(code: "USD")))
+                                .fontWeight(.medium)
+                            Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.secondary)
+                        }
+                        .font(.subheadline)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    if changeOrder.id != invoice.sortedChangeOrders.last?.id {
                         Divider()
                     }
                 }
@@ -530,6 +620,97 @@ private struct SetAmountDueSheet: View {
         invoice.amountDueNow = amount
         invoice.amountDueDetail = detail.trimmingCharacters(in: .whitespacesAndNewlines)
         dismiss()
+    }
+}
+
+// MARK: - Payment receipt
+
+/// Previews the payment receipt (the W-9-style flow: see it, then send) and sends it to the
+/// customer by email/text or shares the PDF. Receipt wording shows the remaining balance as
+/// information, never as an amount due.
+private struct PaymentReceiptSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    @Query private var businessProfiles: [BusinessProfile]
+    let invoice: Invoice
+    let payment: InvoicePayment
+
+    @State private var pdfURL: URL?
+    @State private var pdfData: Data?
+    @State private var sendAction: SendAction?
+
+    private enum SendAction: Int, Identifiable { case email, text; var id: Int { rawValue } }
+    private var gold: Color { GLColor.gold.render(in: colorScheme) }
+    private var business: BusinessProfile? { businessProfiles.first }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 12) {
+                if let pdfData {
+                    CertificatePreview(data: pdfData)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(.black.opacity(0.12)))
+                } else {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+            }
+            .padding()
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
+            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+            .navigationTitle("Payment Receipt")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        if !invoice.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
+                            Button { sendAction = .email } label: { Label("Email receipt", systemImage: "envelope") }
+                        }
+                        if !invoice.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
+                            Button { sendAction = .text } label: { Label("Text receipt", systemImage: "message") }
+                        }
+                        if let pdfURL {
+                            ShareLink(item: pdfURL) { Label("Share…", systemImage: "square.and.arrow.up") }
+                        }
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .tint(gold)
+                }
+            }
+            .onAppear { regenerate() }
+            .sheet(item: $sendAction) { action in sendSheet(action).glAppearance(colorScheme) }
+        }
+    }
+
+    private func regenerate() {
+        guard let url = PaymentReceiptPDF.render(invoice, payment: payment, business: business) else { return }
+        pdfURL = url
+        pdfData = try? Data(contentsOf: url)
+    }
+
+    @ViewBuilder
+    private func sendSheet(_ action: SendAction) -> some View {
+        switch action {
+        case .email:
+            MailComposeView(
+                recipients: [invoice.customerEmail],
+                subject: PaymentReceiptMessage.subject(invoice: invoice, business: business),
+                body: PaymentReceiptMessage.htmlBody(invoice: invoice, payment: payment, business: business),
+                isHTML: true,
+                attachmentURL: pdfURL
+            ) { sendAction = nil }
+        case .text:
+            MessageComposeView(
+                recipients: [invoice.customerPhone],
+                body: PaymentReceiptMessage.plainBody(invoice: invoice, payment: payment, business: business),
+                attachmentURLs: [pdfURL].compactMap { $0 }
+            ) { sendAction = nil }
+        }
     }
 }
 
