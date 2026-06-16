@@ -261,8 +261,15 @@ struct MyCompanyDetailScreen: View {
     }
 
     private func logo(_ profile: BusinessProfile) -> some View {
-        ZStack {
-            if let data = profile.logo(for: colorScheme), let uiImage = UIImage(data: data) {
+        // Show the variant for the current scheme, but back it with the surface that variant was made
+        // for (light logo on a light card, dark logo on a dark card) so it's always legible — a
+        // light-only logo no longer vanishes in dark mode.
+        let useDark = colorScheme == .dark && profile.logoDataDark != nil
+        let data = useDark ? profile.logoDataDark : (profile.logoData ?? profile.logoDataDark)
+        let backing: ColorScheme = useDark ? .dark : (profile.logoData != nil ? .light : .dark)
+        return ZStack {
+            if let data, let uiImage = UIImage(data: data) {
+                GLColor.backgroundPrimary.render(in: backing)
                 Image(uiImage: uiImage).resizable().scaledToFill()
             } else {
                 gold.opacity(0.12)
@@ -273,6 +280,7 @@ struct MyCompanyDetailScreen: View {
         }
         .frame(width: 120, height: 120)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(gold.opacity(0.25), lineWidth: 1))
         .frame(maxWidth: .infinity)
     }
 
@@ -565,7 +573,8 @@ struct MyCompanyFormScreen: View {
                 self.logoItemDark = nil
             }
             .fullScreenCover(item: $logoToCrop) { crop in
-                ImageCropView(image: crop.image, guide: .roundedRect) {
+                ImageCropView(image: crop.image, guide: .roundedRect,
+                              windowBackground: GLColor.backgroundPrimary.render(in: crop.isDark ? .dark : .light)) {
                     logoToCrop = nil
                 } onCrop: { cropped in
                     let data = cropped.pngData()

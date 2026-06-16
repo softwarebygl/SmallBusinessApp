@@ -24,6 +24,10 @@ struct ImageCropView: View {
 
     let image: UIImage
     var guide: Guide = .circle
+    /// Fill shown *behind* the image inside the crop window (the saved crop stays transparent). Use it
+    /// for transparent logos so a dark-on-transparent mark is visible against a matching surface. nil
+    /// keeps the bare black window (right for opaque photos).
+    var windowBackground: Color? = nil
     var onCancel: () -> Void
     var onCrop: (UIImage) -> Void
 
@@ -42,6 +46,8 @@ struct ImageCropView: View {
             let side = max(120, min(geo.size.width, geo.size.height) - 48)
             ZStack {
                 Color.black
+
+                windowFill(side: side)
 
                 croppableImage(side: side)
                     .contentShape(Rectangle())
@@ -76,6 +82,18 @@ struct ImageCropView: View {
             .offset(offset)
             .frame(width: side, height: side)
             .clipped()
+    }
+
+    /// Solid fill behind the image inside the crop window (preview only — never part of the saved
+    /// crop), so a transparent logo shows against the surface it's meant for.
+    @ViewBuilder
+    private func windowFill(side: CGFloat) -> some View {
+        if let windowBackground {
+            switch guide {
+            case .circle:      Circle().fill(windowBackground).frame(width: side, height: side)
+            case .roundedRect: RoundedRectangle(cornerRadius: 28).fill(windowBackground).frame(width: side, height: side)
+            }
+        }
     }
 
     /// Dims everything outside the crop window and outlines it, in the configured shape.
