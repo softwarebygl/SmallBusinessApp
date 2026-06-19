@@ -378,9 +378,10 @@ struct ContractorPackageSheet: View {
         let access = url.startAccessingSecurityScopedResource()
         defer { if access { url.stopAccessingSecurityScopedResource() } }
         if let data = try? Data(contentsOf: url), !data.isEmpty {
+            // Mutating the tracked @Model persists via the context's autosave — matching how the rest
+            // of the app writes model data (e.g. profileImageData, ComplianceKind.store).
             customer.coiData = data
             customer.coiName = url.lastPathComponent
-            try? modelContext.save()
             regenerate()
         } else {
             coiUploadFailed = true

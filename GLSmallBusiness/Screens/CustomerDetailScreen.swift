@@ -168,6 +168,7 @@ struct CustomerDetailScreen: View {
                     HStack(spacing: 12) {
                         Image(systemName: kind.systemImage)
                             .frame(width: 24)
+                            .foregroundStyle(gold)
                         Text(kind.pluralTitle)
                         Spacer()
                         Image(systemName: "chevron.right")
@@ -189,28 +190,25 @@ struct CustomerDetailScreen: View {
     /// around it. A COI names its holder, so it's per-customer; the rest of the package (W-9,
     /// workers'-comp, license) is general and pulled from the business profile.
     private var insuranceSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Insurance")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .padding(.leading, 4)
-
+        let packageEnabled = profiles.first != nil
+        return VStack(alignment: .leading, spacing: 12) {
             coiCard
 
             Button { showingPackage = true } label: {
                 HStack(spacing: 12) {
                     Image(systemName: "shippingbox")
                         .frame(width: 24)
-                        .foregroundStyle(profiles.first == nil ? Color.secondary : gold)
+                        .foregroundStyle(packageEnabled ? gold : Color.secondary)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Contractor Package")
-                        if profiles.first == nil {
+                            .foregroundStyle(packageEnabled ? Color.primary : Color.secondary)
+                        if !packageEnabled {
                             Text("Add your business details first")
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
                     Spacer()
-                    if customer.hasCOI {
+                    if customer.hasCOI && packageEnabled {
                         Image(systemName: "checkmark.seal.fill").font(.footnote).foregroundStyle(gold)
                     }
                     Image(systemName: "chevron.right")
@@ -222,7 +220,7 @@ struct CustomerDetailScreen: View {
                 .glCardBackground()
             }
             .buttonStyle(.plain)
-            .disabled(profiles.first == nil)
+            .disabled(!packageEnabled)
         }
     }
 
@@ -312,5 +310,5 @@ struct CustomerDetailScreen: View {
             )
         )
     }
-    .modelContainer(for: Customer.self, inMemory: true)
+    .modelContainer(for: [Customer.self, BusinessProfile.self], inMemory: true)
 }
