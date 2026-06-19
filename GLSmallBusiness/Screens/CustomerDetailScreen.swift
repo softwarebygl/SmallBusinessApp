@@ -84,9 +84,7 @@ struct CustomerDetailScreen: View {
         }
         .fileImporter(isPresented: $showingCOIImporter, allowedContentTypes: [.pdf, .image]) { result in
             guard case .success(let url) = result else { return }
-            let access = url.startAccessingSecurityScopedResource()
-            defer { if access { url.stopAccessingSecurityScopedResource() } }
-            if let data = try? Data(contentsOf: url), !data.isEmpty {
+            if let data = url.readSecurityScoped() {
                 customer.coiData = data
                 customer.coiName = url.lastPathComponent
             } else {

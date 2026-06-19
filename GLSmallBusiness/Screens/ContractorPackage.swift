@@ -375,9 +375,7 @@ struct ContractorPackageSheet: View {
 
     private func importCOI(_ result: Result<URL, Error>) {
         guard case .success(let url) = result else { return }
-        let access = url.startAccessingSecurityScopedResource()
-        defer { if access { url.stopAccessingSecurityScopedResource() } }
-        if let data = try? Data(contentsOf: url), !data.isEmpty {
+        if let data = url.readSecurityScoped() {
             // Mutating the tracked @Model persists via the context's autosave — matching how the rest
             // of the app writes model data (e.g. profileImageData, ComplianceKind.store).
             customer.coiData = data

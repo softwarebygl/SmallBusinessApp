@@ -150,9 +150,7 @@ struct ComplianceDocsManagerSheet: View {
                 guard let kind = importTarget else { return }
                 importTarget = nil
                 guard case .success(let url) = result else { return }
-                let access = url.startAccessingSecurityScopedResource()
-                defer { if access { url.stopAccessingSecurityScopedResource() } }
-                if let data = try? Data(contentsOf: url), !data.isEmpty {
+                if let data = url.readSecurityScoped() {
                     kind.store(profile, data: data, name: url.lastPathComponent)
                 } else {
                     uploadFailed = true
@@ -218,106 +216,23 @@ struct ComplianceDocsManagerSheet: View {
 
 // MARK: - Certificate detail
 
-/// View one uploaded certificate, mirroring the Generate-a-W-9 flow: the file itself fills the
-/// screen (scrollable / zoomable), Share sits in the navbar, and replace / remove are at the bottom.
+/// View one uploaded compliance certificate (workers'-comp insurance/exemption or the license). A thin
+/// wrapper over the shared `DocumentDetailScreen`, backed by the BusinessProfile through `ComplianceKind`.
 struct ComplianceDocDetailScreen: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
     let kind: ComplianceKind
     let profile: BusinessProfile
 
-    @State private var showingImporter = false
-    @State private var confirmRemove = false
-    @State private var uploadFailed = false
-
-    private var gold: Color { GLColor.gold.render(in: colorScheme) }
-    private var data: Data? { kind.data(profile) }
-    private var displayName: String {
-        let name = kind.fileName(profile)
-        return name.isEmpty ? kind.fallbackFileName : name
-    }
-    private var shareURL: URL? {
-        data.flatMap { CompliancePDF.tempURL($0, name: kind.fileName(profile), fallback: kind.fallbackFileName) }
-    }
-
     var body: some View {
-        VStack(spacing: 14) {
-            if let data {
-                CertificatePreview(data: data)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(.black.opacity(0.12)))
-                Text(displayName)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            } else {
-                Spacer()
-                ContentUnavailableView("No file", systemImage: "doc", description: Text("This certificate hasn't been uploaded yet."))
-                Spacer()
-            }
-
-            DocActionRow(title: "Replace file",
-                         subtitle: "Upload a new PDF or image.",
-                         systemImage: "arrow.up.doc") { showingImporter = true }
-
-            Button(role: .destructive) { confirmRemove = true } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "trash").font(.title3).frame(width: 28).foregroundStyle(.red)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Remove document").font(.subheadline.weight(.semibold)).foregroundStyle(.red)
-                        Text("Delete this certificate from your records.")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer(minLength: 8)
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .glCardBackground()
-            }
-            .buttonStyle(.plain)
-        }
-        .padding()
-        .frame(maxWidth: 640)
-        .frame(maxWidth: .infinity)
-        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-        .navigationTitle(kind.title)
-        .toolbarTitleDisplayMode(.inline)
-        .toolbar {
-            if let shareURL {
-                ToolbarItem(placement: .topBarTrailing) {
-                    ShareLink(item: shareURL,
-                              subject: Text(profile.businessName.isEmpty ? kind.title : "\(kind.title) — \(profile.businessName)"),
-                              message: Text(DocumentShareText.body(
-                                "Attached is our \(kind.title).", from: profile.businessName))) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                    .tint(gold)
-                }
-            }
-        }
-        .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.pdf, .image]) { result in
-            guard case .success(let url) = result else { return }
-            let access = url.startAccessingSecurityScopedResource()
-            defer { if access { url.stopAccessingSecurityScopedResource() } }
-            if let data = try? Data(contentsOf: url), !data.isEmpty {
-                kind.store(profile, data: data, name: url.lastPathComponent)
-            } else {
-                uploadFailed = true
-            }
-        }
-        .confirmationDialog("Remove this certificate?", isPresented: $confirmRemove, titleVisibility: .visible) {
-            Button("Remove", role: .destructive) {
-                kind.store(profile, data: nil, name: "")
-                dismiss()
-            }
-        }
-        .alert("Couldn't read that file", isPresented: $uploadFailed) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("That file couldn't be opened. Try a different file, or export it as a PDF first.")
-        }
+        DocumentDetailScreen(slot: DocumentSlot(
+            title: kind.title,
+            data: kind.data(profile),
+            name: kind.fileName(profile),
+            fallbackFileName: kind.fallbackFileName,
+            businessName: profile.businessName,
+            removeTitle: "Remove document",
+            removeSubtitle: "Delete this certificate from your records.",
+            store: { kind.store(profile, data: $0, name: $1) }
+        ))
     }
 }
 
