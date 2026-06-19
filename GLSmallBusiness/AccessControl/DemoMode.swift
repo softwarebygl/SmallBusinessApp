@@ -46,7 +46,8 @@ enum DemoSeed {
         if ProcessInfo.processInfo.arguments.contains("-demoBrand"),
            let logo = UIImage(named: "DemoBrandLogo")?.pngData() {
             biz.logoData = logo
-            biz.logoDataDark = logo
+            // Light variant for light mode; white variant so the logo stays visible in dark mode.
+            biz.logoDataDark = UIImage(named: "DemoBrandLogoDark")?.pngData() ?? logo
         }
         #endif
         context.insert(biz)
