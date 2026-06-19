@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import UniformTypeIdentifiers
 
 private struct CroppableImage: Identifiable {
     let id = UUID()
@@ -16,12 +17,16 @@ private struct CroppableImage: Identifiable {
 
 struct CustomerDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Query private var profiles: [BusinessProfile]
     let customer: Customer
 
     @State private var photoItem: PhotosPickerItem?
     @State private var imageToCrop: CroppableImage?
     @State private var showingEdit = false
     @State private var showingSaveToContacts = false
+    @State private var showingCOIImporter = false
+    @State private var coiUploadFailed = false
+    @State private var showingPackage = false
 
     var body: some View {
         ScrollView {
@@ -30,6 +35,7 @@ struct CustomerDetailScreen: View {
                 contactCard
                 addressCard
                 documentsSection
+                insuranceSection
             }
             .padding()
         }
@@ -74,6 +80,27 @@ struct CustomerDetailScreen: View {
             } onCrop: { cropped in
                 customer.profileImageData = cropped.jpegData(compressionQuality: 0.85)
                 imageToCrop = nil
+            }
+        }
+        .fileImporter(isPresented: $showingCOIImporter, allowedContentTypes: [.pdf, .image]) { result in
+            guard case .success(let url) = result else { return }
+            let access = url.startAccessingSecurityScopedResource()
+            defer { if access { url.stopAccessingSecurityScopedResource() } }
+            if let data = try? Data(contentsOf: url), !data.isEmpty {
+                customer.coiData = data
+                customer.coiName = url.lastPathComponent
+            } else {
+                coiUploadFailed = true
+            }
+        }
+        .alert("Couldn't read that file", isPresented: $coiUploadFailed) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("That file couldn't be opened. Try a different file, or export it as a PDF first.")
+        }
+        .sheet(isPresented: $showingPackage) {
+            if let profile = profiles.first {
+                ContractorPackageSheet(customer: customer, profile: profile).glAppearance(colorScheme)
             }
         }
     }
@@ -154,6 +181,93 @@ struct CustomerDetailScreen: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+
+    // MARK: - Insurance & Contractor Package
+
+    /// The customer's own General Liability COI (upload / view) and the Contractor Package built
+    /// around it. A COI names its holder, so it's per-customer; the rest of the package (W-9,
+    /// workers'-comp, license) is general and pulled from the business profile.
+    private var insuranceSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Insurance")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.leading, 4)
+
+            coiCard
+
+            Button { showingPackage = true } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "shippingbox")
+                        .frame(width: 24)
+                        .foregroundStyle(profiles.first == nil ? Color.secondary : gold)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Contractor Package")
+                        if profiles.first == nil {
+                            Text("Add your business details first")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                    Spacer()
+                    if customer.hasCOI {
+                        Image(systemName: "checkmark.seal.fill").font(.footnote).foregroundStyle(gold)
+                    }
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .glCardBackground()
+            }
+            .buttonStyle(.plain)
+            .disabled(profiles.first == nil)
+        }
+    }
+
+    @ViewBuilder
+    private var coiCard: some View {
+        if customer.hasCOI {
+            NavigationLink {
+                CustomerCOIDetailScreen(customer: customer)
+            } label: {
+                coiCardLabel(uploaded: true)
+            }
+            .buttonStyle(.plain)
+        } else {
+            Button { showingCOIImporter = true } label: {
+                coiCardLabel(uploaded: false)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func coiCardLabel(uploaded: Bool) -> some View {
+        let name = customer.coiName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return HStack(spacing: 12) {
+            Image(systemName: "checkmark.shield")
+                .frame(width: 24)
+                .foregroundStyle(gold)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("General Liability (COI)")
+                Text(uploaded ? (name.isEmpty ? "Uploaded" : name) : "Tap to upload (PDF or image)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            Spacer(minLength: 8)
+            if uploaded {
+                Image(systemName: "checkmark.seal.fill").font(.footnote).foregroundStyle(gold)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+            } else {
+                Image(systemName: "arrow.up.doc").font(.footnote.weight(.semibold)).foregroundStyle(gold)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glCardBackground()
     }
 
     // MARK: - Helpers

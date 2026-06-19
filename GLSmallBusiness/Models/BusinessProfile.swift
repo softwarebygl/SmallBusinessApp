@@ -133,10 +133,14 @@ final class BusinessProfile {
     /// Line 4 — exemption from FATCA reporting code (optional; most filers leave blank).
     var w9FATCACode: String = ""
 
-    /// Manually uploaded compliance certificates (PDFs) shared from the Business screen — general
-    /// liability insurance, workers' comp insurance, and a workers' comp exemption certificate.
-    /// (`proofOfInsuranceData` predates the "General Liability Insurance" rename; kept to avoid a
-    /// storage migration.) Stored as-is and synced privately through CloudKit.
+    /// Manually uploaded compliance certificates (PDFs) shared from the Business screen — workers'
+    /// comp insurance and a workers' comp exemption certificate. Stored as-is and synced privately
+    /// through CloudKit.
+    ///
+    /// `proofOfInsuranceData` is RETIRED: General Liability COIs are now per-customer (a COI names its
+    /// holder, so it can't be reused), uploaded on each customer's detail screen — see
+    /// `Customer.coiData`. The field is kept only so any previously uploaded file isn't destroyed; it's
+    /// no longer shown or used anywhere.
     @Attribute(.externalStorage) var proofOfInsuranceData: Data?
     var proofOfInsuranceName: String = ""
     @Attribute(.externalStorage) var wcInsuranceData: Data?
@@ -149,22 +153,15 @@ final class BusinessProfile {
     @Attribute(.externalStorage) var licenseDocumentData: Data?
     var licenseDocumentName: String = ""
 
-    // MARK: Contractor Package — placement memory only
+    // MARK: Retired — COI holder stamping
 
-    // The certificate holder itself is intentionally NOT stored: the holder fields start blank for
-    // every package, so a stale holder can never be sent to the wrong GC by mistake. Only the
-    // placement of the box on the user's own COI form is remembered (that's a property of their
-    // insurer's layout, not of any holder).
-
-    /// A one-time manual nudge (in PDF points, origin bottom-left) applied to the auto-detected
-    /// holder-box position, so the box only has to be lined up once per COI.
+    // These remembered the placement of a stamped certificate-holder box on a single, business-level
+    // COI. That approach is gone: a COI must name its holder on the policy itself, so each customer
+    // now uploads their own insurer-issued certificate (see `Customer.coiData`) and it's sent as-is.
+    // The stored properties are kept (unused) only to avoid a storage migration on existing installs.
     var coiHolderOffsetX: Double = 0
     var coiHolderOffsetY: Double = 0
-    /// Remembered holder-box width (PDF points). 0 = use the auto-detected width. The box height
-    /// always grows to fit every line, so this only sizes the width to the user's own form.
     var coiHolderBoxWidth: Double = 0
-    /// Lays a white box over any certificate-holder text already printed on the uploaded COI before
-    /// stamping the new holder — for COIs that arrive with a prior holder filled in.
     var coiCoverExistingHolder: Bool = false
 
     init() {}
@@ -227,30 +224,18 @@ extension BusinessProfile {
 
     // MARK: - Compliance documents
 
-    var hasProofOfInsurance: Bool { proofOfInsuranceData != nil }
+    // These are the general, reusable documents — the same for every customer, so they live on the
+    // business and get pulled into each customer's Contractor Package. (General Liability is NOT here:
+    // a COI is per-customer — see `Customer.coiData`.)
     var hasWCInsurance: Bool { wcInsuranceData != nil }
     var hasWCExemption: Bool { wcExemptionData != nil }
     var hasLicenseDocument: Bool { licenseDocumentData != nil }
     /// At least one compliance/licensing document has been uploaded.
     var hasComplianceDocuments: Bool {
-        hasProofOfInsurance || hasWCInsurance || hasWCExemption || hasLicenseDocument
+        hasWCInsurance || hasWCExemption || hasLicenseDocument
     }
 
-    // MARK: - Contractor Package
-
-    /// The Certificate of Liability Insurance used by the Contractor Package — the General Liability
-    /// certificate on file (a COI *is* the GL certificate). A package can't be built without one.
-    var coiData: Data? { proofOfInsuranceData }
-    var hasCOI: Bool { proofOfInsuranceData != nil }
-
-    /// The persisted holder placement nudge as a CGSize (PDF points, origin bottom-left).
-    var coiHolderOffset: CGSize {
-        get { CGSize(width: coiHolderOffsetX, height: coiHolderOffsetY) }
-        set { coiHolderOffsetX = newValue.width; coiHolderOffsetY = newValue.height }
-    }
-
-    /// True once there's enough on file to build a package: a COI plus a complete W-9.
-    var contractorPackageReady: Bool { hasCOI && w9IsComplete }
+    // MARK: - W-9
 
     /// The minimum needed to produce a usable W-9: a name, a classification, and a TIN.
     var w9IsComplete: Bool { w9MissingRequirements.isEmpty }

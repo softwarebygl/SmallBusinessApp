@@ -149,7 +149,7 @@ struct MyCompanyDetailScreen: View {
     @State private var ensuredProfile = false
 
     private enum BusinessDocument: String, Identifiable {
-        case contractorPackage, insurance, taxReport, w9
+        case insurance, taxReport, w9
         var id: String { rawValue }
     }
 
@@ -178,8 +178,6 @@ struct MyCompanyDetailScreen: View {
         .sheet(item: $activeDocument) { document in
             if let profile = profiles.first {
                 switch document {
-                case .contractorPackage:
-                    ContractorPackageSheet(profile: profile).glAppearance(colorScheme)
                 case .insurance:
                     ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
                 case .taxReport:
@@ -224,8 +222,6 @@ struct MyCompanyDetailScreen: View {
                 }
                 .buttonStyle(.plain)
 
-                actionRow("Contractor Package", systemImage: "shippingbox",
-                          badge: profile.contractorPackageReady) { activeDocument = .contractorPackage }
                 actionRow("Insurance & Licensing", systemImage: "checkmark.shield",
                           badge: profile.hasComplianceDocuments) { activeDocument = .insurance }
                 actionRow("Year-End Tax Report", systemImage: "doc.text") { activeDocument = .taxReport }

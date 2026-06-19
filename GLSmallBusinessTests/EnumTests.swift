@@ -57,6 +57,6 @@ struct EnumTests {
             #expect(kind.data(p) == blob)
             #expect(kind.fileName(p) == "cert.pdf")
         }
-        #expect(ComplianceKind.proofOfInsurance.title == "General Liability Insurance")
+        #expect(ComplianceKind.wcInsurance.title == "Workers' Comp Insurance")
     }
 }

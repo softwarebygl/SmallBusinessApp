@@ -23,6 +23,13 @@ final class Customer {
     var createdAt: Date = Date.now
     @Attribute(.externalStorage) var profileImageData: Data?
 
+    /// This customer's own Certificate of Liability Insurance (the General Liability certificate),
+    /// issued by the insurer with the customer named as the certificate holder. A COI is specific to
+    /// its holder, so it can't be reused across customers — each customer gets their own, uploaded
+    /// here and sent as-is (never modified) in that customer's Contractor Package. PDF or image.
+    @Attribute(.externalStorage) var coiData: Data?
+    var coiName: String = ""
+
     @Relationship(deleteRule: .cascade, inverse: \Estimate.customer)
     var estimates: [Estimate]?
 
@@ -56,6 +63,10 @@ final class Customer {
 }
 
 nonisolated extension Customer {
+    /// True once a Certificate of Insurance has been uploaded for this customer — the one document
+    /// the Contractor Package can't be assembled without.
+    var hasCOI: Bool { coiData != nil }
+
     /// The person's full name, "First Middle Last", trimmed; empty parts dropped.
     var fullName: String {
         [firstName, middleName, lastName]

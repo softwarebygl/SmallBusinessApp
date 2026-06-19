@@ -4,9 +4,10 @@
 //
 //  Created by Gold Life LLC on 6/15/26.
 //
-//  Manually-uploaded compliance certificates (PDF or image) — general liability insurance, workers'
-//  comp insurance, and a workers' comp exemption. Uploaded, managed, and shared from the Business
-//  screen's "Insurance & Exemptions" row (ComplianceDocsManagerSheet).
+//  Manually-uploaded compliance certificates (PDF or image) — workers' comp insurance, a workers'
+//  comp exemption, and the contractor license. Uploaded, managed, and shared from the Business
+//  screen's "Insurance & Licensing" row (ComplianceDocsManagerSheet). These are the general documents
+//  that are the same for every customer; the per-customer General Liability COI lives on the Customer.
 
 import SwiftUI
 import SwiftData
@@ -15,9 +16,9 @@ import UniformTypeIdentifiers
 
 // MARK: - Certificate kinds
 
-/// The compliance certificates, each backed by a pair of `BusinessProfile` properties.
+/// The general compliance certificates, each backed by a pair of `BusinessProfile` properties. These
+/// are the same for every customer; the per-customer General Liability COI is stored on the Customer.
 enum ComplianceKind: String, CaseIterable, Identifiable {
-    case proofOfInsurance   // displayed as "General Liability Insurance"
     case wcInsurance
     case wcExemption
     case license
@@ -26,7 +27,6 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .proofOfInsurance: return String(localized: "General Liability Insurance")
         case .wcInsurance: return String(localized: "Workers' Comp Insurance")
         case .wcExemption: return String(localized: "Workers' Comp Exemption")
         case .license: return String(localized: "Contractor License")
@@ -35,7 +35,6 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
 
     var systemImage: String {
         switch self {
-        case .proofOfInsurance: return "checkmark.shield"
         case .wcInsurance: return "cross.case"
         case .wcExemption: return "shield.lefthalf.filled"
         case .license: return "person.text.rectangle"
@@ -44,7 +43,6 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
 
     var fallbackFileName: String {
         switch self {
-        case .proofOfInsurance: return "General-Liability-Insurance.pdf"
         case .wcInsurance: return "Workers-Comp-Insurance.pdf"
         case .wcExemption: return "Workers-Comp-Exemption.pdf"
         case .license: return "Contractor-License.pdf"
@@ -53,7 +51,6 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
 
     func data(_ profile: BusinessProfile) -> Data? {
         switch self {
-        case .proofOfInsurance: return profile.proofOfInsuranceData
         case .wcInsurance: return profile.wcInsuranceData
         case .wcExemption: return profile.wcExemptionData
         case .license: return profile.licenseDocumentData
@@ -62,7 +59,6 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
 
     func fileName(_ profile: BusinessProfile) -> String {
         switch self {
-        case .proofOfInsurance: return profile.proofOfInsuranceName
         case .wcInsurance: return profile.wcInsuranceName
         case .wcExemption: return profile.wcExemptionName
         case .license: return profile.licenseDocumentName
@@ -71,9 +67,6 @@ enum ComplianceKind: String, CaseIterable, Identifiable {
 
     func store(_ profile: BusinessProfile, data: Data?, name: String) {
         switch self {
-        case .proofOfInsurance:
-            profile.proofOfInsuranceData = data
-            profile.proofOfInsuranceName = name
         case .wcInsurance:
             profile.wcInsuranceData = data
             profile.wcInsuranceName = name

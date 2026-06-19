@@ -2,44 +2,30 @@
 //  ContractorPackage.swift
 //  GLSmallBusiness
 //
-//  One button that assembles everything a GC/sub asks a contractor for — a Certificate of Liability
-//  Insurance made out to the requesting holder, a W-9, workers'-comp insurance or exemption, and a
-//  license — into a single shareable PDF. Mirrors the Generate-a-W-9 flow: see the documents before
-//  sharing, with the holder fields and controls below and Share in the navbar.
+//  One button per customer that assembles everything a GC asks a contractor for — the customer's
+//  Certificate of Liability Insurance, a W-9, workers'-comp insurance or exemption, and a license —
+//  into a single shareable PDF. Mirrors the Generate-a-W-9 flow: see the documents before sharing,
+//  with the controls below and Share in the navbar.
 //
-//  The COI is the General Liability certificate already on file. Because COIs are flattened (the text
-//  is painted on, not fillable) and every insurer's layout differs, the holder is *stamped*: the app
-//  finds the "CERTIFICATE HOLDER" box, drops the entered holder there, and lets you drag it into exact
-//  position on a live preview. "Cover existing holder" lays a white box over any prior holder first.
+//  The COI is THIS customer's certificate, issued by the insurer with the customer named as the
+//  holder, so it's included exactly as uploaded — nothing is stamped or altered. If the customer has
+//  no COI on file yet, the sheet leads with an upload step before anything can be shared. Everything
+//  else (W-9, workers'-comp, license) is general and pulled from the business profile.
 //
 
 import SwiftUI
 import SwiftData
 import PDFKit
+import UniformTypeIdentifiers
 
 struct ContractorPackageSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
     @Query private var userProfiles: [UserProfile]
-    @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
-    private var customers: [Customer]
+    let customer: Customer
     let profile: BusinessProfile
 
-    // The holder is the customer this COI is made out to. It starts UNSELECTED every time (never
-    // seeded), so a previous holder can't be sent by accident. Only the box placement is reused.
-    @State private var selectedCustomer: Customer?
-    @State private var includeCompany = true
-    @State private var includeName = true
-    @State private var includeAddress = true
-    @State private var includePhone = false
-    @State private var includeOffice = false
-    @State private var includeEmail = false
-    @State private var additionalDetails = ""
-    @State private var showingAddCustomer = false
-    @State private var offset: CGSize
-    @State private var boxWidth: CGFloat   // holder-box width in PDF points; 0 = auto-detected
-    @State private var coverExisting: Bool
     @State private var includeW9: Bool
     @State private var includeWCInsurance: Bool
     @State private var includeWCExemption: Bool
@@ -53,19 +39,17 @@ struct ContractorPackageSheet: View {
     @State private var showingSignatureEditor = false
     @State private var signatureTarget: UserProfile?
 
-    @State private var coiImage: UIImage?
-    @State private var placement: ContractorPackagePDF.HolderPlacement?
     @State private var packageURL: URL?
 
     @State private var showingDocuments = false
     @State private var showingW9Edit = false
     @State private var showingPreview = false
+    @State private var showingCOIImporter = false
+    @State private var coiUploadFailed = false
 
-    init(profile: BusinessProfile) {
+    init(customer: Customer, profile: BusinessProfile) {
+        self.customer = customer
         self.profile = profile
-        _offset = State(initialValue: profile.coiHolderOffset)
-        _boxWidth = State(initialValue: CGFloat(profile.coiHolderBoxWidth))
-        _coverExisting = State(initialValue: profile.coiCoverExistingHolder)
         _includeW9 = State(initialValue: profile.w9IsComplete)
         _includeWCInsurance = State(initialValue: profile.hasWCInsurance)
         _includeWCExemption = State(initialValue: profile.hasWCExemption)
@@ -73,61 +57,27 @@ struct ContractorPackageSheet: View {
     }
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
-
-    /// The holder block lines, composed from the selected customer's checked details plus any extra
-    /// notes — shared by the preview and the stamp.
-    private var holderLines: [String] {
-        guard let c = selectedCustomer else { return [] }
-        let company = includeCompany ? (c.businessName ?? "") : ""
-        let name = includeName ? customerName(c) : ""
-        let address = includeAddress ? addressBlock(c.address) : ""
-        var extras: [String] = []
-        if includePhone, !trimmed(c.phoneNumber).isEmpty { extras.append(trimmed(c.phoneNumber)) }
-        if includeOffice, !trimmed(c.officePhone).isEmpty { extras.append(trimmed(c.officePhone)) }
-        if includeEmail, !trimmed(c.email).isEmpty { extras.append(trimmed(c.email)) }
-        if !trimmed(additionalDetails).isEmpty { extras.append(trimmed(additionalDetails)) }
-        return ContractorPackagePDF.holderLines(company: company, owner: name, address: address,
-                                                details: extras.joined(separator: "\n"))
-    }
-    private var hasHolder: Bool { !holderLines.isEmpty }
-
-    private func trimmed(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
-    private func customerName(_ c: Customer) -> String { c.fullName }
-    private func addressBlock(_ a: Address) -> String {
-        let cityLine = [a.city, a.state].map(trimmed).filter { !$0.isEmpty }.joined(separator: ", ")
-        let cityZip = [cityLine, trimmed(a.postalCode)].filter { !$0.isEmpty }.joined(separator: " ")
-        return [trimmed(a.street1), trimmed(a.street2 ?? ""), cityZip]
-            .filter { !$0.isEmpty }.joined(separator: "\n")
-    }
-    private var canShare: Bool { profile.hasCOI && packageURL != nil }
-
-    /// The holder-box width to use — the saved/dragged width, falling back to the auto-detected one.
-    private var effectiveBoxWidth: CGFloat { boxWidth > 0 ? boxWidth : (placement?.width ?? 200) }
-    private var boxWidthBinding: Binding<CGFloat> {
-        Binding(get: { effectiveBoxWidth }, set: { boxWidth = $0 })
-    }
-
+    private var canShare: Bool { customer.hasCOI && packageURL != nil }
     private var hasUserSignature: Bool { userProfiles.first?.hasSignature ?? false }
     /// True once the user opted in to signing and unlocked the signature with Face ID.
     private var signingW9: Bool { signW9 && signatureUnlocked && signatureImage != nil }
 
     /// Everything the generated PDF depends on, in one Equatable value, so a single `onChange`
-    /// rebuilds the package (and the body stays simple enough for the type-checker).
+    /// rebuilds the package. `coi` flips when the customer's certificate is uploaded or removed.
     private struct RegenKey: Equatable {
-        var lines: [String]; var offset: CGSize; var width: CGFloat; var cover: Bool
+        var coi: Bool
         var w9: Bool; var sign: Bool; var wcIns: Bool; var wcExe: Bool; var license: Bool
     }
     private var regenKey: RegenKey {
-        RegenKey(lines: holderLines, offset: offset, width: boxWidth, cover: coverExisting,
-                 w9: includeW9, sign: signingW9, wcIns: includeWCInsurance,
-                 wcExe: includeWCExemption, license: includeLicense)
+        RegenKey(coi: customer.hasCOI, w9: includeW9, sign: signingW9,
+                 wcIns: includeWCInsurance, wcExe: includeWCExemption, license: includeLicense)
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    if profile.hasCOI {
+                    if customer.hasCOI {
                         readyContent
                     } else {
                         noCOIContent
@@ -153,7 +103,7 @@ struct ContractorPackageSheet: View {
                     }
                 }
             }
-            .onAppear { loadCOI(); regenerate() }
+            .onAppear { regenerate() }
             .onChange(of: regenKey) { _, _ in regenerate() }
             .onChange(of: showingSignatureEditor) { _, isShowing in
                 // When the signature editor closes: removal resets signing; a change refreshes the
@@ -166,15 +116,19 @@ struct ContractorPackageSheet: View {
                 }
                 regenerate()
             }
-            .onDisappear { persist() }
+            .fileImporter(isPresented: $showingCOIImporter, allowedContentTypes: [.pdf, .image]) { result in
+                importCOI(result)
+            }
+            .alert("Couldn't read that file", isPresented: $coiUploadFailed) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("That file couldn't be opened. Try a different file, or export it as a PDF first.")
+            }
             .sheet(isPresented: $showingDocuments, onDismiss: refreshAvailability) {
                 ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
             }
             .sheet(isPresented: $showingW9Edit, onDismiss: refreshAvailability) {
                 MyCompanyFormScreen(profile: profile).glAppearance(colorScheme)
-            }
-            .sheet(isPresented: $showingAddCustomer) {
-                CustomerFormScreen { select($0) }.glAppearance(colorScheme)
             }
             .sheet(isPresented: $showingSignatureEditor) {
                 if let signatureTarget {
@@ -196,9 +150,6 @@ struct ContractorPackageSheet: View {
 
     @ViewBuilder
     private var readyContent: some View {
-        holderCard
-        placementPreview
-        coverToggle
         includedCard
         if packageURL != nil {
             Button { showingPreview = true } label: {
@@ -211,158 +162,10 @@ struct ContractorPackageSheet: View {
             }
             .buttonStyle(.plain)
         }
-        Text(hasHolder
-             ? "Review the certificate above, then tap Share to send everything as one PDF."
-             : "Pick the customer this COI is for above — or add a new one.")
+        Text("Review the package above, then tap Share to send everything as one PDF.")
             .font(.footnote)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
-    }
-
-    private var holderCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Certificate holder", systemImage: "person.text.rectangle")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(gold)
-            Text("The customer this COI is made out to.")
-                .font(.caption).foregroundStyle(.secondary)
-
-            customerSelector
-
-            if let customer = selectedCustomer {
-                Divider()
-                Text("Tick what to print in the holder box.")
-                    .font(.caption).foregroundStyle(.secondary)
-
-                if let company = nonEmpty(customer.businessName) {
-                    detailCheck("Company", company, isOn: $includeCompany)
-                }
-                if case let name = customerName(customer), !name.isEmpty {
-                    detailCheck("Contact name", name, isOn: $includeName)
-                }
-                if case let addr = addressBlock(customer.address), !addr.isEmpty {
-                    detailCheck("Address", addr, isOn: $includeAddress)
-                }
-                if !trimmed(customer.phoneNumber).isEmpty {
-                    detailCheck("Phone", customer.phoneNumber, isOn: $includePhone)
-                }
-                if !trimmed(customer.officePhone).isEmpty {
-                    detailCheck("Office", customer.officePhone, isOn: $includeOffice)
-                }
-                if !trimmed(customer.email).isEmpty {
-                    detailCheck("Email", customer.email, isOn: $includeEmail)
-                }
-
-                Divider()
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Additional details").font(.caption).foregroundStyle(.secondary)
-                    TextField("Project, reference #, anything else", text: $additionalDetails, axis: .vertical)
-                        .lineLimit(1...3)
-                }
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glCardBackground()
-    }
-
-    /// A menu to pick the holder from existing customers, or add a new one inline.
-    private var customerSelector: some View {
-        Menu {
-            ForEach(customers) { customer in
-                Button { select(customer) } label: { Text(customer.listDisplayName) }
-            }
-            if !customers.isEmpty { Divider() }
-            Button { showingAddCustomer = true } label: {
-                Label("Add new customer…", systemImage: "plus")
-            }
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "person.crop.circle").foregroundStyle(gold)
-                Text(selectedCustomer?.listDisplayName ?? "Select a customer")
-                    .foregroundStyle(selectedCustomer == nil ? .secondary : .primary)
-                    .lineLimit(1)
-                Spacer(minLength: 8)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.12)))
-        }
-    }
-
-    /// A tappable detail row with a leading checkbox.
-    private func detailCheck(_ label: LocalizedStringKey, _ value: String, isOn: Binding<Bool>) -> some View {
-        Button { isOn.wrappedValue.toggle() } label: {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Image(systemName: isOn.wrappedValue ? "checkmark.square.fill" : "square")
-                    .font(.title3)
-                    .foregroundStyle(isOn.wrappedValue ? gold : Color.secondary)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(label).font(.caption).foregroundStyle(.secondary)
-                    Text(value).font(.subheadline).foregroundStyle(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 8)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    /// Selects a customer and resets which details are ticked: name/company/address on when present,
-    /// phone/email off (a holder box is conventionally just name + mailing address).
-    private func select(_ customer: Customer) {
-        selectedCustomer = customer
-        includeCompany = nonEmpty(customer.businessName) != nil
-        includeName = !customerName(customer).isEmpty
-        includeAddress = !addressBlock(customer.address).isEmpty
-        includePhone = false
-        includeOffice = false
-        includeEmail = false
-    }
-
-    private func nonEmpty(_ s: String?) -> String? {
-        let t = trimmed(s ?? "")
-        return t.isEmpty ? nil : t
-    }
-
-    @ViewBuilder
-    private var placementPreview: some View {
-        if let coiImage, let placement {
-            VStack(spacing: 8) {
-                COIPlacementView(image: coiImage, placement: placement,
-                                 lines: holderLines,
-                                 offset: $offset, width: boxWidthBinding, coverExisting: coverExisting)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(.black.opacity(0.1)))
-                    .shadow(radius: 4, y: 2)
-                Label(placement.autoDetected
-                      ? "Drag the block to line it up with the certificate-holder box; drag the gold handle to set its width. Everything you type is shown — the box grows to fit."
-                      : "We couldn't find the holder box automatically — drag the block to position it and the gold handle to set its width.",
-                      systemImage: placement.autoDetected ? "hand.draw" : "exclamationmark.triangle")
-                    .font(.caption)
-                    .foregroundStyle(placement.autoDetected ? Color.secondary : Color.orange)
-                    .multilineTextAlignment(.center)
-            }
-        } else {
-            ContentUnavailableView("Couldn't preview the COI", systemImage: "doc.questionmark",
-                                   description: Text("The General Liability file on file couldn't be opened. Replace it with a PDF or image."))
-        }
-    }
-
-    private var coverToggle: some View {
-        Toggle(isOn: $coverExisting) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Cover existing holder").font(.subheadline.weight(.semibold))
-                Text("Hide any holder already printed on the COI before stamping the new one.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-        }
-        .tint(gold)
-        .padding()
-        .glCardBackground()
     }
 
     private var includedCard: some View {
@@ -372,7 +175,16 @@ struct ContractorPackageSheet: View {
                 .foregroundStyle(gold)
 
             includedRow(systemImage: "checkmark.shield", title: "Certificate of Insurance",
-                        subtitle: "Stamped with the holder above.", required: true)
+                        subtitle: coiSubtitle, required: true)
+            Button { showingCOIImporter = true } label: {
+                Label("Replace COI", systemImage: "arrow.up.doc")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(gold)
+            }
+            .buttonStyle(.plain)
+            .padding(.leading, 40)
+
+            Divider()
 
             if profile.w9IsComplete {
                 includedToggle(systemImage: "doc.plaintext", title: "W-9",
@@ -407,6 +219,13 @@ struct ContractorPackageSheet: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .glCardBackground()
+    }
+
+    private var coiSubtitle: LocalizedStringKey {
+        let name = customer.coiName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty
+            ? "Issued to \(customer.listDisplayName), sent as provided."
+            : "\(name) — sent as provided."
     }
 
     /// Opt-in W-9 signing, shown indented under the W-9 row. Mirrors the standalone W-9 sheet.
@@ -525,14 +344,14 @@ struct ContractorPackageSheet: View {
     private var noCOIContent: some View {
         VStack(spacing: 16) {
             Image(systemName: "checkmark.shield").font(.system(size: 44)).foregroundStyle(gold)
-            Text("Add your insurance certificate")
+            Text("Add this customer's COI")
                 .font(.title3.weight(.semibold))
-            Text("The package is built around your Certificate of Liability Insurance — the General Liability certificate. Upload it once, then make it out to whoever's requesting it each time.")
+            Text("The package is built around the Certificate of Liability Insurance your insurer issued with \(customer.listDisplayName) named as the certificate holder. Upload it once, here, and you can send their full package.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-            Button { showingDocuments = true } label: {
-                Text("Upload insurance")
+            Button { showingCOIImporter = true } label: {
+                Text("Upload COI")
                     .font(.headline)
                     .foregroundStyle(gold)
                     .frame(maxWidth: .infinity)
@@ -546,29 +365,32 @@ struct ContractorPackageSheet: View {
 
     // MARK: - Generation
 
-    private func loadCOI() {
-        guard let data = profile.coiData else { coiImage = nil; placement = nil; return }
-        coiImage = ContractorPackagePDF.coiPageImage(from: data)
-        placement = ContractorPackagePDF.document(from: data).flatMap { ContractorPackagePDF.locateHolder(in: $0) }
-    }
-
     private func refreshAvailability() {
         includeWCInsurance = profile.hasWCInsurance
         includeWCExemption = profile.hasWCExemption
         includeLicense = profile.hasLicenseDocument
         if profile.w9IsComplete { includeW9 = true }
-        loadCOI()
         regenerate()
+    }
+
+    private func importCOI(_ result: Result<URL, Error>) {
+        guard case .success(let url) = result else { return }
+        let access = url.startAccessingSecurityScopedResource()
+        defer { if access { url.stopAccessingSecurityScopedResource() } }
+        if let data = try? Data(contentsOf: url), !data.isEmpty {
+            customer.coiData = data
+            customer.coiName = url.lastPathComponent
+            try? modelContext.save()
+            regenerate()
+        } else {
+            coiUploadFailed = true
+        }
     }
 
     private func packageSources() -> [Data] {
         var sources: [Data] = []
-        if let coi = profile.coiData,
-           let stamped = ContractorPackagePDF.stampedCOIData(
-                coiData: coi, lines: holderLines,
-                offset: offset, coverExisting: coverExisting, width: effectiveBoxWidth) {
-            sources.append(stamped)
-        }
+        // The customer's COI goes in exactly as uploaded — it already names them as the holder.
+        if let coi = customer.coiData { sources.append(coi) }
         if includeW9, profile.w9IsComplete,
            let url = W9PDF.render(profile,
                                   signatureImage: signingW9 ? signatureImage : nil,
@@ -583,29 +405,20 @@ struct ContractorPackageSheet: View {
     }
 
     private func regenerate() {
-        guard profile.hasCOI else { packageURL = nil; return }
-        let safeName = profile.businessName
+        guard customer.hasCOI else { packageURL = nil; return }
+        let safeCustomer = customer.listDisplayName
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
             .joined(separator: "-")
-        let fileName = "Contractor-Package\(safeName.isEmpty ? "" : "-\(safeName)").pdf"
+        let fileName = "Contractor-Package\(safeCustomer.isEmpty ? "" : "-\(safeCustomer)").pdf"
         packageURL = ContractorPackagePDF.merge(packageSources(), fileName: fileName)
-    }
-
-    /// Saves only the box placement on the user's COI form — never the holder identity, which always
-    /// starts blank so a previous GC can't be sent by mistake.
-    private func persist() {
-        profile.coiHolderOffset = offset
-        profile.coiHolderBoxWidth = Double(boxWidth)
-        profile.coiCoverExistingHolder = coverExisting
-        try? modelContext.save()
     }
 }
 
 // MARK: - Full package preview
 
-/// Shows the assembled package PDF (stamped COI + W-9 + workers'-comp + license) so the whole thing
-/// can be reviewed before sharing — the "see exactly what you're sharing" flow, applied to the merged
+/// Shows the assembled package PDF (COI + W-9 + workers'-comp + license) so the whole thing can be
+/// reviewed before sharing — the "see exactly what you're sharing" flow, applied to the merged
 /// document. Scrollable / zoomable via the shared PDFKit viewer; Share sits in the navbar.
 private struct PackagePreviewSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -633,113 +446,6 @@ private struct PackagePreviewSheet: View {
                     }
                 }
             }
-        }
-    }
-}
-
-// MARK: - Interactive placement preview
-
-/// Shows page 1 of the COI with the holder block overlaid where it will be stamped, draggable so the
-/// user can line it up with their insurer's certificate-holder box. The preview mirrors the stamp's
-/// geometry (see `ContractorPackagePDF.HolderLayout`) so what's shown matches what's produced; the
-/// final stamp uses the exact PDF coordinates, so the preview only needs to be a faithful guide.
-private struct COIPlacementView: View {
-    let image: UIImage
-    let placement: ContractorPackagePDF.HolderPlacement
-    let lines: [String]
-    @Binding var offset: CGSize
-    @Binding var width: CGFloat        // holder-box width, PDF points
-    let coverExisting: Bool
-
-    @GestureState private var drag: CGSize = .zero
-    @GestureState private var resizeDrag: CGFloat = .zero   // live width change, display points
-
-    private let layout = ContractorPackagePDF.HolderLayout.self
-    private var aspect: CGFloat { placement.pageSize.width / max(placement.pageSize.height, 1) }
-
-    var body: some View {
-        GeometryReader { geo in
-            let k = geo.size.width / max(placement.pageSize.width, 1)
-            // Effective anchor (PDF points) = base placement + saved nudge + live drag (display→PDF).
-            let liveX = offset.width + drag.width / k
-            let liveY = offset.height - drag.height / k          // screen y grows down; PDF y grows up
-            let anchorX = (placement.anchor.x + liveX) * k
-            let blockTop = (placement.pageSize.height - (placement.anchor.y + liveY)) * k
-                - layout.topPadding * k
-            let lineHeight = layout.lineHeight * k
-            let displayWidth = max(20, width * k + resizeDrag)
-            let blockHeight = lines.isEmpty
-                ? lineHeight + layout.topPadding * 2 * k
-                : CGFloat(lines.count) * lineHeight
-
-            ZStack(alignment: .topLeading) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: geo.size.width, height: geo.size.height)
-
-                holderBlock(k: k, displayWidth: displayWidth, lineHeight: lineHeight)
-                    .offset(x: anchorX, y: blockTop)
-                    .gesture(
-                        DragGesture()
-                            .updating($drag) { value, state, _ in state = value.translation }
-                            .onEnded { value in
-                                offset.width += value.translation.width / k
-                                offset.height -= value.translation.height / k
-                            }
-                    )
-
-                // Width handle on the right edge — drag to fit your form's holder box.
-                resizeHandle
-                    .offset(x: anchorX + displayWidth - 7, y: blockTop + blockHeight / 2 - 16)
-                    .gesture(
-                        DragGesture()
-                            .updating($resizeDrag) { value, state, _ in state = value.translation.width }
-                            .onEnded { value in
-                                let maxW = max(50, placement.pageSize.width - (placement.anchor.x + offset.width) - 4)
-                                width = min(max(50, width + value.translation.width / k), maxW)
-                            }
-                    )
-            }
-        }
-        .aspectRatio(aspect, contentMode: .fit)
-    }
-
-    private var resizeHandle: some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(Color.accentColor)
-            .frame(width: 14, height: 32)
-            .overlay(
-                Image(systemName: "arrow.left.and.right")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(.white)
-            )
-            .contentShape(Rectangle().inset(by: -8))   // generous touch target
-    }
-
-    @ViewBuilder
-    private func holderBlock(k: CGFloat, displayWidth: CGFloat, lineHeight: CGFloat) -> some View {
-        if lines.isEmpty {
-            // No holder entered yet — show the target area as a dashed outline.
-            RoundedRectangle(cornerRadius: 3)
-                .strokeBorder(Color.accentColor.opacity(0.7), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
-                .frame(width: displayWidth, height: lineHeight + layout.topPadding * 2 * k)
-                .contentShape(Rectangle())
-        } else {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
-                    let size = index == 0 ? layout.nameSize : layout.bodySize
-                    Text(line)
-                        .font(.system(size: size * k, weight: index == 0 ? .semibold : .regular))
-                        .foregroundStyle(.black)
-                        .lineLimit(1)
-                        .minimumScaleFactor(5.0 / size)   // shrink-to-fit, matching the PDF stamp
-                        .frame(width: displayWidth, height: lineHeight, alignment: .bottomLeading)
-                }
-            }
-            .background(coverExisting ? Color.white : Color.white.opacity(0.35))
-            .overlay(RoundedRectangle(cornerRadius: 2).stroke(Color.accentColor.opacity(0.6), lineWidth: 1))
-            .contentShape(Rectangle())
         }
     }
 }

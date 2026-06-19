@@ -39,8 +39,8 @@ struct ProfileCustomerTests {
     @Test func complianceDocumentsDetected() {
         let p = BusinessProfile()
         #expect(!p.hasComplianceDocuments)
-        p.proofOfInsuranceData = Data("pdf".utf8)
-        #expect(p.hasProofOfInsurance)
+        p.wcInsuranceData = Data("pdf".utf8)
+        #expect(p.hasWCInsurance)
         #expect(p.hasComplianceDocuments)
     }
 
