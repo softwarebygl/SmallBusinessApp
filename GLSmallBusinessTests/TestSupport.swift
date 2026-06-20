@@ -4,8 +4,12 @@
 //
 //  Builders that assemble model objects (and their relationships) entirely in memory. We do NOT
 //  create a second ModelContainer in-process — the test-host app already owns one for these model
-//  types, and a second container trips a SwiftData assertion. Reading computed values (totals,
-//  balances, the Stats engine) only needs the objects + relationships, not a persistent store.
+//  types, and a second *CloudKit-backed* container trips a SwiftData assertion. Reading computed
+//  values (totals, balances, the Stats engine) only needs the objects + relationships, not a store.
+//
+//  Exception: an in-memory container with CloudKit disabled is safe and coexists with the host's —
+//  see `TestStore` in ModelContextTests.swift, used by the few tests that genuinely need a live
+//  ModelContext (Invoice.make / the demo seeder).
 //
 
 import Foundation

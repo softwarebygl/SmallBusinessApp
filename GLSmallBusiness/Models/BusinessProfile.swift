@@ -153,6 +153,14 @@ final class BusinessProfile {
     @Attribute(.externalStorage) var licenseDocumentData: Data?
     var licenseDocumentName: String = ""
 
+    /// OPTIONAL, owner-only reference copy of a Certificate of Insurance — e.g. a blank/unfilled form the
+    /// owner likes to keep on hand. Deliberately separate from anything customer-facing: the real,
+    /// insurer-issued COI that names a customer as the holder still lives on `Customer.coiData` and is
+    /// unaffected. This copy is never attached to a customer, pulled into the Contractor Package, or
+    /// included in the "share all" bundle — it's purely a convenience for the owner's own records.
+    @Attribute(.externalStorage) var ownerReferenceCOIData: Data?
+    var ownerReferenceCOIName: String = ""
+
     // MARK: Retired — COI holder stamping
 
     // These remembered the placement of a stamped certificate-holder box on a single, business-level

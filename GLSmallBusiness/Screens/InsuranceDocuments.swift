@@ -8,6 +8,8 @@
 //  comp exemption, and the contractor license. Uploaded, managed, and shared from the Business
 //  screen's "Insurance & Licensing" row (ComplianceDocsManagerSheet). These are the general documents
 //  that are the same for every customer; the per-customer General Liability COI lives on the Customer.
+//  The sheet also offers an optional, owner-only reference COI (a spare blank form) kept purely for the
+//  owner's records — never shared with customers or bundled into a package.
 
 import SwiftUI
 import SwiftData
@@ -103,6 +105,7 @@ struct ComplianceDocsManagerSheet: View {
     /// clear the target before the completion handler reads it — and the upload would silently no-op.
     @State private var importTarget: ComplianceKind?
     @State private var showingImporter = false
+    @State private var showingReferenceImporter = false
     @State private var uploadFailed = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
@@ -124,6 +127,7 @@ struct ComplianceDocsManagerSheet: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.top, 4)
+                    referenceCOISection
                 }
                 .padding()
                 .frame(maxWidth: 640)
@@ -156,6 +160,15 @@ struct ComplianceDocsManagerSheet: View {
                     uploadFailed = true
                 }
             }
+            .fileImporter(isPresented: $showingReferenceImporter, allowedContentTypes: [.pdf, .image]) { result in
+                guard case .success(let url) = result else { return }
+                if let data = url.readSecurityScoped() {
+                    profile.ownerReferenceCOIData = data
+                    profile.ownerReferenceCOIName = url.lastPathComponent
+                } else {
+                    uploadFailed = true
+                }
+            }
             .alert("Couldn't read that file", isPresented: $uploadFailed) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -167,11 +180,15 @@ struct ComplianceDocsManagerSheet: View {
     /// Uploaded slots push a detail screen (view / share / replace / remove); empty slots upload.
     @ViewBuilder
     private func card(_ kind: ComplianceKind) -> some View {
+        let name = kind.fileName(profile)
+        let subtitle = kind.data(profile) != nil
+            ? (name.isEmpty ? "Uploaded" : name)
+            : "Tap to upload (PDF or image)"
         if kind.data(profile) != nil {
             NavigationLink {
                 ComplianceDocDetailScreen(kind: kind, profile: profile)
             } label: {
-                cardLabel(kind, uploaded: true)
+                cardLabel(title: kind.title, systemImage: kind.systemImage, subtitle: subtitle, uploaded: true)
             }
             .buttonStyle(.plain)
         } else {
@@ -179,22 +196,74 @@ struct ComplianceDocsManagerSheet: View {
                 importTarget = kind
                 showingImporter = true
             } label: {
-                cardLabel(kind, uploaded: false)
+                cardLabel(title: kind.title, systemImage: kind.systemImage, subtitle: subtitle, uploaded: false)
             }
             .buttonStyle(.plain)
         }
     }
 
-    private func cardLabel(_ kind: ComplianceKind, uploaded: Bool) -> some View {
-        let name = kind.fileName(profile)
-        return HStack(spacing: 12) {
-            Image(systemName: kind.systemImage)
+    /// Optional, owner-only reference COI — a spare blank form kept for the owner's own records. It is
+    /// intentionally NOT a `ComplianceKind`, which keeps it out of the "share all" bundle and the
+    /// Contractor Package, so it never reaches a customer. The per-customer COI is unaffected.
+    @ViewBuilder
+    private var referenceCOISection: some View {
+        VStack(spacing: 10) {
+            Text("For your own reference")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 8)
+            referenceCOICard
+            Text("Optional. A spare, blank Certificate of Insurance kept only for your own records — it's never sent to customers or added to a package.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    @ViewBuilder
+    private var referenceCOICard: some View {
+        if profile.ownerReferenceCOIData != nil {
+            NavigationLink {
+                DocumentDetailScreen(slot: DocumentSlot(
+                    title: String(localized: "Certificate of Insurance"),
+                    data: profile.ownerReferenceCOIData,
+                    name: profile.ownerReferenceCOIName,
+                    fallbackFileName: "Certificate-of-Insurance.pdf",
+                    businessName: profile.businessName,
+                    removeTitle: "Remove document",
+                    removeSubtitle: "Delete this reference copy from your records.",
+                    store: { profile.ownerReferenceCOIData = $0; profile.ownerReferenceCOIName = $1 }
+                ))
+            } label: {
+                cardLabel(title: String(localized: "Certificate of Insurance"),
+                          systemImage: "doc.text",
+                          subtitle: profile.ownerReferenceCOIName.isEmpty ? "Uploaded" : profile.ownerReferenceCOIName,
+                          uploaded: true)
+            }
+            .buttonStyle(.plain)
+        } else {
+            Button {
+                showingReferenceImporter = true
+            } label: {
+                cardLabel(title: String(localized: "Certificate of Insurance"),
+                          systemImage: "doc.text",
+                          subtitle: "Tap to upload (PDF or image)",
+                          uploaded: false)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func cardLabel(title: String, systemImage: String, subtitle: String, uploaded: Bool) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage)
                 .font(.title3)
                 .frame(width: 28)
                 .foregroundStyle(gold)
             VStack(alignment: .leading, spacing: 2) {
-                Text(kind.title).font(.subheadline.weight(.semibold))
-                Text(uploaded ? (name.isEmpty ? "Uploaded" : name) : "Tap to upload (PDF or image)")
+                Text(title).font(.subheadline.weight(.semibold))
+                Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

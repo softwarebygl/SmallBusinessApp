@@ -275,6 +275,15 @@ no migration needed until the first post-launch change).
   - **Host the privacy policy** at a public URL; finalize listing decisions (price, audience, keywords).
   - **App Store Connect:** create the app record, upload the archive (needs an ASC API key, or Xcode
     Organizer), add screenshots (iPhone 6.9" + iPad 13") + metadata, and submit for review.
+- **Done — NOT yet committed (built + verified on simulator):** **Owner reference COI (optional).** Added an
+  optional, owner-only **Certificate of Insurance** slot to the **Insurance & Licensing** sheet
+  (`ComplianceDocsManagerSheet`) so the owner can upload a spare/blank COI for their own records. It is
+  deliberately **not** a `ComplianceKind`, so it's excluded from the sheet's "share all" `ShareLink` and the
+  Contractor Package — it never reaches a customer. The per-customer COI (`Customer.coiData`) is unchanged.
+  New `BusinessProfile` fields `ownerReferenceCOIData` (`@Attribute(.externalStorage)`) + `ownerReferenceCOIName`
+  (additive → still **V1**, CloudKit-synced; deploy the new field to the CloudKit Development schema →
+  Production like the others). Reuses the existing `.fileImporter` `[.pdf, .image]` + `DocumentDetailScreen`
+  patterns.
 
 ## 12. Working conventions / preferences
 

@@ -285,6 +285,9 @@
         }
       }
     },
+    "%@ — sent as provided." : {
+
+    },
     "%@ · %@" : {
       "localizations" : {
         "ca" : {
@@ -1097,9 +1100,6 @@
         }
       }
     },
-    "Add new customer…" : {
-
-    },
     "Add photo" : {
 
     },
@@ -1144,6 +1144,12 @@
       }
     },
     "Add tax details" : {
+
+    },
+    "Add this customer's COI" : {
+
+    },
+    "Add your business details first" : {
 
     },
     "Add your business name, phone, and email in Menu → My Company before sending an estimate." : {
@@ -1226,16 +1232,10 @@
         }
       }
     },
-    "Add your insurance certificate" : {
-
-    },
     "Add your saved signature and today's date." : {
 
     },
     "Added to invoice" : {
-
-    },
-    "Additional details" : {
 
     },
     "Address" : {
@@ -2462,9 +2462,6 @@
         }
       }
     },
-    "Certificate holder" : {
-
-    },
     "Certificate of Insurance" : {
 
     },
@@ -2751,9 +2748,6 @@
     "Collected (cash received)" : {
 
     },
-    "Company" : {
-
-    },
     "Complete your business profile" : {
       "localizations" : {
         "ca" : {
@@ -2833,9 +2827,6 @@
           }
         }
       }
-    },
-    "Contact name" : {
-
     },
     "Contractor License" : {
 
@@ -2929,13 +2920,7 @@
     "Couldn't open the package" : {
 
     },
-    "Couldn't preview the COI" : {
-
-    },
     "Couldn't read that file" : {
-
-    },
-    "Cover existing holder" : {
 
     },
     "Created" : {
@@ -3516,6 +3501,12 @@
     "Delete this change order?" : {
 
     },
+    "Delete this customer's COI from your records." : {
+
+    },
+    "Delete this reference copy from your records." : {
+
+    },
     "Deposit" : {
       "localizations" : {
         "ca" : {
@@ -3801,9 +3792,6 @@
           }
         }
       }
-    },
-    "Drag the block to line it up with the certificate-holder box; drag the gold handle to set its width. Everything you type is shown — the box grows to fit." : {
-
     },
     "Draw" : {
 
@@ -5109,6 +5097,9 @@
     "For Invoice %@" : {
 
     },
+    "For your own reference" : {
+
+    },
     "Form W-9" : {
 
     },
@@ -5152,7 +5143,7 @@
         }
       }
     },
-    "General Liability Insurance" : {
+    "General Liability (COI)" : {
 
     },
     "Generate a W-9" : {
@@ -5361,9 +5352,6 @@
           }
         }
       }
-    },
-    "Hide any holder already printed on the COI before stamping the new one." : {
-
     },
     "Hours" : {
       "localizations" : {
@@ -5679,6 +5667,9 @@
       }
     },
     "Invoices across all your customers will appear here." : {
+
+    },
+    "Issued to %@, sent as provided." : {
 
     },
     "Item name" : {
@@ -7937,6 +7928,9 @@
     "Optional. A photo of you for your personal profile." : {
 
     },
+    "Optional. A spare, blank Certificate of Insurance kept only for your own records — it's never sent to customers or added to a package." : {
+
+    },
     "Optional. Appears on your estimates and invoices." : {
       "localizations" : {
         "ca" : {
@@ -8493,9 +8487,6 @@
     "Photo" : {
 
     },
-    "Pick the customer this COI is for above — or add a new one." : {
-
-    },
     "Postal code" : {
       "localizations" : {
         "ca" : {
@@ -8784,9 +8775,6 @@
           }
         }
       }
-    },
-    "Project, reference #, anything else" : {
-
     },
     "Pull a name, phone, email, and address straight from your phone's contacts." : {
 
@@ -9218,6 +9206,9 @@
         }
       }
     },
+    "Remove certificate" : {
+
+    },
     "Remove document" : {
 
     },
@@ -9261,10 +9252,13 @@
         }
       }
     },
-    "Remove this certificate?" : {
+    "Remove this change order." : {
 
     },
-    "Remove this change order." : {
+    "Remove this document?" : {
+
+    },
+    "Replace COI" : {
 
     },
     "Replace file" : {
@@ -9393,10 +9387,10 @@
         }
       }
     },
-    "Review the certificate above, then tap Share to send everything as one PDF." : {
+    "Review the details. Print or send the W-9, then sign and date it by hand before giving it to the requester." : {
 
     },
-    "Review the details. Print or send the W-9, then sign and date it by hand before giving it to the requester." : {
+    "Review the package above, then tap Share to send everything as one PDF." : {
 
     },
     "Revised total" : {
@@ -10299,9 +10293,6 @@
       }
     },
     "SSN" : {
-
-    },
-    "Stamped with the holder above." : {
 
     },
     "State" : {
@@ -11286,13 +11277,7 @@
     "That file couldn't be opened. Try a different file, or export it as a PDF first." : {
 
     },
-    "The customer this COI is made out to." : {
-
-    },
-    "The General Liability file on file couldn't be opened. Replace it with a PDF or image." : {
-
-    },
-    "The package is built around your Certificate of Liability Insurance — the General Liability certificate. Upload it once, then make it out to whoever's requesting it each time." : {
+    "The package is built around the Certificate of Liability Insurance your insurer issued with %@ named as the certificate holder. Upload it once, here, and you can send their full package." : {
 
     },
     "The specific job site or lot this estimate is for. Optional — leave blank if it's at the customer's own address." : {
@@ -11378,13 +11363,10 @@
     "The year these records cover." : {
 
     },
-    "This certificate hasn't been uploaded yet." : {
-
-    },
     "This change" : {
 
     },
-    "Tick what to print in the holder box." : {
+    "This document hasn't been uploaded yet." : {
 
     },
     "Total" : {
@@ -11739,10 +11721,10 @@
     "Upload a new PDF or image." : {
 
     },
-    "Upload each document once (PDF or image). Tap one to view, share, or replace it — or use the button above to share them all. Stored privately in your iCloud account." : {
+    "Upload COI" : {
 
     },
-    "Upload insurance" : {
+    "Upload each document once (PDF or image). Tap one to view, share, or replace it — or use the button above to share them all. Stored privately in your iCloud account." : {
 
     },
     "Use" : {
@@ -11952,9 +11934,6 @@
 
     },
     "W-9 — %@" : {
-
-    },
-    "We couldn't find the holder box automatically — drag the block to position it and the gold handle to set its width." : {
 
     },
     "What it's for (e.g. 30% progress payment)" : {
