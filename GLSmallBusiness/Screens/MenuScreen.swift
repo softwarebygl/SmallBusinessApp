@@ -50,7 +50,7 @@ struct MenuScreen: View {
                     }
                 }
 
-                Section("Records") {
+                Section("Job Records") {
                     NavigationLink {
                         AllEstimatesScreen()
                     } label: {
@@ -226,6 +226,25 @@ struct MyCompanyDetailScreen: View {
                           badge: profile.hasComplianceDocuments) { activeDocument = .insurance }
                 actionRow("Year-End Tax Report", systemImage: "doc.text") { activeDocument = .taxReport }
                 actionRow("Generate a W-9", systemImage: "doc.plaintext") { activeDocument = .w9 }
+
+                NavigationLink {
+                    StatsScreen()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "chart.bar")
+                            .frame(width: 24)
+                            .foregroundStyle(gold)
+                        Text("Statistics")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .glCardBackground()
+                }
+                .buttonStyle(.plain)
             }
             .padding()
         }

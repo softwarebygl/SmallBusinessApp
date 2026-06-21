@@ -196,6 +196,21 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done — NOT yet committed (built + launched on simulator; single-tab bar confirmed):** **Navigation
+  reorg — Phase 1 of the tab restructure.** Removed the **Receipts** tab and the **Stats** tab; the iPhone
+  tab bar is now just **Customers** (the Employees / Subcontractors / Calendar tabs land in later rounds).
+  Receipts stay fully accessible (scan + add) via **Menu → Job Records → All Receipts**. Renamed the Menu's
+  **Records** section to **Job Records**. Moved Stats onto the Business screen as a pushed **Statistics** row
+  under *Generate a W-9* (`MyCompanyDetailScreen` → `StatsScreen`, now NavigationStack-wrapper-free with no
+  Menu button), and **removed the duplicate Year-End Tax Report export** from the Stats screen — the Business
+  *Year-End Tax Report* row is the single source now. iPad: dropped the Receipts + Stats sidebar sections (the
+  single split shows Customers). `ScreenTab` / `AppSection` reduced to `.customers`; `ScreenTab.demoInitial`
+  removed. **iPad sidebar relabeled:** title **Gold Life → My Business**, and the bottom account button (was
+  the configured business name) is now a plain **Menu** button (dropped the now-unused `businessName` /
+  `businessProfiles`). **Unreferenced but kept on disk** for a one-step revert of the iPad Stats split if the
+  pushed-Statistics layout doesn't feel right on device (delete once settled): `Screens/StatsSplitColumns.swift`
+  (the iPad Stats split) and `Screens/ReceiptsTabScreen.swift`. ⏳ On-device test of Menu → Business →
+  Statistics pending (owner).
 - **Done (V1 development), all tested on-device and committed to `main`:** Service Address on estimates +
   invoices; customer photo crop **and company-logo crop** (shared `ImageCropView` — configurable guide
   shape + safe-area-correct top bar; reads the key window's top inset since `fullScreenCover` doesn't pass
@@ -314,9 +329,11 @@ every line of customer-facing copy must clear that bar.
   **Business** (`MyCompanyDetailScreen`) and **Personal** (`MyPersonalInfoScreen`). Each is a hub: identity up
   top (logo/photo, name, a Contact card), a **More Info** row → read-only categorized details (with the
   **Edit** there), and that owner's actions as rows. The **Business** screen carries the business-document
-  actions — **Insurance & Exemptions**, **Year-End Tax Report**, **Generate a W-9**. (There is no separate
-  "Documents" hub anymore — it was consolidated onto the Business screen. The owner prefers one category over
-  a peer hub; group by owner, not by data-vs-actions.)
+  actions — **Insurance & Exemptions**, **Year-End Tax Report**, **Generate a W-9** — plus **Statistics**
+  (the business charts + KPIs, pushed). (There is no separate "Documents" hub anymore — it was consolidated
+  onto the Business screen. The owner prefers one category over a peer hub; group by owner, not by
+  data-vs-actions.) The Menu's records section is **Job Records** (All Estimates / Invoices / Change Orders /
+  Receipts).
 - **Sheet dismissal (see §8):** **X close** (`Button(role: .close)`, `.topBarLeading`) for presentational
   sheets; **Cancel + Save** for editing; **Edit↔Done** for list edit mode. Never a bare "Done" just to close.
 - **Cross-device — iPhone *and* iPad:** ships on iPhone (`RootTabView`, compact width) and iPad / large-iPhone

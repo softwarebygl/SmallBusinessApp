@@ -461,6 +461,7 @@
       }
     },
     "%@, menu and settings" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -5153,6 +5154,7 @@
 
     },
     "Gold Life" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -5794,6 +5796,9 @@
           }
         }
       }
+    },
+    "Job Records" : {
+
     },
     "Job title" : {
       "localizations" : {
@@ -6617,6 +6622,9 @@
           }
         }
       }
+    },
+    "Menu and settings" : {
+
     },
     "Method" : {
       "localizations" : {
@@ -9032,9 +9040,6 @@
         }
       }
     },
-    "Records" : {
-
-    },
     "Redeem" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -10334,6 +10339,9 @@
           }
         }
       }
+    },
+    "Statistics" : {
+
     },
     "Stats" : {
       "localizations" : {

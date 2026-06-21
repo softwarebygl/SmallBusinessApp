@@ -15,7 +15,7 @@ import SwiftData
 
 extension DemoMode {
     /// Screenshot target from `-demoScreen <name>`:
-    /// customers | receipts | stats | invoice | estimate | company
+    /// customers | invoice | estimate | company
     static var screen: String? {
         let args = ProcessInfo.processInfo.arguments
         guard let i = args.firstIndex(of: "-demoScreen"), i + 1 < args.count else { return nil }
@@ -24,17 +24,6 @@ extension DemoMode {
 
     /// True when the target is a single document to present full-screen.
     static var wantsDocument: Bool { screen == "invoice" || screen == "estimate" || screen == "company" }
-}
-
-extension ScreenTab {
-    /// Initial tab honoring `-demoScreen`; defaults to customers.
-    static var demoInitial: ScreenTab {
-        switch DemoMode.screen {
-        case "receipts": return .receipts
-        case "stats", "export": return .stats
-        default: return .customers
-        }
-    }
 }
 
 /// Presents a single seeded document (invoice or estimate) full-screen for a clean marketing shot.

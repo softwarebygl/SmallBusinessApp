@@ -4,31 +4,27 @@
 //
 //  Created by Gold Life LLC on 5/29/26.
 //
+//  The business Statistics screen. Pushed from My Business Details (Menu → Business → Statistics)
+//  — no longer a top-level tab — so it renders inside the parent NavigationStack and carries no
+//  Menu button of its own. The Year-End Tax Report lives solely on the Business screen now, so
+//  this screen no longer duplicates that export.
+//
 
 import SwiftUI
 import SwiftData
 import Charts
 
 struct StatsScreen: View {
-    /// iPhone tab usage keeps the Menu button + monogram backdrop (matching the other tab landings).
-    /// The iPad split passes `showsMenuButton: false, solidBackground: true` so Stats matches the
-    /// Customers and Receipts content columns — no menu button (it lives in the sidebar), solid fill.
-    var showsMenuButton: Bool = true
-    var solidBackground: Bool = false
-
     @Environment(\.colorScheme) private var colorScheme
     @Query private var invoices: [Invoice]
     @Query private var estimates: [Estimate]
     @Query private var receipts: [Receipt]
-    @Query private var businessProfiles: [BusinessProfile]
 
     private enum Mode: Hashable { case all, year, month }
 
     @State private var mode: Mode = .year
     @State private var selectedYear: Int = Calendar.current.component(.year, from: .now)
     @State private var selectedMonth: Int = Calendar.current.component(.month, from: .now)
-    @State private var exportFiles: [URL] = []
-    @State private var showingMenu = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -53,70 +49,35 @@ struct StatsScreen: View {
     private var hasData: Bool { !invoices.isEmpty || !estimates.isEmpty || !receipts.isEmpty }
 
     var body: some View {
-        NavigationStack {
-            ScrollViewReader { proxy in
-            ScrollView {
-                VStack(spacing: 18) {
-                    periodSelector
-                    if hasData {
-                        // Compute the summary ONCE per render — it scans the whole store, and the
-                        // cards below would otherwise each re-trigger it (a dozen full scans/render).
-                        let summary = self.summary
-                        kpiGrid(summary)
-                        inOutCard(summary)
-                        expensesCard(summary)
-                        estimatesInvoicesCard(summary)
-                        exportButton.id("exportAnchor")
-                    } else {
-                        ContentUnavailableView {
-                            Label("No activity yet", systemImage: "chart.bar")
-                        } description: {
-                            Text("Estimates, invoices, and receipts will show up here as you add them.")
-                        }
-                        .padding(.top, 40)
-                    }
-                }
-                .padding()
-                .frame(maxWidth: 640)
-                .frame(maxWidth: .infinity)
-            }
-            .containerBackground(for: .navigation) {
-                if solidBackground {
-                    GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+        ScrollView {
+            VStack(spacing: 18) {
+                periodSelector
+                if hasData {
+                    // Compute the summary ONCE per render — it scans the whole store, and the
+                    // cards below would otherwise each re-trigger it (a dozen full scans/render).
+                    let summary = self.summary
+                    kpiGrid(summary)
+                    inOutCard(summary)
+                    expensesCard(summary)
+                    estimatesInvoicesCard(summary)
                 } else {
-                    PrimaryBackground()
-                }
-            }
-            .navigationTitle("Stats")
-            // Large title to match Customers. (Stats is the iPhone tab root now; the iPad split
-            // uses StatsControlsColumn, so this view is no longer shown in a split column.)
-            .toolbarTitleDisplayMode(.automatic)
-            .toolbar {
-                if showsMenuButton {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            showingMenu = true
-                        } label: {
-                            MenuButtonLabel()
-                        }
-                        .accessibilityLabel("Menu")
+                    ContentUnavailableView {
+                        Label("No activity yet", systemImage: "chart.bar")
+                    } description: {
+                        Text("Estimates, invoices, and receipts will show up here as you add them.")
                     }
+                    .padding(.top, 40)
                 }
             }
-            .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
-            .onAppear { regenerateExport() }
-            .onChange(of: period) { _, _ in regenerateExport() }
-            #if DEBUG
-            .onAppear {
-                if DemoMode.screen == "export" {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                        proxy.scrollTo("exportAnchor", anchor: .bottom)
-                    }
-                }
-            }
-            #endif
-            }
+            .padding()
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
         }
+        .containerBackground(for: .navigation) {
+            GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+        }
+        .navigationTitle("Statistics")
+        .toolbarTitleDisplayMode(.inline)
     }
 
     // MARK: - Period selector
@@ -265,29 +226,5 @@ struct StatsScreen: View {
             Text(value).foregroundStyle(valueColor)
         }
         .font(.subheadline)
-    }
-
-    // MARK: - Export
-
-    private var exportButton: some View {
-        ShareLink(items: exportFiles) {
-            Label("Year-End Tax Report", systemImage: "square.and.arrow.up")
-                .font(.headline)
-                .foregroundStyle(gold)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .glCardBackground()
-        }
-        .disabled(exportFiles.isEmpty)
-    }
-
-    private func regenerateExport() {
-        exportFiles = StatsExport.files(
-            period: period,
-            invoices: invoices,
-            estimates: estimates,
-            receipts: receipts,
-            business: businessProfiles.first
-        )
     }
 }

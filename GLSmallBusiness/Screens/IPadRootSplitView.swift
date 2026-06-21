@@ -47,20 +47,18 @@ struct RootView: View {
 
 /// The top-level sections, shown as the split view's sidebar.
 private enum AppSection: String, CaseIterable, Identifiable {
-    case customers, receipts, stats
+    // Customers is the only section today; Employees, Subcontractors, and Calendar land in later
+    // rounds. Receipts moved into the Menu (Job Records) and Stats onto the Business screen.
+    case customers
     var id: Self { self }
     var title: String {
         switch self {
         case .customers: String(localized: "Customers")
-        case .receipts: String(localized: "Receipts")
-        case .stats: String(localized: "Stats")
         }
     }
     var systemImage: String {
         switch self {
         case .customers: "person.2"
-        case .receipts: "doc.viewfinder"
-        case .stats: "chart.bar"
         }
     }
 }
@@ -69,36 +67,13 @@ struct IPadRootSplitView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
     private var customers: [Customer]
-    @Query(sort: \Receipt.date, order: .reverse) private var receipts: [Receipt]
-    @Query private var businessProfiles: [BusinessProfile]
-
-    @State private var section: AppSection? = {
-        #if DEBUG
-        switch DemoMode.screen {
-        case "receipts": return .receipts
-        case "stats": return .stats
-        default: return .customers
-        }
-        #else
-        return .customers
-        #endif
-    }()
+    @State private var section: AppSection? = .customers
     @State private var selectedCustomerID: PersistentIdentifier?
-    @State private var selectedReceiptID: PersistentIdentifier?
     @State private var showingMenu = false
     @State private var showingAddCustomer = false
-    @State private var statsSelection = StatsSelection()   // shared by the Stats content + detail columns
 
     private var selectedCustomer: Customer? {
         customers.first { $0.persistentModelID == selectedCustomerID }
-    }
-    private var selectedReceipt: Receipt? {
-        receipts.first { $0.persistentModelID == selectedReceiptID }
-    }
-    /// The configured business name for the account row, falling back to the app brand.
-    private var businessName: String {
-        let name = businessProfiles.first?.businessName.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return name.isEmpty ? "Gold Life" : name
     }
 
     var body: some View {
@@ -112,9 +87,8 @@ struct IPadRootSplitView: View {
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
         .sheet(isPresented: $showingAddCustomer) { CustomerFormScreen().glAppearance(colorScheme) }
         #if DEBUG
-        .onAppear { selectDemoCustomerIfNeeded(); selectDemoReceiptIfNeeded() }
+        .onAppear { selectDemoCustomerIfNeeded() }
         .onChange(of: customers.count) { _, _ in selectDemoCustomerIfNeeded() }
-        .onChange(of: receipts.count) { _, _ in selectDemoReceiptIfNeeded() }
         #endif
     }
 
@@ -125,13 +99,6 @@ struct IPadRootSplitView: View {
         guard DemoMode.isActive, section == .customers, selectedCustomerID == nil,
               let first = customers.first else { return }
         selectedCustomerID = first.persistentModelID
-    }
-
-    /// Same idea for Receipts, so the iPad detail shows a receipt instead of "Select a Receipt".
-    private func selectDemoReceiptIfNeeded() {
-        guard DemoMode.isActive, section == .receipts, selectedReceiptID == nil,
-              let first = receipts.first else { return }
-        selectedReceiptID = first.persistentModelID
     }
     #endif
 
@@ -144,7 +111,7 @@ struct IPadRootSplitView: View {
                     .tag(item)
             }
         }
-        .navigationTitle("Gold Life")
+        .navigationTitle("My Business")
         .toolbarTitleDisplayMode(.large)   // leading-aligned title now the top-leading button is gone
         .contentMargins(.top, 16, for: .scrollContent)   // breathing room below the script title's descenders
         .containerBackground(for: .navigation) {
@@ -162,7 +129,7 @@ struct IPadRootSplitView: View {
                 HStack(spacing: 14) {
                     MenuButtonLabel()
                         .padding(.leading, 2)
-                    Text(businessName)
+                    Text("Menu")
                         .font(.headline)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
@@ -176,7 +143,7 @@ struct IPadRootSplitView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("\(businessName), menu and settings")
+            .accessibilityLabel("Menu and settings")
         }
         .background(GLColor.backgroundPrimary.render(in: colorScheme))
     }
@@ -190,13 +157,6 @@ struct IPadRootSplitView: View {
             CustomerListColumn(customers: customers,
                                selection: $selectedCustomerID,
                                showingAdd: $showingAddCustomer)
-        case .receipts:
-            ReceiptListView(receipts: receipts, defaultCustomer: nil, showsAssignee: true,
-                            enablesFilters: true, selectionID: $selectedReceiptID,
-                            solidBackground: true)
-        case .stats:
-            // Stats laid out natively for the split: period controls + KPIs here, charts in detail.
-            StatsControlsColumn(selection: statsSelection)
         case nil:
             BrandPlaceholder(text: String(localized: "Select a section"), systemImage: "square.grid.2x2")
         }
@@ -214,14 +174,6 @@ struct IPadRootSplitView: View {
                 } else {
                     BrandPlaceholder(text: String(localized: "Select a Customer"), systemImage: "person.crop.circle")
                 }
-            case .receipts:
-                if let selectedReceipt {
-                    ReceiptDetailScreen(receipt: selectedReceipt)
-                } else {
-                    BrandPlaceholder(text: String(localized: "Select a Receipt"), systemImage: "doc.viewfinder")
-                }
-            case .stats:
-                StatsDashboard(selection: statsSelection)
             case nil:
                 BrandPlaceholder(text: "")
             }
