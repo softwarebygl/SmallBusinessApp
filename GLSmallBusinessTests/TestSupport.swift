@@ -157,4 +157,29 @@ enum TS {
         employee.paychecks = (employee.paychecks ?? []) + [check]
         return check
     }
+
+    // MARK: - Subcontractors
+
+    static func subcontractor(
+        first: String = "Lee",
+        last: String = "Sub",
+        business: String = "",
+        email: String = "",
+        phone: String = "",
+        address: Address = Address(),
+        isActive: Bool = true
+    ) -> Subcontractor {
+        Subcontractor(firstName: first, lastName: last, businessName: business,
+                      email: email, phone: phone, address: address, isActive: isActive)
+    }
+
+    @discardableResult
+    static func paySub(_ sub: Subcontractor, _ amount: Double, date: Date = .now,
+                       method: PaymentMethod = .check, detail: String = "",
+                       customer: Customer? = nil) -> SubPayment {
+        let payment = SubPayment(amount: amount, date: date, method: method, detail: detail, customer: customer)
+        payment.subcontractor = sub
+        sub.payments = (sub.payments ?? []) + [payment]
+        return payment
+    }
 }

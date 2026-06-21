@@ -196,6 +196,22 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Subcontractors tab — Phase A
+  (core).** A new top-level **Subcontractors** tab (iPhone) / sidebar section (iPad, "hammer" icon) for 1099
+  trades you pay per job. A sub has name/business/contact/address + active toggle; you **record payments**
+  (amount / date / method / what-for + optional customer/job tag). The tab shows a **1099 summary header**
+  (total paid this year + how many subs cross **$600**), each row's YTD total + a **1099-NEC badge**, and a
+  **Year-End Report** (toolbar → share) bundling a 1099-summary CSV + payment-ledger CSV for the accountant.
+  New models `Subcontractor` / `SubPayment` (added to `GLSchemaV1.models`) + a `subPayments` inverse on
+  `Customer` — additive, still **V1**; **deploy the new CloudKit record types/field to Production before
+  release** (see TODO). New files: `Models/Subcontractor.swift`, `Screens/SubcontractorsScreen.swift`,
+  `Screens/SubcontractorDetailScreen.swift`, `Screens/SubcontractorFormScreen.swift`,
+  `UIComponents/SubPayExport.swift`. **Next round (the tax-document layer):** each sub's W-9 + TIN (Keychain,
+  generalizing `SecureTINStore` per-sub), an uploaded W-9 PDF, and generating the **real IRS 1099-NEC**
+  (Copy B for the sub, Copy C for records) like the W-9 — the CSV already covers the actual filing, since
+  IRS Copy A must be e-filed/scannable. (W-2s stay accountant-handoff-only: a real W-2 needs withholding the
+  app doesn't track; a 1099-NEC doesn't, so it can be generated.) DEBUG: demo seeds 2 subs;
+  `-demoScreen subcontractors` deep-links the tab. Tests: `SubcontractorTests`, `SubPayExportTests`.
 - **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Employees tab — Phase A
   (core).** A new top-level **Employees** tab (iPhone) / sidebar section (iPad). An employee has a pay type
   (hourly or salary) + rate, a pay frequency (weekly / every-2-weeks / twice-a-month / monthly) and a payday

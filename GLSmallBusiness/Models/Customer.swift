@@ -44,6 +44,11 @@ final class Customer {
     @Relationship(deleteRule: .nullify, inverse: \TimeEntry.customer)
     var timeEntries: [TimeEntry]?
 
+    /// Subcontractor payments tagged to this customer/job (cost-per-job including subs). Nullify so
+    /// removing a customer drops the tag but keeps the payment record.
+    @Relationship(deleteRule: .nullify, inverse: \SubPayment.customer)
+    var subPayments: [SubPayment]?
+
     init(
         firstName: String = "",
         middleName: String = "",

@@ -155,6 +155,22 @@ enum DemoSeed {
                                 grossAmount: 24 * 76, hoursPaid: 76, method: .check, employee: emp2)
         context.insert(paycheck)
 
+        // Demo subcontractors: one over the $600 1099 threshold, one under it.
+        let sub1 = Subcontractor(firstName: "Luis", lastName: "Mendoza", businessName: "Mendoza Plumbing",
+                                 email: "luis@mendozaplumbing.com", phone: "(850) 555-0164",
+                                 address: Address(street1: "904 Industrial Dr", city: "Tallahassee", state: "FL", postalCode: "32310"))
+        let sub2 = Subcontractor(firstName: "Tara", lastName: "Boyd", businessName: "Boyd Electric",
+                                 email: "tara@boydelectric.com", phone: "(850) 555-0188")
+        [sub1, sub2].forEach(context.insert)
+        for (offset, amount, note) in [(-30.0, 1_800.0, "Rough-in plumbing — Reed job"), (-10.0, 1_250.0, "Fixture set")] {
+            let p = SubPayment(amount: amount, date: .now.addingTimeInterval(offset * 86_400),
+                               method: .check, detail: note, subcontractor: sub1, customer: c1)
+            context.insert(p)
+        }
+        let p2 = SubPayment(amount: 425, date: .now.addingTimeInterval(-5 * 86_400),
+                            method: .transfer, detail: "Panel inspection fix", subcontractor: sub2, customer: c2)
+        context.insert(p2)
+
         try? context.save()
     }
 

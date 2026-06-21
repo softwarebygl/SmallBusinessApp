@@ -47,20 +47,22 @@ struct RootView: View {
 
 /// The top-level sections, shown as the split view's sidebar.
 private enum AppSection: String, CaseIterable, Identifiable {
-    // Subcontractors and Calendar land in later rounds. Receipts moved into the Menu (Job Records)
-    // and Stats onto the Business screen.
-    case customers, employees
+    // The Calendar section lands in a later round. Receipts moved into the Menu (Job Records) and
+    // Stats onto the Business screen.
+    case customers, employees, subcontractors
     var id: Self { self }
     var title: String {
         switch self {
         case .customers: String(localized: "Customers")
         case .employees: String(localized: "Employees")
+        case .subcontractors: String(localized: "Subcontractors")
         }
     }
     var systemImage: String {
         switch self {
         case .customers: "person.2"
         case .employees: "person.text.rectangle"
+        case .subcontractors: "hammer"
         }
     }
 }
@@ -71,24 +73,35 @@ struct IPadRootSplitView: View {
     private var customers: [Customer]
     @Query(sort: [SortDescriptor(\Employee.lastName), SortDescriptor(\Employee.firstName)])
     private var employees: [Employee]
+    @Query(sort: [SortDescriptor(\Subcontractor.lastName), SortDescriptor(\Subcontractor.firstName)])
+    private var subcontractors: [Subcontractor]
     @State private var section: AppSection? = {
         #if DEBUG
-        DemoMode.screen == "employees" ? .employees : .customers
+        switch DemoMode.screen {
+        case "employees": return .employees
+        case "subcontractors": return .subcontractors
+        default: return .customers
+        }
         #else
-        .customers
+        return .customers
         #endif
     }()
     @State private var selectedCustomerID: PersistentIdentifier?
     @State private var selectedEmployeeID: PersistentIdentifier?
+    @State private var selectedSubcontractorID: PersistentIdentifier?
     @State private var showingMenu = false
     @State private var showingAddCustomer = false
     @State private var showingAddEmployee = false
+    @State private var showingAddSubcontractor = false
 
     private var selectedCustomer: Customer? {
         customers.first { $0.persistentModelID == selectedCustomerID }
     }
     private var selectedEmployee: Employee? {
         employees.first { $0.persistentModelID == selectedEmployeeID }
+    }
+    private var selectedSubcontractor: Subcontractor? {
+        subcontractors.first { $0.persistentModelID == selectedSubcontractorID }
     }
 
     var body: some View {
@@ -105,10 +118,15 @@ struct IPadRootSplitView: View {
             EmployeeFormScreen { saved in selectedEmployeeID = saved.persistentModelID }
                 .glAppearance(colorScheme)
         }
+        .sheet(isPresented: $showingAddSubcontractor) {
+            SubcontractorFormScreen { saved in selectedSubcontractorID = saved.persistentModelID }
+                .glAppearance(colorScheme)
+        }
         #if DEBUG
-        .onAppear { selectDemoCustomerIfNeeded(); selectDemoEmployeeIfNeeded() }
+        .onAppear { selectDemoCustomerIfNeeded(); selectDemoEmployeeIfNeeded(); selectDemoSubcontractorIfNeeded() }
         .onChange(of: customers.count) { _, _ in selectDemoCustomerIfNeeded() }
         .onChange(of: employees.count) { _, _ in selectDemoEmployeeIfNeeded() }
+        .onChange(of: subcontractors.count) { _, _ in selectDemoSubcontractorIfNeeded() }
         #endif
     }
 
@@ -126,6 +144,13 @@ struct IPadRootSplitView: View {
         guard DemoMode.isActive, section == .employees, selectedEmployeeID == nil,
               let first = employees.first else { return }
         selectedEmployeeID = first.persistentModelID
+    }
+
+    /// Same idea for Subcontractors.
+    private func selectDemoSubcontractorIfNeeded() {
+        guard DemoMode.isActive, section == .subcontractors, selectedSubcontractorID == nil,
+              let first = subcontractors.first else { return }
+        selectedSubcontractorID = first.persistentModelID
     }
     #endif
 
@@ -188,6 +213,10 @@ struct IPadRootSplitView: View {
             EmployeeListColumn(employees: employees,
                                selection: $selectedEmployeeID,
                                showingAdd: $showingAddEmployee)
+        case .subcontractors:
+            SubcontractorListColumn(subcontractors: subcontractors,
+                                    selection: $selectedSubcontractorID,
+                                    showingAdd: $showingAddSubcontractor)
         case nil:
             BrandPlaceholder(text: String(localized: "Select a section"), systemImage: "square.grid.2x2")
         }
@@ -210,6 +239,12 @@ struct IPadRootSplitView: View {
                     EmployeeDetailScreen(employee: selectedEmployee)
                 } else {
                     BrandPlaceholder(text: String(localized: "Select an Employee"), systemImage: "person.text.rectangle")
+                }
+            case .subcontractors:
+                if let selectedSubcontractor {
+                    SubcontractorDetailScreen(subcontractor: selectedSubcontractor)
+                } else {
+                    BrandPlaceholder(text: String(localized: "Select a Subcontractor"), systemImage: "hammer")
                 }
             case nil:
                 BrandPlaceholder(text: "")
@@ -387,6 +422,111 @@ private struct EmployeeListColumn: View {
 
     private func delete(at offsets: IndexSet) {
         for index in offsets { modelContext.delete(employees[index]) }
+        try? modelContext.save()
+    }
+}
+
+/// The subcontractors list as a split-view content column: a 1099-summary header plus selectable
+/// rows (year-to-date total + a 1099 badge) that drive the detail column.
+private struct SubcontractorListColumn: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.modelContext) private var modelContext
+    let subcontractors: [Subcontractor]
+    @Binding var selection: PersistentIdentifier?
+    @Binding var showingAdd: Bool
+
+    private var gold: Color { GLColor.gold.render(in: colorScheme) }
+
+    var body: some View {
+        List(selection: $selection) {
+            if subcontractors.isEmpty {
+                ContentUnavailableView {
+                    Label("No Subcontractors", systemImage: "hammer")
+                } description: {
+                    Text("Tap + to add your first subcontractor.")
+                }
+                .listRowBackground(Color.clear)
+            } else {
+                summaryHeader(Subcontractor1099Summary.forYear(subcontractors))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets())
+                ForEach(subcontractors) { sub in
+                    row(sub)
+                        .tag(sub.persistentModelID)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets())
+                }
+                .onDelete(perform: delete)
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .listStyle(.plain)
+        .containerBackground(for: .navigation) {
+            GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+        }
+        .navigationTitle("Subcontractors")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showingAdd = true } label: { Image(systemName: "plus") }
+                    .accessibilityLabel("Add Subcontractor")
+            }
+        }
+    }
+
+    private func summaryHeader(_ totals: Subcontractor1099Summary.YearTotals) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("PAID THIS YEAR")
+                .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
+            Text(totals.totalPaid.formatted(.currency(code: "USD")))
+                .font(.title3.weight(.semibold))
+            Text(totals.count1099 == 0
+                 ? "No subs over the $600 1099 threshold yet."
+                 : "\(totals.count1099) \(totals.count1099 == 1 ? "sub needs" : "subs need") a 1099-NEC.")
+                .font(.subheadline).foregroundStyle(gold)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .glCardBackground()
+        .padding(.horizontal, GLLayout.rowCardInset)
+        .padding(.top, 4)
+    }
+
+    private func row(_ sub: Subcontractor) -> some View {
+        let total = sub.totalPaid()
+        return HStack(spacing: 12) {
+            ZStack {
+                Circle().fill(gold.opacity(0.18))
+                Text(sub.initials).font(.subheadline.weight(.semibold)).foregroundStyle(gold)
+            }
+            .frame(width: 44, height: 44)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(sub.listDisplayName).lineLimit(1)
+                if sub.requires1099() {
+                    Text("1099-NEC due").font(.caption.weight(.medium)).foregroundStyle(gold)
+                } else {
+                    Text("This year").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer(minLength: 8)
+            if total > 0 {
+                Text(total.formatted(.currency(code: "USD")))
+                    .font(.subheadline.weight(.medium))
+            }
+        }
+        .padding(.vertical, GLLayout.rowContentVerticalPadding)
+        .padding(.horizontal, GLLayout.rowContentPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glCardBackground()
+        .glSelectionStroke(selection == sub.persistentModelID)
+        .padding(.horizontal, GLLayout.rowCardInset)
+        .padding(.vertical, 4)
+    }
+
+    private func delete(at offsets: IndexSet) {
+        for index in offsets { modelContext.delete(subcontractors[index]) }
         try? modelContext.save()
     }
 }

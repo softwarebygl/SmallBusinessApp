@@ -20,8 +20,9 @@ build 5). The rejection is fixed in code; the rest is owner-only (App Store Conn
       message fields for estimate/invoice/receipt/change-order/package) and `Customer` (`middleName`,
       `officePhone`, and the per-customer COI: `coiData` + `coiName`). **Employees feature (Phase A):**
       new `Employee`, `TimeEntry`, `Paycheck` record types, plus a new `timeEntries` relationship field
-      on `Customer` (the job tag's inverse). All additive/optional (still schema V1), but they MUST be in
-      production or sync drops them for real users.
+      on `Customer` (the job tag's inverse). **Subcontractors feature (Phase A):** new `Subcontractor`,
+      `SubPayment` record types, plus a new `subPayments` relationship field on `Customer`. All
+      additive/optional (still schema V1), but they MUST be in production or sync drops them for real users.
 - [ ] **2.1(b): Submit the In-App Purchase products for review** — submit the two subscriptions
       (monthly / annual) in App Store Connect and attach the App Review screenshot. The binary
       references them but they were never submitted.
