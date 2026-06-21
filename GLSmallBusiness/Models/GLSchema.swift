@@ -55,6 +55,9 @@ enum GLSchemaV1: VersionedSchema {
             Receipt.self,
             BusinessProfile.self,
             UserProfile.self,
+            Employee.self,
+            TimeEntry.self,
+            Paycheck.self,
         ]
     }
 }

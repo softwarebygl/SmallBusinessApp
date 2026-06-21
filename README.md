@@ -196,6 +196,22 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Employees tab — Phase A
+  (core).** A new top-level **Employees** tab (iPhone) / sidebar section (iPad). An employee has a pay type
+  (hourly or salary) + rate, a pay frequency (weekly / every-2-weeks / twice-a-month / monthly) and a payday
+  anchor; the app rolls these into **next payday + amount accrued**. Features: **daily hours log** with an
+  **optional customer/job tag** (+ a rate snapshot per entry, so per-job labor cost is captured from day one
+  for a Phase-B rollup); **straight-time** pay (no overtime multiplier); a **payday-summary header** (soonest
+  payday + total due across the crew); **record paychecks** (paid history, prefilled from what's accrued);
+  **YTD gross/hours**; an informational **over-40-hours/week flag**; and a **Year-End Report** (toolbar →
+  share) that bundles a wage summary + paycheck-ledger CSV for the accountant — *the app does NOT generate or
+  file W-2s* (it tracks gross, not withholding; W-2 filing is the accountant's/payroll's job, by owner's
+  choice). New models `Employee` / `TimeEntry` / `Paycheck` (added to `GLSchemaV1.models`) + a `timeEntries`
+  inverse on `Customer` — all additive, still **V1**; **deploy the new CloudKit record types/field to
+  Production before shipping** (see TODO). New files: `Models/Employee.swift`, `Screens/EmployeesScreen.swift`,
+  `Screens/EmployeeDetailScreen.swift`, `Screens/EmployeeFormScreen.swift`, `UIComponents/EmployeePayExport.swift`.
+  **Phase B (next):** onboarding pack — real **W-4 / I-9** form-fill (like the W-9), SSN (Keychain), and the
+  per-job labor-cost rollup. DEBUG demo seeds 3 employees; `-demoScreen employees` deep-links the tab.
 - **Done — NOT yet committed (built + launched on simulator; single-tab bar confirmed):** **Navigation
   reorg — Phase 1 of the tab restructure.** Removed the **Receipts** tab and the **Stats** tab; the iPhone
   tab bar is now just **Customers** (the Employees / Subcontractors / Calendar tabs land in later rounds).

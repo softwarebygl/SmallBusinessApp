@@ -112,4 +112,49 @@ enum TS {
     static func receipt(total: Double, category: String, date: Date) -> Receipt {
         Receipt(vendor: "Vendor", date: date, total: total, category: category)
     }
+
+    // MARK: - Employees
+
+    static func employee(
+        first: String = "Jane",
+        last: String = "Doe",
+        email: String = "",
+        phone: String = "",
+        payType: PayType = .hourly,
+        hourlyRate: Double = 25,
+        annualSalary: Double = 0,
+        payFrequency: PayFrequency = .weekly,
+        anchorPayday: Date = .now,
+        hireDate: Date = .now,
+        isActive: Bool = true
+    ) -> Employee {
+        Employee(firstName: first, lastName: last, email: email, phone: phone,
+                 payType: payType, hourlyRate: hourlyRate, annualSalary: annualSalary,
+                 payFrequency: payFrequency, anchorPayday: anchorPayday,
+                 hireDate: hireDate, isActive: isActive)
+    }
+
+    /// Logs hours on `employee`, wiring the relationship both ways (no container, like `pay`).
+    /// `rate` overrides the snapshot; otherwise it captures the employee's current hourly rate.
+    @discardableResult
+    static func logHours(_ employee: Employee, _ hours: Double, date: Date = .now,
+                         rate: Double? = nil, customer: Customer? = nil) -> TimeEntry {
+        let entry = TimeEntry(date: date, hours: hours,
+                              rateSnapshot: rate ?? (employee.payType == .hourly ? employee.hourlyRate : 0),
+                              customer: customer)
+        entry.employee = employee
+        employee.timeEntries = (employee.timeEntries ?? []) + [entry]
+        return entry
+    }
+
+    @discardableResult
+    static func paycheck(_ employee: Employee, gross: Double, hours: Double = 0,
+                         periodStart: Date, periodEnd: Date, payDate: Date,
+                         method: PaymentMethod = .check) -> Paycheck {
+        let check = Paycheck(payPeriodStart: periodStart, payPeriodEnd: periodEnd, payDate: payDate,
+                             grossAmount: gross, hoursPaid: hours, method: method)
+        check.employee = employee
+        employee.paychecks = (employee.paychecks ?? []) + [check]
+        return check
+    }
 }

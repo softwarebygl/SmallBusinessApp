@@ -47,18 +47,20 @@ struct RootView: View {
 
 /// The top-level sections, shown as the split view's sidebar.
 private enum AppSection: String, CaseIterable, Identifiable {
-    // Customers is the only section today; Employees, Subcontractors, and Calendar land in later
-    // rounds. Receipts moved into the Menu (Job Records) and Stats onto the Business screen.
-    case customers
+    // Subcontractors and Calendar land in later rounds. Receipts moved into the Menu (Job Records)
+    // and Stats onto the Business screen.
+    case customers, employees
     var id: Self { self }
     var title: String {
         switch self {
         case .customers: String(localized: "Customers")
+        case .employees: String(localized: "Employees")
         }
     }
     var systemImage: String {
         switch self {
         case .customers: "person.2"
+        case .employees: "person.text.rectangle"
         }
     }
 }
@@ -67,13 +69,26 @@ struct IPadRootSplitView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
     private var customers: [Customer]
-    @State private var section: AppSection? = .customers
+    @Query(sort: [SortDescriptor(\Employee.lastName), SortDescriptor(\Employee.firstName)])
+    private var employees: [Employee]
+    @State private var section: AppSection? = {
+        #if DEBUG
+        DemoMode.screen == "employees" ? .employees : .customers
+        #else
+        .customers
+        #endif
+    }()
     @State private var selectedCustomerID: PersistentIdentifier?
+    @State private var selectedEmployeeID: PersistentIdentifier?
     @State private var showingMenu = false
     @State private var showingAddCustomer = false
+    @State private var showingAddEmployee = false
 
     private var selectedCustomer: Customer? {
         customers.first { $0.persistentModelID == selectedCustomerID }
+    }
+    private var selectedEmployee: Employee? {
+        employees.first { $0.persistentModelID == selectedEmployeeID }
     }
 
     var body: some View {
@@ -86,9 +101,14 @@ struct IPadRootSplitView: View {
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
         .sheet(isPresented: $showingAddCustomer) { CustomerFormScreen().glAppearance(colorScheme) }
+        .sheet(isPresented: $showingAddEmployee) {
+            EmployeeFormScreen { saved in selectedEmployeeID = saved.persistentModelID }
+                .glAppearance(colorScheme)
+        }
         #if DEBUG
-        .onAppear { selectDemoCustomerIfNeeded() }
+        .onAppear { selectDemoCustomerIfNeeded(); selectDemoEmployeeIfNeeded() }
         .onChange(of: customers.count) { _, _ in selectDemoCustomerIfNeeded() }
+        .onChange(of: employees.count) { _, _ in selectDemoEmployeeIfNeeded() }
         #endif
     }
 
@@ -99,6 +119,13 @@ struct IPadRootSplitView: View {
         guard DemoMode.isActive, section == .customers, selectedCustomerID == nil,
               let first = customers.first else { return }
         selectedCustomerID = first.persistentModelID
+    }
+
+    /// Same idea for Employees, so the iPad detail shows an employee instead of the placeholder.
+    private func selectDemoEmployeeIfNeeded() {
+        guard DemoMode.isActive, section == .employees, selectedEmployeeID == nil,
+              let first = employees.first else { return }
+        selectedEmployeeID = first.persistentModelID
     }
     #endif
 
@@ -157,6 +184,10 @@ struct IPadRootSplitView: View {
             CustomerListColumn(customers: customers,
                                selection: $selectedCustomerID,
                                showingAdd: $showingAddCustomer)
+        case .employees:
+            EmployeeListColumn(employees: employees,
+                               selection: $selectedEmployeeID,
+                               showingAdd: $showingAddEmployee)
         case nil:
             BrandPlaceholder(text: String(localized: "Select a section"), systemImage: "square.grid.2x2")
         }
@@ -173,6 +204,12 @@ struct IPadRootSplitView: View {
                     CustomerDetailScreen(customer: selectedCustomer)
                 } else {
                     BrandPlaceholder(text: String(localized: "Select a Customer"), systemImage: "person.crop.circle")
+                }
+            case .employees:
+                if let selectedEmployee {
+                    EmployeeDetailScreen(employee: selectedEmployee)
+                } else {
+                    BrandPlaceholder(text: String(localized: "Select an Employee"), systemImage: "person.text.rectangle")
                 }
             case nil:
                 BrandPlaceholder(text: "")
@@ -247,8 +284,115 @@ private struct CustomerListColumn: View {
     }
 }
 
+/// The employees list as a split-view content column: a payday-summary header plus selectable rows
+/// (each showing pay rate and the amount currently accrued) that drive the detail column.
+private struct EmployeeListColumn: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.modelContext) private var modelContext
+    let employees: [Employee]
+    @Binding var selection: PersistentIdentifier?
+    @Binding var showingAdd: Bool
+
+    private var gold: Color { GLColor.gold.render(in: colorScheme) }
+
+    var body: some View {
+        List(selection: $selection) {
+            if employees.isEmpty {
+                ContentUnavailableView {
+                    Label("No Employees", systemImage: "person.text.rectangle")
+                } description: {
+                    Text("Tap + to add your first employee.")
+                }
+                .listRowBackground(Color.clear)
+            } else {
+                if let summary = PayrollSummary.nextPayday(for: employees) {
+                    paydayHeader(summary)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets())
+                }
+                ForEach(employees) { employee in
+                    row(employee)
+                        .tag(employee.persistentModelID)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets())
+                }
+                .onDelete(perform: delete)
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .listStyle(.plain)
+        .containerBackground(for: .navigation) {
+            GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+        }
+        .navigationTitle("Employees")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showingAdd = true } label: { Image(systemName: "plus") }
+                    .accessibilityLabel("Add Employee")
+            }
+        }
+    }
+
+    private func paydayHeader(_ summary: PayrollSummary.NextPayday) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("NEXT PAYDAY")
+                .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
+            Text(summary.date.formatted(.dateTime.weekday(.wide).month().day()))
+                .font(.title3.weight(.semibold))
+            Text("\(summary.total.formatted(.currency(code: "USD"))) due to \(summary.count) \(summary.count == 1 ? "employee" : "employees")")
+                .font(.subheadline).foregroundStyle(gold)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .glCardBackground()
+        .padding(.horizontal, GLLayout.rowCardInset)
+        .padding(.top, 4)
+    }
+
+    private func row(_ employee: Employee) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle().fill(gold.opacity(0.18))
+                Text(employee.initials).font(.subheadline.weight(.semibold)).foregroundStyle(gold)
+            }
+            .frame(width: 44, height: 44)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(employee.listDisplayName).lineLimit(1)
+                Text(paySummary(employee)).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 8)
+            if employee.accruedGross > 0 {
+                Text(employee.accruedGross.formatted(.currency(code: "USD")))
+                    .font(.subheadline.weight(.medium)).foregroundStyle(gold)
+            }
+        }
+        .padding(.vertical, GLLayout.rowContentVerticalPadding)
+        .padding(.horizontal, GLLayout.rowContentPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glCardBackground()
+        .glSelectionStroke(selection == employee.persistentModelID)
+        .padding(.horizontal, GLLayout.rowCardInset)
+        .padding(.vertical, 4)
+    }
+
+    private func paySummary(_ employee: Employee) -> String {
+        let rate = employee.payType == .hourly
+            ? "\(employee.hourlyRate.formatted(.currency(code: "USD")))/hr"
+            : "\(employee.annualSalary.formatted(.currency(code: "USD")))/yr"
+        return "\(rate) · \(employee.payFrequency.label)"
+    }
+
+    private func delete(at offsets: IndexSet) {
+        for index in offsets { modelContext.delete(employees[index]) }
+        try? modelContext.save()
+    }
+}
+
 /// Brand-consistent empty state for a split column: the monogram backdrop with an optional prompt.
-/// An empty `text` shows just the backdrop (used for sections with no detail, e.g. Stats).
+/// An empty `text` shows just the backdrop (used for sections with no detail).
 private struct BrandPlaceholder: View {
     var text: String
     var systemImage: String = "sparkles"

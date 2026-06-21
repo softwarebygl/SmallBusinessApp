@@ -64,10 +64,14 @@ struct DemoSeedTests {
         #expect(try ctx.fetchCount(FetchDescriptor<Invoice>()) == 1)
         #expect(try ctx.fetchCount(FetchDescriptor<Receipt>()) == 4)
         #expect(try ctx.fetchCount(FetchDescriptor<BusinessProfile>()) == 1)
+        #expect(try ctx.fetchCount(FetchDescriptor<Employee>()) == 3)
+        #expect(try ctx.fetchCount(FetchDescriptor<TimeEntry>()) == 8)
+        #expect(try ctx.fetchCount(FetchDescriptor<Paycheck>()) == 1)
 
         // Guarded on an empty store, so a second call must not duplicate.
         DemoSeed.populate(ctx)
         #expect(try ctx.fetchCount(FetchDescriptor<Customer>()) == 3)
+        #expect(try ctx.fetchCount(FetchDescriptor<Employee>()) == 3)
     }
 }
 #endif

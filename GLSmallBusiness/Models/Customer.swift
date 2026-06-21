@@ -39,6 +39,11 @@ final class Customer {
     @Relationship(deleteRule: .cascade, inverse: \Receipt.customer)
     var receipts: [Receipt]?
 
+    /// Employee hours tagged to this customer/job (for labor-cost-per-job). Nullify, not cascade:
+    /// removing a customer must not erase an employee's logged hours — it just drops the job tag.
+    @Relationship(deleteRule: .nullify, inverse: \TimeEntry.customer)
+    var timeEntries: [TimeEntry]?
+
     init(
         firstName: String = "",
         middleName: String = "",

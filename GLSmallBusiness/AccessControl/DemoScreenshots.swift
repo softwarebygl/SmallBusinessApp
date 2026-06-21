@@ -15,7 +15,7 @@ import SwiftData
 
 extension DemoMode {
     /// Screenshot target from `-demoScreen <name>`:
-    /// customers | invoice | estimate | company
+    /// customers | employees | invoice | estimate | company
     static var screen: String? {
         let args = ProcessInfo.processInfo.arguments
         guard let i = args.firstIndex(of: "-demoScreen"), i + 1 < args.count else { return nil }

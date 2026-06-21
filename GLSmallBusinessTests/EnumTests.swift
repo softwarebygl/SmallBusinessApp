@@ -29,6 +29,20 @@ struct EnumTests {
         for m in PaymentMethod.allCases { #expect(!m.label.isEmpty) }
     }
 
+    @Test func payTypeLabels() {
+        #expect(PayType.hourly.label == "Hourly")
+        #expect(PayType.salary.label == "Salary")
+        for t in PayType.allCases { #expect(!t.label.isEmpty); #expect(t.id == t.rawValue) }
+    }
+
+    @Test func payFrequencyLabelsAndPeriods() {
+        #expect(PayFrequency.weekly.periodsPerYear == 52)
+        #expect(PayFrequency.biweekly.periodsPerYear == 26)
+        #expect(PayFrequency.semimonthly.periodsPerYear == 24)
+        #expect(PayFrequency.monthly.periodsPerYear == 12)
+        for f in PayFrequency.allCases { #expect(!f.label.isEmpty); #expect(f.id == f.rawValue) }
+    }
+
     @Test func unitOfMeasureLabelsAndAbbreviations() {
         for u in UnitOfMeasure.allCases {
             #expect(!u.label.isEmpty)

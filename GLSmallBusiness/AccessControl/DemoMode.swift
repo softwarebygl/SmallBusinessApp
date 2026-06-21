@@ -122,6 +122,39 @@ enum DemoSeed {
         // so clear the deposit request — it's fully covered by the payments above.
         inv.amountDueNow = 0
 
+        // Demo employees: hours (one crosses 40 → over-40 flag), accrued pay, and a recorded paycheck.
+        let nextFriday = Calendar.current.nextDate(after: .now, matching: DateComponents(weekday: 6),
+                                                   matchingPolicy: .nextTime) ?? .now
+        let emp1 = Employee(firstName: "Jason", lastName: "Garcia", email: "jason.garcia@example.com",
+                            phone: "(850) 555-0110", payType: .hourly, hourlyRate: 28,
+                            payFrequency: .weekly, anchorPayday: nextFriday,
+                            hireDate: .now.addingTimeInterval(-300 * 86_400))
+        let emp2 = Employee(firstName: "Rebecca", lastName: "Grimes", email: "rebecca.grimes@example.com",
+                            phone: "(850) 555-0121", payType: .hourly, hourlyRate: 24,
+                            payFrequency: .biweekly, anchorPayday: nextFriday,
+                            hireDate: .now.addingTimeInterval(-540 * 86_400))
+        let emp3 = Employee(firstName: "Devin", lastName: "Odom", email: "devin.odom@example.com",
+                            phone: "(850) 555-0137", payType: .salary, annualSalary: 62_400,
+                            payFrequency: .monthly, anchorPayday: nextFriday,
+                            hireDate: .now.addingTimeInterval(-800 * 86_400))
+        [emp1, emp2, emp3].forEach(context.insert)
+
+        for (offset, hours) in [(0, 9.0), (-1, 9.0), (-2, 9.0), (-3, 9.0), (-4, 9.0)] {
+            let entry = TimeEntry(date: .now.addingTimeInterval(Double(offset) * 86_400), hours: hours,
+                                  rateSnapshot: 28, employee: emp1, customer: c1)
+            context.insert(entry)
+        }
+        for (offset, hours) in [(0, 8.0), (-1, 7.5), (-2, 8.0)] {
+            let entry = TimeEntry(date: .now.addingTimeInterval(Double(offset) * 86_400), hours: hours,
+                                  rateSnapshot: 24, employee: emp2, customer: c2)
+            context.insert(entry)
+        }
+        let paycheck = Paycheck(payPeriodStart: .now.addingTimeInterval(-21 * 86_400),
+                                payPeriodEnd: .now.addingTimeInterval(-8 * 86_400),
+                                payDate: .now.addingTimeInterval(-7 * 86_400),
+                                grossAmount: 24 * 76, hoursPaid: 76, method: .check, employee: emp2)
+        context.insert(paycheck)
+
         try? context.save()
     }
 
