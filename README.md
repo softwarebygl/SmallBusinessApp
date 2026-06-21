@@ -196,6 +196,20 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Subcontractor W-9 / TIN
+  capture (the tax-document layer, part 1 of 2).** Each subcontractor can now hold their W-9 details: a
+  **TIN secured in the Keychain** (generalized `SecureTINStore` — it was single-item for the business; now
+  keyed per record via a stable `tinKey`), a **TIN type** (SSN/EIN), and their **uploaded W-9 PDF**
+  (reuses the shared `DocumentDetailScreen` view/upload/replace/remove, like the customer COI). The
+  Subcontractor form gained a "Tax details (for their 1099-NEC)" section; the detail screen shows a
+  **W-9 & Tax ID** card (TIN masked to last 4); deleting a sub clears its Keychain TIN. The accountant
+  **1099-summary CSV now includes the TIN + TIN type**. New `Subcontractor` fields `tinKey` /
+  `w9TINTypeRaw` / `w9Data` / `w9Name` (additive, still **V1**; the TIN value is Keychain-only — deploy
+  the descriptor fields to CloudKit Production, see TODO). **Part 2 (next):** generate the **real IRS
+  1099-NEC** — the official **Rev. December 2026** form (which restructured Box 1 into **1a Nonemployee
+  compensation / 1b Cash tips / 1c TTOC / 1d Overtime compensation**) is analyzed and every Copy B field
+  is coordinate-mapped; the filler will stamp it like `W9FormFiller` and be render-verified. New file:
+  `Models/Subcontractor.swift` (extended) + the W-9 wrapper in `SubcontractorDetailScreen.swift`.
 - **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Subcontractors tab — Phase A
   (core).** A new top-level **Subcontractors** tab (iPhone) / sidebar section (iPad, "hammer" icon) for 1099
   trades you pay per job. A sub has name/business/contact/address + active toggle; you **record payments**

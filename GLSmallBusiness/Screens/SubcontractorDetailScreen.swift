@@ -36,6 +36,7 @@ struct SubcontractorDetailScreen: View {
             VStack(spacing: 20) {
                 header
                 statusCard
+                w9Card
                 paymentsCard
                 if !subcontractor.notes.isEmpty { notesCard }
             }
@@ -128,6 +129,44 @@ struct SubcontractorDetailScreen: View {
         }
     }
 
+    // MARK: - W-9 & Tax ID
+
+    private var w9Card: some View {
+        GLCard(title: "W-9 & Tax ID") {
+            HStack {
+                Text("Tax ID").foregroundStyle(.secondary)
+                Spacer()
+                if subcontractor.hasTIN {
+                    Text("\(subcontractor.w9TINType?.label ?? "TIN") \(subcontractor.maskedTIN)")
+                } else {
+                    Text("Not on file — add via Edit").foregroundStyle(.secondary)
+                }
+            }
+            .font(.subheadline)
+            Divider()
+            NavigationLink {
+                SubcontractorW9DetailScreen(subcontractor: subcontractor)
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "doc.plaintext").frame(width: 24).foregroundStyle(gold)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("W-9 on file")
+                        Text(subcontractor.hasW9OnFile ? subcontractor.w9Name : "Tap to upload theirs")
+                            .font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                    }
+                    Spacer()
+                    if subcontractor.hasW9OnFile {
+                        Image(systemName: "checkmark.seal.fill").font(.footnote).foregroundStyle(gold)
+                    }
+                    Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                }
+                .font(.subheadline)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
     // MARK: - Payments
 
     private var paymentsCard: some View {
@@ -172,6 +211,28 @@ struct SubcontractorDetailScreen: View {
         GLCard(title: "Notes") {
             Text(subcontractor.notes).font(.subheadline)
         }
+    }
+}
+
+// MARK: - W-9 document (view / upload / replace / remove)
+
+/// A thin wrapper over the shared `DocumentDetailScreen`, backed by the subcontractor's uploaded
+/// W-9 PDF — mirrors `CustomerCOIDetailScreen`.
+struct SubcontractorW9DetailScreen: View {
+    @Query private var profiles: [BusinessProfile]
+    let subcontractor: Subcontractor
+
+    var body: some View {
+        DocumentDetailScreen(slot: DocumentSlot(
+            title: String(localized: "W-9"),
+            data: subcontractor.w9Data,
+            name: subcontractor.w9Name,
+            fallbackFileName: "W-9.pdf",
+            businessName: profiles.first?.businessName ?? "",
+            removeTitle: "Remove W-9",
+            removeSubtitle: "Delete this subcontractor's uploaded W-9.",
+            store: { subcontractor.w9Data = $0; subcontractor.w9Name = $1 }
+        ))
     }
 }
 

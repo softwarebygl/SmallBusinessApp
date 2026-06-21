@@ -104,3 +104,22 @@ struct Subcontractor1099SummaryTests {
         #expect(close(totals.totalPaid, 0) && totals.count1099 == 0)
     }
 }
+
+@MainActor
+struct SubcontractorW9Tests {
+    @Test func tinTypeRoundTrips() {
+        let s = TS.subcontractor()
+        #expect(s.w9TINType == nil)
+        s.w9TINType = .ein
+        #expect(s.w9TINTypeRaw == W9TINType.ein.rawValue)
+        #expect(s.w9TINType == .ein)
+    }
+
+    @Test func w9OnFileFlag() {
+        let s = TS.subcontractor()
+        #expect(!s.hasW9OnFile)
+        s.w9Data = Data("pdf".utf8)
+        s.w9Name = "W-9.pdf"
+        #expect(s.hasW9OnFile)
+    }
+}

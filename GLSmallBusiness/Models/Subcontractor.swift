@@ -32,6 +32,14 @@ final class Subcontractor {
     var notes: String = ""
     var createdAt: Date = Date.now
 
+    // W-9 / tax details (for issuing a 1099-NEC). The TIN itself is NOT stored here — it lives in
+    // the Keychain (SecureTINStore), keyed by `tinKey`, exactly like the business TIN. `w9TINTypeRaw`
+    // backs the `w9TINType` enum (raw String keeps CloudKit happy). `w9Data` is their uploaded W-9 PDF.
+    var tinKey: String = ""
+    var w9TINTypeRaw: String?
+    @Attribute(.externalStorage) var w9Data: Data?
+    var w9Name: String = ""
+
     @Relationship(deleteRule: .cascade, inverse: \SubPayment.subcontractor)
     var payments: [SubPayment]?
 
@@ -143,6 +151,46 @@ nonisolated extension Subcontractor {
     /// True once year-to-date pay reaches the $600 1099-NEC threshold.
     func requires1099(year: Int = Calendar.current.component(.year, from: .now)) -> Bool {
         totalPaid(year: year) >= Subcontractor.form1099Threshold
+    }
+}
+
+// MARK: - W-9 / TIN (Keychain-backed, like the business TIN)
+
+nonisolated extension Subcontractor {
+    /// SSN/EIN type for the TIN, backed by the raw string so CloudKit stays happy.
+    var w9TINType: W9TINType? {
+        get { w9TINTypeRaw.flatMap(W9TINType.init(rawValue:)) }
+        set { w9TINTypeRaw = newValue?.rawValue }
+    }
+
+    private var tinAccount: String { SecureTINStore.subcontractorAccount(tinKey) }
+
+    /// The sub's taxpayer ID read from the Keychain (never the synced store), or "" if none.
+    var secureTIN: String { tinKey.isEmpty ? "" : SecureTINStore.read(account: tinAccount) }
+
+    var hasTIN: Bool { !secureTIN.isEmpty }
+    var hasW9OnFile: Bool { w9Data != nil }
+
+    /// Last four of the TIN for display, e.g. "•••• 1234"; empty when none on file.
+    var maskedTIN: String {
+        let digits = secureTIN.filter(\.isNumber)
+        return digits.count >= 4 ? "•••• " + String(digits.suffix(4)) : ""
+    }
+
+    /// Stores (or clears) the sub's TIN in the Keychain, assigning a stable `tinKey` on first write.
+    func updateTIN(_ value: String) {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if tinKey.isEmpty {
+            guard !trimmed.isEmpty else { return }   // nothing to store yet — don't allocate a key
+            tinKey = UUID().uuidString
+        }
+        SecureTINStore.write(trimmed, account: tinAccount)
+    }
+
+    /// Removes the Keychain TIN — call before deleting a sub so its TIN doesn't linger in the Keychain.
+    func clearSecureTIN() {
+        guard !tinKey.isEmpty else { return }
+        SecureTINStore.write("", account: tinAccount)
     }
 }
 

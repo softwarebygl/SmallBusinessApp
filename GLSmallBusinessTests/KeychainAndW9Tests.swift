@@ -54,4 +54,30 @@ struct KeychainAndW9Tests {
         #expect(!p.w9IsComplete)
         #expect(p.w9MissingRequirements.contains { $0.contains("Tax ID") })
     }
+
+    @Test func subcontractorTINIsPerRecordAndClearable() {
+        let a = TS.subcontractor()
+        let b = TS.subcontractor()
+        a.w9TINType = .ein
+        a.updateTIN("12-3456789")
+        b.updateTIN("123-45-6789")
+        #expect(a.secureTIN == "12-3456789")
+        #expect(b.secureTIN == "123-45-6789")   // each sub's TIN is stored independently
+        #expect(a.w9TINType == .ein)
+        #expect(a.hasTIN && b.hasTIN)
+        #expect(a.maskedTIN == "•••• 6789")
+        a.clearSecureTIN()
+        #expect(!a.hasTIN && a.secureTIN == "")
+        #expect(b.secureTIN == "123-45-6789")   // clearing one doesn't touch the other
+        b.clearSecureTIN()
+    }
+
+    @Test func subcontractorNoTINByDefault() {
+        let s = Subcontractor()
+        #expect(s.tinKey == "")
+        #expect(!s.hasTIN && s.secureTIN == "" && s.maskedTIN == "")
+        s.updateTIN("   ")            // blank → must not allocate a key or store anything
+        #expect(s.tinKey == "")
+        #expect(!s.hasTIN)
+    }
 }

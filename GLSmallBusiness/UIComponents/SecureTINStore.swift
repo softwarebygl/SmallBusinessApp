@@ -13,10 +13,22 @@ import Security
 
 enum SecureTINStore {
     private static let service = "GLSecureTIN"
-    private static let account = "com.evolvedbygl.GLSmallBusiness.w9tin"
+    /// The single business profile's TIN account. Subcontractors use per-record accounts via
+    /// `subcontractorAccount(_:)`, so many TINs can coexist, each keyed by its owner's stable id.
+    private static let businessAccount = "com.evolvedbygl.GLSmallBusiness.w9tin"
 
-    /// The stored taxpayer ID, or "" if none. Reads both synced and local items.
-    static func read() -> String {
+    /// Keychain account for a subcontractor's TIN, derived from its stable `tinKey`.
+    static func subcontractorAccount(_ key: String) -> String {
+        "com.evolvedbygl.GLSmallBusiness.subtin.\(key)"
+    }
+
+    /// The business profile's stored taxpayer ID (the original single-item API).
+    static func read() -> String { read(account: businessAccount) }
+    @discardableResult
+    static func write(_ value: String) -> Bool { write(value, account: businessAccount) }
+
+    /// The stored taxpayer ID for `account`, or "" if none. Reads both synced and local items.
+    static func read(account: String) -> String {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -31,11 +43,11 @@ enum SecureTINStore {
         return value
     }
 
-    /// Replaces the stored taxpayer ID. Writing "" clears it. New items are iCloud-Keychain
-    /// synchronizable and accessible only while the device is unlocked. Returns false if the write
-    /// failed, so a silent loss of the most sensitive field can be noticed rather than swallowed.
+    /// Replaces the stored taxpayer ID for `account`. Writing "" clears it. New items are
+    /// iCloud-Keychain synchronizable and accessible only while the device is unlocked. Returns false
+    /// if the write failed, so a silent loss of the most sensitive field can be noticed, not swallowed.
     @discardableResult
-    static func write(_ value: String) -> Bool {
+    static func write(_ value: String, account: String) -> Bool {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         let base: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

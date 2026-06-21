@@ -526,7 +526,10 @@ private struct SubcontractorListColumn: View {
     }
 
     private func delete(at offsets: IndexSet) {
-        for index in offsets { modelContext.delete(subcontractors[index]) }
+        for index in offsets {
+            subcontractors[index].clearSecureTIN()   // don't leave the TIN behind in the Keychain
+            modelContext.delete(subcontractors[index])
+        }
         try? modelContext.save()
     }
 }

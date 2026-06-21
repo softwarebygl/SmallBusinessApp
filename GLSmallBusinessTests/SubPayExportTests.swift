@@ -24,7 +24,7 @@ struct SubPayExportTests {
         #expect(files.count == 2)
 
         let s = summary(files)
-        #expect(s.contains("Subcontractor,Business,Address,Total paid 2026,1099-NEC required"))
+        #expect(s.contains("Subcontractor,Business,TIN type,TIN,Address,Total paid 2026,1099-NEC required"))
         #expect(s.contains("Mendoza Plumbing"))
         #expect(s.contains("1800.00"))
         #expect(s.contains("Yes"))   // over $600
@@ -33,6 +33,17 @@ struct SubPayExportTests {
         #expect(l.contains("Subcontractor,Date,Amount,Method,For"))
         #expect(l.contains("2026-05-01"))
         #expect(l.contains("Rough-in"))
+    }
+
+    @Test func summaryIncludesTIN() {
+        let sub = TS.subcontractor(first: "Luis", last: "Mendoza", business: "Mendoza Plumbing")
+        sub.w9TINType = .ein
+        sub.updateTIN("12-3456789")
+        TS.paySub(sub, 1_800, date: TS.day(2026, 5, 1))
+        let s = summary(SubPayExport.files(subcontractors: [sub], year: 2026, business: nil))
+        #expect(s.contains("12-3456789"))   // full TIN for the accountant to file
+        #expect(s.contains("EIN"))
+        sub.clearSecureTIN()
     }
 
     @Test func flagsUnderThresholdAsNo() {

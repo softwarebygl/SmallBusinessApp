@@ -162,6 +162,8 @@ enum DemoSeed {
         let sub2 = Subcontractor(firstName: "Tara", lastName: "Boyd", businessName: "Boyd Electric",
                                  email: "tara@boydelectric.com", phone: "(850) 555-0188")
         [sub1, sub2].forEach(context.insert)
+        sub1.w9TINType = .ein; sub1.updateTIN("12-3456789")     // EIN — has a W-9 on file
+        sub2.w9TINType = .ssn; sub2.updateTIN("123-45-6789")
         for (offset, amount, note) in [(-30.0, 1_800.0, "Rough-in plumbing — Reed job"), (-10.0, 1_250.0, "Fixture set")] {
             let p = SubPayment(amount: amount, date: .now.addingTimeInterval(offset * 86_400),
                                method: .check, detail: note, subcontractor: sub1, customer: c1)

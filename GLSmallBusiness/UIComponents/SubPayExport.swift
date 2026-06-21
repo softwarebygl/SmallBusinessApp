@@ -28,11 +28,13 @@ enum SubPayExport {
     // MARK: - 1099 summary (one row per paid sub)
 
     private static func writeSummary(_ subs: [Subcontractor], year: Int, business: BusinessProfile?) -> URL? {
-        var rows = ["Subcontractor,Business,Address,Total paid \(year),1099-NEC required"]
+        var rows = ["Subcontractor,Business,TIN type,TIN,Address,Total paid \(year),1099-NEC required"]
         for sub in subs {
             let columns = [
                 sub.payeeName,
                 sub.businessName,
+                sub.w9TINType?.label ?? "",
+                sub.secureTIN,
                 sub.address.formattedMultiline.replacingOccurrences(of: "\n", with: ", "),
                 String(format: "%.2f", sub.totalPaid(year: year)),
                 sub.requires1099(year: year) ? "Yes" : "No",

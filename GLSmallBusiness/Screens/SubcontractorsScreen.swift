@@ -149,7 +149,10 @@ struct SubcontractorsScreen: View {
     // MARK: - Actions
 
     private func delete(at offsets: IndexSet) {
-        for index in offsets { modelContext.delete(subs[index]) }
+        for index in offsets {
+            subs[index].clearSecureTIN()   // don't leave the TIN behind in the Keychain
+            modelContext.delete(subs[index])
+        }
         try? modelContext.save()
     }
 

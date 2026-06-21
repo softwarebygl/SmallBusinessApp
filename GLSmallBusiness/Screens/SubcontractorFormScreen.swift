@@ -31,6 +31,8 @@ struct SubcontractorFormScreen: View {
     @State private var postalCode: String
     @State private var isActive: Bool
     @State private var notes: String
+    @State private var w9TINType: W9TINType?
+    @State private var w9TIN: String
 
     init(editing: Subcontractor? = nil, onSave: ((Subcontractor) -> Void)? = nil) {
         self.editing = editing
@@ -47,6 +49,8 @@ struct SubcontractorFormScreen: View {
         _postalCode   = State(initialValue: editing?.address.postalCode ?? "")
         _isActive     = State(initialValue: editing?.isActive ?? true)
         _notes        = State(initialValue: editing?.notes ?? "")
+        _w9TINType    = State(initialValue: editing?.w9TINType)
+        _w9TIN        = State(initialValue: editing?.secureTIN ?? "")
     }
 
     private func trim(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -98,10 +102,26 @@ struct SubcontractorFormScreen: View {
                         #endif
                 }
                 Section {
-                    Toggle("Active", isOn: $isActive)
+                    Picker("Taxpayer ID type", selection: $w9TINType) {
+                        Text("Select…").tag(W9TINType?.none)
+                        ForEach(W9TINType.allCases) { Text($0.label).tag(W9TINType?.some($0)) }
+                    }
+                    .onChange(of: w9TINType) { _, _ in w9TIN = "" }
+                    LabeledContent(w9TINType?.label ?? String(localized: "Tax ID")) {
+                        TextField(w9TINType == .ein ? "12-3456789" : "123-45-6789", text: $w9TIN)
+                            .multilineTextAlignment(.trailing)
+                            #if !os(macOS)
+                            .keyboardType(.numbersAndPunctuation)
+                            #endif
+                    }
+                } header: {
+                    Text("Tax details (for their 1099-NEC)")
                 } footer: {
-                    Text("Their W-9, Tax ID, and 1099-NEC come in a later update.")
+                    Text("Optional. The SSN/EIN from the W-9 they gave you. Stored securely in your Keychain, not the synced database — used to generate their 1099-NEC.")
                         .textCase(nil)
+                }
+                Section {
+                    Toggle("Active", isOn: $isActive)
                 }
                 Section("Notes") {
                     TextField("Notes (optional)", text: $notes, axis: .vertical)
@@ -149,6 +169,8 @@ struct SubcontractorFormScreen: View {
             modelContext.insert(sub)
             saved = sub
         }
+        saved.w9TINType = w9TINType
+        saved.updateTIN(w9TIN)
         onSave?(saved)
         dismiss()
     }
