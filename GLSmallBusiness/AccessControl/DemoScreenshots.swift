@@ -23,7 +23,9 @@ extension DemoMode {
     }
 
     /// True when the target is a single document to present full-screen.
-    static var wantsDocument: Bool { screen == "invoice" || screen == "estimate" || screen == "company" }
+    static var wantsDocument: Bool {
+        screen == "invoice" || screen == "estimate" || screen == "company" || screen == "1099"
+    }
 }
 
 /// Presents a single seeded document (invoice or estimate) full-screen for a clean marketing shot.
@@ -31,9 +33,22 @@ struct DemoDocumentScreenshot: View {
     @Query(sort: \Invoice.createdAt) private var invoices: [Invoice]
     @Query(sort: \Estimate.createdAt) private var estimates: [Estimate]
     @Query private var profiles: [BusinessProfile]
+    @Query private var subcontractors: [Subcontractor]
 
     var body: some View {
-        if DemoMode.screen == "company" {
+        if DemoMode.screen == "1099" {
+            // Render the real 1099-NEC Copy B for the first sub over the $600 threshold.
+            let year = Calendar.current.component(.year, from: .now)
+            if let profile = profiles.first,
+               let sub = subcontractors.first(where: { $0.requires1099() }),
+               let url = Form1099NECPDF.render(payer: profile, recipient: sub, amount: sub.totalPaid(year: year), year: year),
+               let image = Form1099NECPDF.pageImage(from: url) {
+                ScrollView { Image(uiImage: image).resizable().scaledToFit().padding() }
+                    .background(Color(white: 0.85))
+            } else {
+                ProgressView()
+            }
+        } else if DemoMode.screen == "company" {
             // MyCompanyFormScreen brings its own NavigationStack, so present it directly.
             if let profile = profiles.first {
                 MyCompanyFormScreen(profile: profile)

@@ -39,6 +39,8 @@ enum DemoSeed {
         biz.email = "office@summittilestone.com"
         biz.licenseNumber = "CBC1245789"
         biz.address = Address(street1: "1280 Commerce Blvd", city: "Tallahassee", state: "FL", postalCode: "32301")
+        biz.w9TINTypeRaw = W9TINType.ein.rawValue
+        biz.updateTIN("98-7654321")   // payer EIN, so the demo 1099-NEC can be generated
         #if canImport(UIKit)
         // Only brand the demo business when explicitly requested (-demoBrand). Without it,
         // the app falls back to the bundled GL logo — so the default screenshots show the

@@ -196,6 +196,19 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done — NOT yet committed (built + render-verified on simulator):** **Real 1099-NEC generator
+  (tax-document layer, part 2 — completes it).** Generates the official **IRS Form 1099-NEC (Rev. December
+  2026), Copy B "For Recipient"** for a subcontractor: stamps the payer (this business), the recipient (the
+  sub), both TINs, the calendar year, and **Box 1a Nonemployee compensation** onto the bundled official
+  template at the form's real field coordinates, then flattens — the exact technique as `W9FormFiller`.
+  Render-verified field-by-field on the sim (every value lands in its cell, no label overlap). A **Generate
+  1099-NEC** button on the sub's W-9 card opens a preview + Share sheet (`Form1099NECSheet`) that routes you
+  to add any missing payer/recipient TIN first. We furnish **Copy B** (the recipient's legitimate copy);
+  filing **Copy A** with the IRS stays an e-file / scannable-form step the accountant CSV covers. New files:
+  `UIComponents/Form1099NECFiller.swift`, `Resources/Form1099NEC.pdf` (official IRS form, public domain —
+  Copy B page, form widgets stripped). DEBUG: `-demoScreen 1099` renders a filled sample (the demo business
+  now carries an EIN). Tests: render + preview + missing-data + long-text/untyped-TIN edge cases
+  (`Form1099NECFiller` 100% covered). 224 tests pass. **This completes the subcontractor tax-document layer.**
 - **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Subcontractor W-9 / TIN
   capture (the tax-document layer, part 1 of 2).** Each subcontractor can now hold their W-9 details: a
   **TIN secured in the Keychain** (generalized `SecureTINStore` — it was single-item for the business; now

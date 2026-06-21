@@ -21,10 +21,12 @@ struct SubcontractorDetailScreen: View {
     private enum ActiveSheet: Identifiable {
         case edit
         case payment(SubPayment?)
+        case form1099
         var id: String {
             switch self {
             case .edit: "edit"
             case .payment(let p): "payment-\(p?.persistentModelID.hashValue ?? 0)"
+            case .form1099: "1099"
             }
         }
     }
@@ -59,6 +61,8 @@ struct SubcontractorDetailScreen: View {
                 SubcontractorFormScreen(editing: subcontractor).glAppearance(colorScheme)
             case .payment(let payment):
                 RecordSubPaymentSheet(subcontractor: subcontractor, existing: payment).glAppearance(colorScheme)
+            case .form1099:
+                Form1099NECSheet(subcontractor: subcontractor).glAppearance(colorScheme)
             }
         }
     }
@@ -164,6 +168,13 @@ struct SubcontractorDetailScreen: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+
+            Divider()
+            Button { activeSheet = .form1099 } label: {
+                Label("Generate 1099-NEC", systemImage: "doc.badge.plus")
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(gold)
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -233,6 +244,121 @@ struct SubcontractorW9DetailScreen: View {
             removeSubtitle: "Delete this subcontractor's uploaded W-9.",
             store: { subcontractor.w9Data = $0; subcontractor.w9Name = $1 }
         ))
+    }
+}
+
+// MARK: - 1099-NEC sheet (generate the real IRS Copy B)
+
+private struct Form1099NECSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    @Query private var profiles: [BusinessProfile]
+    let subcontractor: Subcontractor
+
+    @State private var pdfURL: URL?
+    @State private var previewImage: UIImage?
+    @State private var showingEditSub = false
+    @State private var showingEditBusiness = false
+
+    private var gold: Color { GLColor.gold.render(in: colorScheme) }
+    private var business: BusinessProfile? { profiles.first }
+    private var year: Int { Calendar.current.component(.year, from: .now) }
+    private var amount: Double { subcontractor.totalPaid(year: year) }
+
+    /// What's still needed before a valid 1099-NEC can be produced.
+    private var missing: [String] {
+        var items: [String] = []
+        let name = (business?.w9LegalName.isEmpty == false ? business?.w9LegalName : business?.businessName) ?? ""
+        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { items.append("Your business name") }
+        if business?.secureTIN.filter(\.isNumber).count != 9 { items.append("Your business Tax ID") }
+        if subcontractor.secureTIN.filter(\.isNumber).count != 9 {
+            items.append("\(subcontractor.payeeName)'s Tax ID (from their W-9)")
+        }
+        return items
+    }
+    private var canGenerate: Bool { missing.isEmpty }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    if canGenerate, let previewImage {
+                        Image(uiImage: previewImage)
+                            .resizable().scaledToFit()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(.black.opacity(0.1)))
+                            .shadow(radius: 4, y: 2)
+                        Text("Copy B — give this to \(subcontractor.payeeName). Keep a copy for your records. File Copy A with the IRS yourself (e-file) or hand your accountant the Year-End Report.")
+                            .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    } else {
+                        missingCard
+                    }
+                }
+                .padding()
+                .frame(maxWidth: 640)
+                .frame(maxWidth: .infinity)
+            }
+            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+            .navigationTitle("1099-NEC")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
+                if let pdfURL {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        ShareLink(item: pdfURL,
+                                  subject: Text("Form 1099-NEC — \(year)"),
+                                  message: Text("Attached is your \(year) Form 1099-NEC.")) {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .tint(gold)
+                    }
+                }
+            }
+            .onAppear { regenerate() }
+            .sheet(isPresented: $showingEditSub, onDismiss: regenerate) {
+                SubcontractorFormScreen(editing: subcontractor).glAppearance(colorScheme)
+            }
+            .sheet(isPresented: $showingEditBusiness, onDismiss: regenerate) {
+                if let business { MyCompanyFormScreen(profile: business).glAppearance(colorScheme) }
+            }
+        }
+    }
+
+    private var missingCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label("Add a few details first", systemImage: "exclamationmark.circle")
+                .font(.headline).foregroundStyle(gold)
+            Text("A 1099-NEC needs the following before it can be generated:")
+                .font(.subheadline).foregroundStyle(.secondary)
+            ForEach(missing, id: \.self) { item in
+                Label(item, systemImage: "circle").font(.subheadline).labelStyle(.titleAndIcon)
+            }
+            if subcontractor.secureTIN.filter(\.isNumber).count != 9 {
+                Button { showingEditSub = true } label: {
+                    Label("Edit \(subcontractor.payeeName)", systemImage: "pencil")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(gold)
+                }
+                .buttonStyle(.plain)
+            }
+            if business != nil {
+                Button { showingEditBusiness = true } label: {
+                    Label("Edit business details", systemImage: "building.2")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(gold)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .glCardBackground()
+    }
+
+    private func regenerate() {
+        guard canGenerate, let business else { pdfURL = nil; previewImage = nil; return }
+        pdfURL = Form1099NECPDF.render(payer: business, recipient: subcontractor, amount: amount, year: year)
+        previewImage = pdfURL.flatMap { Form1099NECPDF.pageImage(from: $0) }
     }
 }
 

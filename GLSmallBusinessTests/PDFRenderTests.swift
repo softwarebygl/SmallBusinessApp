@@ -87,4 +87,35 @@ struct PDFRenderTests {
         p.w9TIN = "123"   // too short
         #expect(isValidPDF(W9PDF.render(p, signatureImage: nil, signedDate: nil)))
     }
+
+    @Test func form1099NECRendersAndPreviews() {
+        let payer = business()
+        payer.w9TINTypeRaw = W9TINType.ein.rawValue
+        payer.w9TIN = "987654321"     // plaintext fallback, no Keychain dependency
+        let sub = TS.subcontractor(first: "Luis", last: "Mendoza", business: "Mendoza Plumbing",
+                                   address: Address(street1: "904 Industrial Dr", city: "Tallahassee",
+                                                    state: "FL", postalCode: "32310"))
+        sub.w9TINType = .ssn          // payer is EIN above; recipient SSN covers both TIN formats
+        sub.updateTIN("123-45-6789")
+        let url = Form1099NECPDF.render(payer: payer, recipient: sub, amount: 3_050, year: 2026)
+        #expect(isValidPDF(url))                                        // bundled Copy B template loads + renders
+        #expect(url.flatMap { Form1099NECPDF.pageImage(from: $0) } != nil)
+        sub.clearSecureTIN()
+    }
+
+    @Test func form1099NECRendersWithMissingData() {
+        // No TINs, no address — must still produce a valid PDF (blank fields), never crash.
+        let url = Form1099NECPDF.render(payer: business(), recipient: TS.subcontractor(), amount: 0, year: 2026)
+        #expect(isValidPDF(url))
+    }
+
+    @Test func form1099NECShrinksLongTextAndHandlesUntypedTIN() {
+        let payer = business()
+        payer.businessName = String(repeating: "Very Long Business Name ", count: 6)  // forces auto-shrink
+        let sub = TS.subcontractor(first: "No", last: "Type")
+        sub.updateTIN("123456789")    // 9 digits but no TIN type → the unformatted fallback branch
+        let url = Form1099NECPDF.render(payer: payer, recipient: sub, amount: 1_234_567.89, year: 2026)
+        #expect(isValidPDF(url))
+        sub.clearSecureTIN()
+    }
 }
