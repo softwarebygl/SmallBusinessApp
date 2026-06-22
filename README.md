@@ -196,6 +196,21 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Calendar tab.** The 4th
+  top-level tab: scheduling for the business. A **"Next available date"** banner + **"View gaps"** (open
+  workday stretches before booked work, looking 90 days ahead), a **month grid** with booked days marked,
+  and an **Upcoming** agenda. You schedule **only from an accepted estimate or an invoice** (never free-form
+  — the GL way: book from the accepted estimate if you schedule on acceptance, or from the invoice if you
+  wait on a deposit). A **Schedule** action sits on accepted-estimate + invoice detail menus, and a + on the
+  calendar picks a source → `ScheduleJobSheet` (start date + workday length). **Settings → Scheduling**: a
+  **customizable workdays** chip selector (default Mon–Fri) + a **"Book one job at a time"** toggle (on by
+  default; an overlapping booking just asks, never blocks). The next-available / gaps math runs over the
+  chosen workdays. New `ScheduledJob` model (+ `scheduledJobs` inverse on `Estimate` and `Invoice`; additive,
+  still **V1** — deploy to CloudKit Production, see TODO). New files: `Models/ScheduledJob.swift` (model +
+  `SchedulingEngine`), `Screens/CalendarScreen.swift`, `Screens/ScheduleJobSheet.swift`. DEBUG: demo seeds 2
+  bookings with a gap; `-demoScreen calendar` deep-links the tab. Tests: `SchedulingTests` cover workdays /
+  occupied-days / next-available / gaps (engine 100% of reachable lines). 236 tests pass. *iPad shows the
+  calendar in the content column (functional; a wider iPad layout is a possible later polish).*
 - **Done — NOT yet committed (built + render-verified on simulator):** **Real 1099-NEC generator
   (tax-document layer, part 2 — completes it).** Generates the official **IRS Form 1099-NEC (Rev. December
   2026), Copy B "For Recipient"** for a subcontractor: stamps the payer (this business), the recipient (the

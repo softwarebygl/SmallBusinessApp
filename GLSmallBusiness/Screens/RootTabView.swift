@@ -7,9 +7,8 @@
 
 import SwiftUI
 
-/// App root (iPhone, compact width). Customers + Employees + Subcontractors today; the Calendar tab
-/// lands in a later round. Receipts moved into the Menu (Job Records → All Receipts) and Stats moved
-/// onto the Business screen (→ Statistics).
+/// App root (iPhone, compact width): Customers, Employees, Subcontractors, Calendar. Receipts moved
+/// into the Menu (Job Records → All Receipts) and Stats onto the Business screen (→ Statistics).
 ///
 /// Per Apple's documented pattern (WWDC24 "Elevate your tab and sidebar experience in iPadOS"
 /// + HIG Tab bars): the modern `Tab(...)` API plus `.tabViewStyle(.sidebarAdaptable)` give
@@ -17,7 +16,7 @@ import SwiftUI
 /// landscape an auto-shown leading sidebar — letting the user choose, and letting each tab's
 /// NavigationSplitView own the top bar cleanly when the sidebar is in use.
 /// Top-level tab identity, so screenshot automation can select a tab programmatically.
-enum ScreenTab: Hashable { case customers, employees, subcontractors }
+enum ScreenTab: Hashable { case customers, employees, subcontractors, calendar }
 
 struct RootTabView: View {
     @State private var selection: ScreenTab = {
@@ -25,6 +24,7 @@ struct RootTabView: View {
         switch DemoMode.screen {
         case "employees": return .employees
         case "subcontractors": return .subcontractors
+        case "calendar": return .calendar
         default: return .customers
         }
         #else
@@ -42,6 +42,9 @@ struct RootTabView: View {
             }
             Tab("Subcontractors", systemImage: "hammer", value: ScreenTab.subcontractors) {
                 SubcontractorsScreen()
+            }
+            Tab("Calendar", systemImage: "calendar", value: ScreenTab.calendar) {
+                CalendarScreen()
             }
         }
         .tabViewStyle(.automatic)

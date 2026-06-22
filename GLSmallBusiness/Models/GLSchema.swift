@@ -60,6 +60,7 @@ enum GLSchemaV1: VersionedSchema {
             Paycheck.self,
             Subcontractor.self,
             SubPayment.self,
+            ScheduledJob.self,
         ]
     }
 }

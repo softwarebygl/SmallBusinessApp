@@ -175,6 +175,11 @@ final class Estimate {
     @Relationship(deleteRule: .cascade, inverse: \EstimateGroup.estimate)
     var groups: [EstimateGroup]?
 
+    /// Calendar bookings made from this estimate. Nullify so deleting the estimate keeps the booking
+    /// (it still carries its title/customer snapshot) rather than wiping it off the calendar.
+    @Relationship(deleteRule: .nullify, inverse: \ScheduledJob.estimate)
+    var scheduledJobs: [ScheduledJob]?
+
     init(
         number: String = "",
         jobTitle: String = "",

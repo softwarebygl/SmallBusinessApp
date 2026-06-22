@@ -125,6 +125,11 @@ final class Invoice {
     @Relationship(deleteRule: .cascade, inverse: \ChangeOrder.invoice)
     var changeOrders: [ChangeOrder]?
 
+    /// Calendar bookings made from this invoice. Nullify so deleting the invoice keeps the booking
+    /// (with its title/customer snapshot) on the calendar.
+    @Relationship(deleteRule: .nullify, inverse: \ScheduledJob.invoice)
+    var scheduledJobs: [ScheduledJob]?
+
     init(
         number: String = "",
         jobTitle: String = "",

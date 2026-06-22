@@ -47,15 +47,15 @@ struct RootView: View {
 
 /// The top-level sections, shown as the split view's sidebar.
 private enum AppSection: String, CaseIterable, Identifiable {
-    // The Calendar section lands in a later round. Receipts moved into the Menu (Job Records) and
-    // Stats onto the Business screen.
-    case customers, employees, subcontractors
+    // Receipts moved into the Menu (Job Records) and Stats onto the Business screen.
+    case customers, employees, subcontractors, calendar
     var id: Self { self }
     var title: String {
         switch self {
         case .customers: String(localized: "Customers")
         case .employees: String(localized: "Employees")
         case .subcontractors: String(localized: "Subcontractors")
+        case .calendar: String(localized: "Calendar")
         }
     }
     var systemImage: String {
@@ -63,6 +63,7 @@ private enum AppSection: String, CaseIterable, Identifiable {
         case .customers: "person.2"
         case .employees: "person.text.rectangle"
         case .subcontractors: "hammer"
+        case .calendar: "calendar"
         }
     }
 }
@@ -80,6 +81,7 @@ struct IPadRootSplitView: View {
         switch DemoMode.screen {
         case "employees": return .employees
         case "subcontractors": return .subcontractors
+        case "calendar": return .calendar
         default: return .customers
         }
         #else
@@ -217,6 +219,8 @@ struct IPadRootSplitView: View {
             SubcontractorListColumn(subcontractors: subcontractors,
                                     selection: $selectedSubcontractorID,
                                     showingAdd: $showingAddSubcontractor)
+        case .calendar:
+            CalendarScreen(showsMenuButton: false)
         case nil:
             BrandPlaceholder(text: String(localized: "Select a section"), systemImage: "square.grid.2x2")
         }
@@ -246,6 +250,8 @@ struct IPadRootSplitView: View {
                 } else {
                     BrandPlaceholder(text: String(localized: "Select a Subcontractor"), systemImage: "hammer")
                 }
+            case .calendar:
+                BrandPlaceholder(text: "")   // the calendar fills the content column; no detail pane
             case nil:
                 BrandPlaceholder(text: "")
             }

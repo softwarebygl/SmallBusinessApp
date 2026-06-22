@@ -44,6 +44,7 @@ struct EstimateDetailScreen: View {
     @State private var pdfURL: URL?
     @State private var showingProfilePrompt = false
     @State private var convertedInvoice: Invoice?
+    @State private var showingSchedule = false
 
     private enum SendAction: Int, Identifiable {
         case email, text
@@ -81,6 +82,9 @@ struct EstimateDetailScreen: View {
                 Menu {
                     Section {
                         Button { showingEdit = true } label: { Label("Edit estimate", systemImage: "pencil") }
+                        if estimate.status == .accepted {
+                            Button { showingSchedule = true } label: { Label("Schedule", systemImage: "calendar.badge.plus") }
+                        }
                         Button { convertToInvoice() } label: { Label("Convert to Invoice", systemImage: "arrow.right.doc.on.clipboard") }
                     }
                     if let pdfURL {
@@ -110,6 +114,9 @@ struct EstimateDetailScreen: View {
         }
         .sheet(isPresented: $showingEdit) {
             EstimateFormScreen(editing: estimate).glAppearance(colorScheme)
+        }
+        .sheet(isPresented: $showingSchedule) {
+            ScheduleJobSheet(source: .estimate(estimate)).glAppearance(colorScheme)
         }
         .sheet(item: $sendAction) { action in
             sendSheet(for: action).glAppearance(colorScheme)

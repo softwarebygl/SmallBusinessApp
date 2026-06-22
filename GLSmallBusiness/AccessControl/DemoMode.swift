@@ -175,6 +175,14 @@ enum DemoSeed {
                             method: .transfer, detail: "Panel inspection fix", subcontractor: sub2, customer: c2)
         context.insert(p2)
 
+        // Demo calendar bookings — two jobs with open workdays between them so "View gaps" has content.
+        let job1 = ScheduledJob(title: inv.jobTitle.isEmpty ? "Kitchen tile install" : inv.jobTitle,
+                                customerName: inv.customerDisplayName,
+                                startDate: .now.addingTimeInterval(3 * 86_400), durationDays: 3, invoice: inv)
+        let job2 = ScheduledJob(title: e1.jobTitle, customerName: e1.customerDisplayName,
+                                startDate: .now.addingTimeInterval(18 * 86_400), durationDays: 4, estimate: e1)
+        [job1, job2].forEach(context.insert)
+
         try? context.save()
     }
 

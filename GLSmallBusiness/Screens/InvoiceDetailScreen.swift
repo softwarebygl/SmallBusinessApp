@@ -46,6 +46,7 @@ struct InvoiceDetailScreen: View {
     @State private var receiptPayment: InvoicePayment?
     @State private var showingNewChangeOrder = false
     @State private var selectedChangeOrder: ChangeOrder?
+    @State private var showingSchedule = false
 
     private enum SendAction: Int, Identifiable {
         case email, text
@@ -82,6 +83,7 @@ struct InvoiceDetailScreen: View {
                 Menu {
                     Section {
                         Button { showingEdit = true } label: { Label("Edit invoice", systemImage: "pencil") }
+                        Button { showingSchedule = true } label: { Label("Schedule", systemImage: "calendar.badge.plus") }
                         Button { showingRecordPayment = true } label: { Label("Record payment", systemImage: "dollarsign.circle") }
                         Button { showingSetAmountDue = true } label: { Label("Set amount due", systemImage: "banknote") }
                     }
@@ -136,6 +138,9 @@ struct InvoiceDetailScreen: View {
         }
         .onChange(of: showingSetAmountDue) { _, isShowing in
             if !isShowing { regeneratePDF() }
+        }
+        .sheet(isPresented: $showingSchedule) {
+            ScheduleJobSheet(source: .invoice(invoice)).glAppearance(colorScheme)
         }
         .sheet(isPresented: $showingEdit) {
             InvoiceFormScreen(editing: invoice).glAppearance(colorScheme)

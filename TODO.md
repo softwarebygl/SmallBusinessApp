@@ -24,7 +24,10 @@ build 5). The rejection is fixed in code; the rest is owner-only (App Store Conn
       `SubPayment` record types, plus a new `subPayments` relationship field on `Customer`. **Subcontractor
       W-9/TIN capture:** new `tinKey`, `w9TINTypeRaw`, `w9Data` (externalStorage), `w9Name` fields on
       `Subcontractor` (the TIN *value* lives in the Keychain, not CloudKit — only these descriptors sync).
-      All additive/optional (still schema V1), but they MUST be in production or sync drops them for real users.
+      **Calendar feature:** new `ScheduledJob` record type, plus `scheduledJobs` relationship fields on
+      `Estimate` and `Invoice`. All additive/optional (still schema V1), but they MUST be in production or
+      sync drops them for real users. (The workdays / one-job-at-a-time settings are device-local `@AppStorage`
+      — not CloudKit, no deploy.)
 - [ ] **2.1(b): Submit the In-App Purchase products for review** — submit the two subscriptions
       (monthly / annual) in App Store Connect and attach the App Review screenshot. The binary
       references them but they were never submitted.
