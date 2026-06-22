@@ -196,6 +196,25 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done — NOT yet committed (built + verified on simulator):** **People-list polish + Contacts** (owner
+  feedback). Employees & Subcontractors tabs: (a) the summary banner is split from a titled **section**
+  (Team / Subcontractors); (b) rows now match the **Customers** style — a 60-pt monogram on the card, via a
+  new shared `PersonRowCard` + `MonogramAvatar`; (c) added top breathing room below the script title
+  (`.contentMargins(.top:)`) so the descenders don't crowd the first row. The Subcontractor row surfaces an
+  **"Owed $X"** subtitle at a glance. Employee **Hours** shows the **5 most recent** with a **View All**
+  button → a date-filterable (All / This year / Custom) lazy list (`AllHoursSheet`). Employees + subs now
+  **Import from Contacts** (form) and **Save to Contacts** (detail), like customers (new
+  `ContactsBridge.contact(from:)` overloads). No model changes. Tests: contact-builder mapping for
+  employee/sub; 242 pass.
+- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Subcontractor owed → paid
+  ledger** (owner feedback: "where do I record that I *owe* a sub, before I pay them?"). Each sub now has an
+  optional **hourly rate**, and each ledger entry can be **owed (unpaid)** or **paid**: record what you owe
+  (as hours × rate or a flat amount), see an **Outstanding (owed)** balance on the detail, and **mark it paid**
+  (a "Paid" toggle → paid date + method) when you settle up. The **1099 / "paid this year" stays cash-basis**
+  — owed amounts don't count until paid; the accountant ledger CSV lists only payments actually made.
+  Additive model fields: `Subcontractor.hourlyRate`, `SubPayment.hours` + `SubPayment.paidDate` (nil = owed).
+  Tests: outstanding vs. paid, owed excluded from 1099, paid-date-year, mark-paid; 240 tests pass. (Deploy
+  the new fields to CloudKit Production — see TODO.)
 - **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Calendar tab.** The 4th
   top-level tab: scheduling for the business. A **"Next available date"** banner + **"View gaps"** (open
   workday stretches before booked work, looking 90 days ahead), a **month grid** with booked days marked,

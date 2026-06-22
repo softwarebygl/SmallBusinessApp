@@ -24,6 +24,8 @@ build 5). The rejection is fixed in code; the rest is owner-only (App Store Conn
       `SubPayment` record types, plus a new `subPayments` relationship field on `Customer`. **Subcontractor
       W-9/TIN capture:** new `tinKey`, `w9TINTypeRaw`, `w9Data` (externalStorage), `w9Name` fields on
       `Subcontractor` (the TIN *value* lives in the Keychain, not CloudKit — only these descriptors sync).
+      **Subcontractor owed/paid ledger:** new `hourlyRate` on `Subcontractor`, and `hours` + `paidDate`
+      (optional) on `SubPayment` (paidDate nil = owed/unpaid).
       **Calendar feature:** new `ScheduledJob` record type, plus `scheduledJobs` relationship fields on
       `Estimate` and `Invoice`. All additive/optional (still schema V1), but they MUST be in production or
       sync drops them for real users. (The workdays / one-job-at-a-time settings are device-local `@AppStorage`

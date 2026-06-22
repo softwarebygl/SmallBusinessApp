@@ -34,18 +34,21 @@ struct EmployeesScreen: View {
                     emptyState
                 } else {
                     if let summary = PayrollSummary.nextPayday(for: employees) { paydayHeader(summary) }
-                    ForEach(employees) { employee in
-                        Button { path.append(employee) } label: { row(employee) }
-                            .buttonStyle(.plain)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets())
+                    Section("Team") {
+                        ForEach(employees) { employee in
+                            Button { path.append(employee) } label: { row(employee) }
+                                .buttonStyle(.plain)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets())
+                        }
+                        .onDelete(perform: delete)
                     }
-                    .onDelete(perform: delete)
                 }
             }
             .scrollContentBackground(.hidden)
             .listStyle(.plain)
+            .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the script title's descenders
             .containerBackground(for: .navigation) { PrimaryBackground() }
             .navigationTitle("Employees")
             .navigationDestination(for: Employee.self) { EmployeeDetailScreen(employee: $0) }
@@ -104,30 +107,13 @@ struct EmployeesScreen: View {
     // MARK: - Row
 
     private func row(_ employee: Employee) -> some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle().fill(gold.opacity(0.18))
-                Text(employee.initials).font(.subheadline.weight(.semibold)).foregroundStyle(gold)
-            }
-            .frame(width: 44, height: 44)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(employee.listDisplayName).lineLimit(1)
-                Text(paySummary(employee)).font(.caption).foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 8)
-            if employee.accruedGross > 0 {
-                Text(employee.accruedGross.formatted(.currency(code: "USD")))
-                    .font(.subheadline.weight(.medium)).foregroundStyle(gold)
-            }
-            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
-        }
-        .padding(.vertical, GLLayout.rowContentVerticalPadding)
-        .padding(.horizontal, GLLayout.rowContentPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glCardBackground()
-        .padding(.horizontal, GLLayout.rowCardInset)
-        .padding(.vertical, 4)
+        PersonRowCard(
+            initials: employee.initials,
+            name: employee.listDisplayName,
+            subtitle: paySummary(employee),
+            trailing: employee.accruedGross > 0.005 ? employee.accruedGross.formatted(.currency(code: "USD")) : "",
+            trailingTint: gold
+        )
     }
 
     private func paySummary(_ employee: Employee) -> String {

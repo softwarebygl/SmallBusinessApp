@@ -78,4 +78,26 @@ struct ContactsBridgeTests {
         #expect(c.phoneNumbers.isEmpty)
         #expect(c.postalAddresses.isEmpty)
     }
+
+    @Test func contactFromEmployeeMapsNameEmailPhone() {
+        let e = Employee(firstName: "Juan", lastName: "Gonzalez", email: "juan@example.com", phone: "555-0110")
+        let c = ContactsBridge.contact(from: e)
+        #expect(c.givenName == "Juan" && c.familyName == "Gonzalez")
+        #expect(c.emailAddresses.first.map { $0.value as String } == "juan@example.com")
+        #expect(c.phoneNumbers.first?.value.stringValue == "555-0110")
+        // No empty fields
+        #expect(ContactsBridge.contact(from: Employee(firstName: "Solo")).phoneNumbers.isEmpty)
+    }
+
+    @Test func contactFromSubcontractorMapsBusinessAndAddress() {
+        let sub = Subcontractor(firstName: "Luis", lastName: "Mendoza", businessName: "Mendoza Plumbing",
+                                email: "luis@mp.com", phone: "555-0164",
+                                address: Address(street1: "904 Industrial Dr", city: "Tallahassee", state: "FL", postalCode: "32310"))
+        let c = ContactsBridge.contact(from: sub)
+        #expect(c.givenName == "Luis" && c.familyName == "Mendoza")
+        #expect(c.organizationName == "Mendoza Plumbing")
+        #expect(c.emailAddresses.first.map { $0.value as String } == "luis@mp.com")
+        #expect(c.phoneNumbers.first?.value.stringValue == "555-0164")
+        #expect(c.postalAddresses.first?.value.city == "Tallahassee")
+    }
 }

@@ -17,6 +17,7 @@ struct SubcontractorDetailScreen: View {
     let subcontractor: Subcontractor
 
     @State private var activeSheet: ActiveSheet?
+    @State private var showingSaveToContacts = false
 
     private enum ActiveSheet: Identifiable {
         case edit
@@ -37,9 +38,9 @@ struct SubcontractorDetailScreen: View {
         ScrollView {
             VStack(spacing: 20) {
                 header
-                statusCard
+                balanceCard
                 w9Card
-                paymentsCard
+                activityCard
                 if !subcontractor.notes.isEmpty { notesCard }
             }
             .padding()
@@ -51,8 +52,15 @@ struct SubcontractorDetailScreen: View {
         .toolbarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { activeSheet = .edit } label: { Image(systemName: "pencil") }
-                    .accessibilityLabel("Edit subcontractor")
+                Menu {
+                    Button { activeSheet = .edit } label: { Label("Edit subcontractor", systemImage: "pencil") }
+                    Button { showingSaveToContacts = true } label: {
+                        Label("Save to Contacts", systemImage: "person.crop.circle.badge.plus")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("More")
             }
         }
         .sheet(item: $activeSheet) { sheet in
@@ -64,6 +72,10 @@ struct SubcontractorDetailScreen: View {
             case .form1099:
                 Form1099NECSheet(subcontractor: subcontractor).glAppearance(colorScheme)
             }
+        }
+        .sheet(isPresented: $showingSaveToContacts) {
+            NewContactView(contact: ContactsBridge.contact(from: subcontractor)) { showingSaveToContacts = false }
+                .ignoresSafeArea()
         }
     }
 
@@ -97,35 +109,36 @@ struct SubcontractorDetailScreen: View {
         }
     }
 
-    // MARK: - 1099 status
+    // MARK: - Balance (owed + paid this year)
 
-    private var statusCard: some View {
+    private var balanceCard: some View {
         let year = Calendar.current.component(.year, from: .now)
-        let total = subcontractor.totalPaid(year: year)
+        let owed = subcontractor.outstanding
+        let paid = subcontractor.totalPaid(year: year)
         let needs1099 = subcontractor.requires1099(year: year)
         return GLCard {
-            HStack {
+            HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("PAID IN \(String(year))")
+                    Text("OWED (UNPAID)")
                         .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
-                    Text(total.formatted(.currency(code: "USD")))
-                        .font(.title3.weight(.semibold)).foregroundStyle(gold)
+                    Text(owed.formatted(.currency(code: "USD")))
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(owed > 0.005 ? gold : .secondary)
                 }
                 Spacer()
-                if needs1099 {
-                    Label("1099-NEC", systemImage: "doc.badge.ellipsis")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(gold)
-                        .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(Capsule().fill(gold.opacity(0.16)))
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("PAID IN \(String(year))")
+                        .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
+                    Text(paid.formatted(.currency(code: "USD")))
+                        .font(.title3.weight(.semibold))
+                    if needs1099 {
+                        Text("1099-NEC due")
+                            .font(.caption2.weight(.bold)).foregroundStyle(gold)
+                    }
                 }
             }
-            Text(needs1099
-                 ? "At or over the $600 threshold — a 1099-NEC is required this year."
-                 : "Under the $600 threshold. No 1099-NEC required yet.")
-                .font(.footnote).foregroundStyle(.secondary)
             Button { activeSheet = .payment(nil) } label: {
-                Label("Record a payment", systemImage: "plus.circle")
+                Label("Record what you owe", systemImage: "plus.circle")
                     .font(.subheadline.weight(.semibold)).foregroundStyle(gold)
             }
             .buttonStyle(.plain)
@@ -178,40 +191,48 @@ struct SubcontractorDetailScreen: View {
         }
     }
 
-    // MARK: - Payments
+    // MARK: - Activity (owed + paid entries)
 
-    private var paymentsCard: some View {
-        GLCard(title: "Payments") {
-            let payments = subcontractor.sortedPayments
-            if payments.isEmpty {
-                Text("No payments recorded yet.")
+    private var activityCard: some View {
+        GLCard(title: "Activity") {
+            let entries = subcontractor.sortedPayments
+            if entries.isEmpty {
+                Text("Nothing recorded yet. Tap “Record what you owe” above.")
                     .font(.subheadline).foregroundStyle(.secondary)
             } else {
-                ForEach(payments.prefix(12)) { payment in
-                    Button { activeSheet = .payment(payment) } label: { paymentRow(payment) }
+                ForEach(entries.prefix(12)) { entry in
+                    Button { activeSheet = .payment(entry) } label: { entryRow(entry) }
                         .buttonStyle(.plain)
-                    if payment.id != payments.prefix(12).last?.id { Divider() }
+                    if entry.id != entries.prefix(12).last?.id { Divider() }
                 }
-                if payments.count > 12 {
-                    Text("Showing the 12 most recent of \(payments.count).")
+                if entries.count > 12 {
+                    Text("Showing the 12 most recent of \(entries.count).")
                         .font(.caption).foregroundStyle(.secondary).padding(.top, 2)
                 }
             }
         }
     }
 
-    private func paymentRow(_ payment: SubPayment) -> some View {
+    private func entryRow(_ entry: SubPayment) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(payment.date.formatted(date: .abbreviated, time: .omitted))
-                if !payment.detail.isEmpty {
-                    Text(payment.detail).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                } else if let customer = payment.customer {
-                    Text(customer.listDisplayName).font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    Text(entry.date.formatted(date: .abbreviated, time: .omitted))
+                    if !entry.isPaid {
+                        Text("OWED")
+                            .font(.caption2.weight(.bold)).foregroundStyle(gold)
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(Capsule().fill(gold.opacity(0.16)))
+                    }
+                }
+                let sub = entry.detail.isEmpty ? (entry.customer?.listDisplayName ?? "") : entry.detail
+                if !sub.isEmpty {
+                    Text(sub).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
             }
             Spacer()
-            Text(payment.amount.formatted(.currency(code: "USD"))).foregroundStyle(.secondary)
+            Text(entry.amount.formatted(.currency(code: "USD")))
+                .foregroundStyle(entry.isPaid ? .secondary : .primary)
             Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
         }
         .font(.subheadline)
@@ -362,7 +383,7 @@ private struct Form1099NECSheet: View {
     }
 }
 
-// MARK: - Record payment sheet
+// MARK: - Ledger entry sheet (record what you owe, or a payment)
 
 private struct RecordSubPaymentSheet: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -374,20 +395,30 @@ private struct RecordSubPaymentSheet: View {
     let subcontractor: Subcontractor
     let existing: SubPayment?
 
+    @State private var hours: Double
     @State private var amount: Double
     @State private var date: Date
-    @State private var method: PaymentMethod
     @State private var detail: String
     @State private var customerID: PersistentIdentifier?
+    @State private var isPaid: Bool
+    @State private var paidDate: Date
+    @State private var method: PaymentMethod
+
+    private var gold: Color { GLColor.gold.render(in: colorScheme) }
+    private var rate: Double { subcontractor.hourlyRate }
+    private var hasRate: Bool { rate > 0 }
 
     init(subcontractor: Subcontractor, existing: SubPayment?) {
         self.subcontractor = subcontractor
         self.existing = existing
+        _hours = State(initialValue: existing?.hours ?? 0)
         _amount = State(initialValue: existing?.amount ?? 0)
         _date = State(initialValue: existing?.date ?? .now)
-        _method = State(initialValue: existing?.method ?? .check)
         _detail = State(initialValue: existing?.detail ?? "")
         _customerID = State(initialValue: existing?.customer?.persistentModelID)
+        _isPaid = State(initialValue: existing?.isPaid ?? false)
+        _paidDate = State(initialValue: existing?.paidDate ?? .now)
+        _method = State(initialValue: existing?.method ?? .check)
     }
 
     private var selectedCustomer: Customer? {
@@ -398,13 +429,21 @@ private struct RecordSubPaymentSheet: View {
         NavigationStack {
             Form {
                 Section {
+                    if hasRate {
+                        LabeledContent("Hours") {
+                            AutoClearNumberField(placeholder: "0", value: $hours, style: .number)
+                                .multilineTextAlignment(.trailing)
+                        }
+                    }
                     LabeledContent("Amount") {
                         AutoClearNumberField(placeholder: "$0.00", value: $amount, style: .currency)
                             .multilineTextAlignment(.trailing)
                     }
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                    Picker("Method", selection: $method) {
-                        ForEach(PaymentMethod.allCases) { Text($0.label).tag($0) }
+                    DatePicker("Work date", selection: $date, displayedComponents: .date)
+                } footer: {
+                    if hasRate {
+                        Text("Enter hours and it fills the amount at \(rate.formatted(.currency(code: "USD")))/hr — or just type an amount.")
+                            .textCase(nil)
                     }
                 }
                 Section("For") {
@@ -417,15 +456,31 @@ private struct RecordSubPaymentSheet: View {
                         }
                     }
                 }
+                Section {
+                    Toggle("Paid", isOn: $isPaid)
+                    if isPaid {
+                        DatePicker("Paid on", selection: $paidDate, displayedComponents: .date)
+                        Picker("Method", selection: $method) {
+                            ForEach(PaymentMethod.allCases) { Text($0.label).tag($0) }
+                        }
+                    }
+                } footer: {
+                    Text(isPaid ? "Counts toward this year's total and the 1099-NEC."
+                                : "Leave off to track it as owed. It won't count toward the 1099 until you mark it paid.")
+                        .textCase(nil)
+                }
                 if existing != nil {
                     Section {
-                        Button(role: .destructive) { delete() } label: { Text("Delete payment") }
+                        Button(role: .destructive) { delete() } label: { Text("Delete entry") }
                     }
                 }
             }
             .glFormBackground()
-            .navigationTitle(existing == nil ? "Record Payment" : "Edit Payment")
+            .navigationTitle(existing == nil ? "Record Amount" : "Edit Entry")
             .toolbarTitleDisplayMode(.inline)
+            .onChange(of: hours) { _, newHours in
+                if hasRate { amount = newHours * rate }   // hours drive the amount when a rate is set
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -436,26 +491,24 @@ private struct RecordSubPaymentSheet: View {
     }
 
     private func save() {
-        if let payment = existing {
-            payment.amount = amount
-            payment.date = date
-            payment.method = method
-            payment.detail = detail.trimmingCharacters(in: .whitespacesAndNewlines)
-            payment.customer = selectedCustomer
-        } else {
-            let payment = SubPayment(
-                amount: amount, date: date, method: method,
-                detail: detail.trimmingCharacters(in: .whitespacesAndNewlines),
-                subcontractor: subcontractor, customer: selectedCustomer
-            )
-            modelContext.insert(payment)
-        }
+        let target = existing ?? {
+            let new = SubPayment(subcontractor: subcontractor)
+            modelContext.insert(new)
+            return new
+        }()
+        target.hours = hasRate ? hours : 0
+        target.amount = amount
+        target.date = date
+        target.detail = detail.trimmingCharacters(in: .whitespacesAndNewlines)
+        target.customer = selectedCustomer
+        target.paidDate = isPaid ? paidDate : nil
+        target.method = method
         try? modelContext.save()
         dismiss()
     }
 
     private func delete() {
-        if let payment = existing { modelContext.delete(payment); try? modelContext.save() }
+        if let existing { modelContext.delete(existing); try? modelContext.save() }
         dismiss()
     }
 }

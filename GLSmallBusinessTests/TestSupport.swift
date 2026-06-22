@@ -173,13 +173,25 @@ enum TS {
                       email: email, phone: phone, address: address, isActive: isActive)
     }
 
+    /// A PAID ledger entry (paidDate = date), so it counts toward totals / the 1099.
     @discardableResult
     static func paySub(_ sub: Subcontractor, _ amount: Double, date: Date = .now,
                        method: PaymentMethod = .check, detail: String = "",
                        customer: Customer? = nil) -> SubPayment {
-        let payment = SubPayment(amount: amount, date: date, method: method, detail: detail, customer: customer)
+        let payment = SubPayment(amount: amount, date: date, paidDate: date, method: method,
+                                 detail: detail, customer: customer)
         payment.subcontractor = sub
         sub.payments = (sub.payments ?? []) + [payment]
         return payment
+    }
+
+    /// An OWED (unpaid) ledger entry — paidDate stays nil, so it's outstanding, not yet paid.
+    @discardableResult
+    static func oweSub(_ sub: Subcontractor, _ amount: Double, hours: Double = 0, date: Date = .now,
+                       detail: String = "", customer: Customer? = nil) -> SubPayment {
+        let entry = SubPayment(amount: amount, hours: hours, date: date, detail: detail, customer: customer)
+        entry.subcontractor = sub
+        sub.payments = (sub.payments ?? []) + [entry]
+        return entry
     }
 }

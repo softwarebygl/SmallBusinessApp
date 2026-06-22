@@ -285,6 +285,16 @@
         }
       }
     },
+    "%@ – %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ – %2$@"
+          }
+        }
+      }
+    },
     "%@ — sent as provided." : {
 
     },
@@ -370,6 +380,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ (%%)"
+          }
+        }
+      }
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
           }
         }
       }
@@ -460,6 +480,25 @@
         }
       }
     },
+    "%@ due to %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ due to %2$lld %3$@"
+          }
+        }
+      }
+    },
+    "%@ hours logged this week — over 40." : {
+
+    },
+    "%@ hr" : {
+
+    },
+    "%@ unpaid hours logged." : {
+
+    },
     "%@, menu and settings" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -501,11 +540,34 @@
         }
       }
     },
+    "%lld" : {
+
+    },
+    "%lld %@ a 1099-NEC." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@ a 1099-NEC."
+          }
+        }
+      }
+    },
     "%lld estimates have no customer — they still count in Stats. Swipe left to delete any you don't want." : {
 
     },
     "%lld invoices have no customer — they still count in Stats. Swipe left to delete any you don't want." : {
 
+    },
+    "%lld open %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld open %2$@"
+          }
+        }
+      }
     },
     "%lld receipt%@" : {
       "localizations" : {
@@ -596,6 +658,12 @@
     "−" : {
 
     },
+    "$0" : {
+
+    },
+    "$0.00" : {
+
+    },
     "0" : {
       "localizations" : {
         "ca" : {
@@ -649,6 +717,18 @@
 
     },
     "123-45-6789" : {
+
+    },
+    "1099-NEC" : {
+
+    },
+    "1099-NEC due" : {
+
+    },
+    "A 1099-NEC needs the following before it can be generated:" : {
+
+    },
+    "Accept an estimate or create an invoice, then schedule it here." : {
 
     },
     "Accepted" : {
@@ -730,6 +810,9 @@
           }
         }
       }
+    },
+    "Accepted estimates" : {
+
     },
     "Access" : {
       "extractionState" : "stale",
@@ -854,6 +937,9 @@
         }
       }
     },
+    "Active" : {
+
+    },
     "Active until %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -935,6 +1021,9 @@
         }
       }
     },
+    "Add a few details first" : {
+
+    },
     "Add a signature" : {
 
     },
@@ -977,6 +1066,9 @@
           }
         }
       }
+    },
+    "Add Employee" : {
+
     },
     "Add group" : {
       "localizations" : {
@@ -1143,6 +1235,9 @@
           }
         }
       }
+    },
+    "Add Subcontractor" : {
+
     },
     "Add tax details" : {
 
@@ -1488,6 +1583,9 @@
         }
       }
     },
+    "Annual salary" : {
+
+    },
     "Appearance" : {
       "localizations" : {
         "ca" : {
@@ -1735,6 +1833,12 @@
           }
         }
       }
+    },
+    "At or over the $600 threshold — a 1099-NEC is required this year." : {
+
+    },
+    "Attached is your %lld Form 1099-NEC." : {
+
     },
     "Auto" : {
       "localizations" : {
@@ -2056,6 +2160,9 @@
         }
       }
     },
+    "Book one job at a time" : {
+
+    },
     "Branding" : {
       "localizations" : {
         "ca" : {
@@ -2220,6 +2327,9 @@
 
     },
     "C Corporation" : {
+
+    },
+    "Calendar" : {
 
     },
     "Cancel" : {
@@ -2878,6 +2988,9 @@
         }
       }
     },
+    "Copy B — give this to %@. Keep a copy for your records. File Copy A with the IRS yourself (e-file) or hand your accountant the Year-End Report." : {
+
+    },
     "Couldn't load plans right now" : {
       "localizations" : {
         "ca" : {
@@ -3493,6 +3606,15 @@
     "Delete change order" : {
 
     },
+    "Delete entry" : {
+
+    },
+    "Delete paycheck" : {
+
+    },
+    "Delete payment" : {
+
+    },
     "Delete saved signature" : {
 
     },
@@ -3506,6 +3628,9 @@
 
     },
     "Delete this reference copy from your records." : {
+
+    },
+    "Delete this subcontractor's uploaded W-9." : {
 
     },
     "Deposit" : {
@@ -3837,6 +3962,9 @@
         }
       }
     },
+    "DUE" : {
+
+    },
     "Due date" : {
       "localizations" : {
         "ca" : {
@@ -4078,6 +4206,12 @@
         }
       }
     },
+    "Edit %@" : {
+
+    },
+    "Edit business details" : {
+
+    },
     "Edit change order" : {
 
     },
@@ -4130,6 +4264,12 @@
     "Edit details" : {
 
     },
+    "Edit employee" : {
+
+    },
+    "Edit Employee" : {
+
+    },
     "Edit estimate" : {
 
     },
@@ -4172,6 +4312,9 @@
           }
         }
       }
+    },
+    "Edit Hours" : {
+
     },
     "Edit invoice" : {
 
@@ -4216,6 +4359,12 @@
         }
       }
     },
+    "Edit Paycheck" : {
+
+    },
+    "Edit Payment" : {
+
+    },
     "Edit receipt" : {
 
     },
@@ -4258,6 +4407,12 @@
           }
         }
       }
+    },
+    "Edit subcontractor" : {
+
+    },
+    "Edit Subcontractor" : {
+
     },
     "EIN" : {
 
@@ -4386,6 +4541,15 @@
       }
     },
     "Email receipt" : {
+
+    },
+    "Employees" : {
+
+    },
+    "Employment" : {
+
+    },
+    "Ends %@. Weekends and off-days are skipped per your workdays setting." : {
 
     },
     "Enter Access Code" : {
@@ -4753,6 +4917,9 @@
         }
       }
     },
+    "Every 2 weeks" : {
+
+    },
     "Exempt payee code" : {
 
     },
@@ -5092,6 +5259,9 @@
         }
       }
     },
+    "For" : {
+
+    },
     "FOR" : {
 
     },
@@ -5101,7 +5271,13 @@
     "For your own reference" : {
 
     },
+    "Form 1099-NEC — %lld" : {
+
+    },
     "Form W-9" : {
+
+    },
+    "From" : {
 
     },
     "From %@" : {
@@ -5145,6 +5321,9 @@
       }
     },
     "General Liability (COI)" : {
+
+    },
+    "Generate 1099-NEC" : {
 
     },
     "Generate a W-9" : {
@@ -5193,6 +5372,12 @@
           }
         }
       }
+    },
+    "Gross" : {
+
+    },
+    "Gross paid" : {
+
     },
     "Group" : {
       "localizations" : {
@@ -5355,6 +5540,15 @@
         }
       }
     },
+    "Hire date" : {
+
+    },
+    "Hourly" : {
+
+    },
+    "Hourly rate" : {
+
+    },
     "Hours" : {
       "localizations" : {
         "ca" : {
@@ -5482,6 +5676,9 @@
       }
     },
     "In this package" : {
+
+    },
+    "Inactive" : {
 
     },
     "Include signature and date." : {
@@ -5797,6 +5994,12 @@
         }
       }
     },
+    "Job (optional)" : {
+
+    },
+    "Job / customer" : {
+
+    },
     "Job Records" : {
 
     },
@@ -5962,6 +6165,16 @@
     },
     "Legal" : {
 
+    },
+    "Length: %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Length: %1$lld %2$@"
+          }
+        }
+      }
     },
     "License" : {
       "localizations" : {
@@ -6373,6 +6586,12 @@
         }
       }
     },
+    "Log hours" : {
+
+    },
+    "Log Hours" : {
+
+    },
     "Logo" : {
       "localizations" : {
         "ca" : {
@@ -6748,6 +6967,9 @@
           }
         }
       }
+    },
+    "Monthly" : {
+
     },
     "More" : {
       "localizations" : {
@@ -7137,6 +7359,12 @@
         }
       }
     },
+    "New employee" : {
+
+    },
+    "New Employee" : {
+
+    },
     "New Estimate" : {
       "localizations" : {
         "ca" : {
@@ -7256,6 +7484,21 @@
           }
         }
       }
+    },
+    "New subcontractor" : {
+
+    },
+    "New Subcontractor" : {
+
+    },
+    "NEXT AVAILABLE DATE" : {
+
+    },
+    "Next payday" : {
+
+    },
+    "NEXT PAYDAY" : {
+
     },
     "No activity yet" : {
       "localizations" : {
@@ -7383,6 +7626,9 @@
         }
       }
     },
+    "No Employees" : {
+
+    },
     "No Estimates" : {
       "localizations" : {
         "ca" : {
@@ -7424,6 +7670,12 @@
       }
     },
     "No file" : {
+
+    },
+    "No gaps in the next 90 days" : {
+
+    },
+    "No hours logged yet." : {
 
     },
     "No invoice" : {
@@ -7469,6 +7721,9 @@
         }
       }
     },
+    "No jobs scheduled. Tap + to schedule an accepted estimate or an invoice." : {
+
+    },
     "No line items." : {
 
     },
@@ -7511,6 +7766,9 @@
           }
         }
       }
+    },
+    "No paychecks recorded yet." : {
+
     },
     "No payments recorded yet." : {
       "localizations" : {
@@ -7675,6 +7933,12 @@
     "No receipts recorded" : {
 
     },
+    "No Subcontractors" : {
+
+    },
+    "No subs over the $600 1099 threshold yet." : {
+
+    },
     "None" : {
       "localizations" : {
         "ca" : {
@@ -7716,6 +7980,12 @@
       }
     },
     "None yet. Add one from the ••• menu when the job's scope changes." : {
+
+    },
+    "Not on file — add via Edit" : {
+
+    },
+    "Note" : {
 
     },
     "Note (e.g. 5×3×8)" : {
@@ -7881,6 +8151,12 @@
         }
       }
     },
+    "Nothing to schedule yet" : {
+
+    },
+    "Off" : {
+
+    },
     "Office" : {
 
     },
@@ -7927,7 +8203,16 @@
         }
       }
     },
+    "One salary period." : {
+
+    },
     "Open change order" : {
+
+    },
+    "Open Gaps" : {
+
+    },
+    "Open stretches before your booked jobs will show up here." : {
 
     },
     "Optional W-9 exemption codes. Most small businesses leave these blank." : {
@@ -7978,6 +8263,9 @@
           }
         }
       }
+    },
+    "Optional. The SSN/EIN from the W-9 they gave you. Stored securely in your Keychain, not the synced database — used to generate their 1099-NEC." : {
+
     },
     "Optional. Used to generate a W-9. Your Tax ID is stored securely in your Keychain, not the synced database. Sign and date the form by hand after you print or send it." : {
 
@@ -8194,7 +8482,16 @@
         }
       }
     },
+    "PAID IN %@" : {
+
+    },
     "PAID IN FULL" : {
+
+    },
+    "Paid on" : {
+
+    },
+    "PAID THIS YEAR" : {
 
     },
     "Partially Paid" : {
@@ -8238,6 +8535,18 @@
       }
     },
     "Partnership" : {
+
+    },
+    "Pay" : {
+
+    },
+    "Pay period" : {
+
+    },
+    "Pay type" : {
+
+    },
+    "Paychecks" : {
 
     },
     "Payment" : {
@@ -8325,6 +8634,9 @@
           }
         }
       }
+    },
+    "Pays" : {
+
     },
     "Pending" : {
 
@@ -8997,6 +9309,12 @@
         }
       }
     },
+    "Record a payment" : {
+
+    },
+    "Record Paycheck" : {
+
+    },
     "Record payment" : {
 
     },
@@ -9039,6 +9357,9 @@
           }
         }
       }
+    },
+    "Record this paycheck" : {
+
     },
     "Redeem" : {
       "extractionState" : "stale",
@@ -9263,6 +9584,9 @@
     "Remove this document?" : {
 
     },
+    "Remove W-9" : {
+
+    },
     "Replace COI" : {
 
     },
@@ -9444,6 +9768,9 @@
     "S Corporation" : {
 
     },
+    "Salary" : {
+
+    },
     "Sales tax (on invoices)" : {
 
     },
@@ -9609,6 +9936,24 @@
           }
         }
       }
+    },
+    "Schedule" : {
+
+    },
+    "Schedule a job" : {
+
+    },
+    "Schedule anyway" : {
+
+    },
+    "Schedule From" : {
+
+    },
+    "Schedule Job" : {
+
+    },
+    "Scheduling" : {
+
     },
     "Scope changes" : {
 
@@ -9812,6 +10157,12 @@
           }
         }
       }
+    },
+    "Select a Subcontractor" : {
+
+    },
+    "Select an Employee" : {
+
     },
     "Select…" : {
 
@@ -10122,6 +10473,12 @@
     "Sharing sends two files for %@ — this tax summary and a receipts CSV listing every expense. Hand them to your accountant or keep them for your records." : {
 
     },
+    "Showing the 10 most recent of %lld." : {
+
+    },
+    "Showing the 12 most recent of %lld." : {
+
+    },
     "Sign and date your W-9 automatically." : {
 
     },
@@ -10298,6 +10655,9 @@
       }
     },
     "SSN" : {
+
+    },
+    "Start date" : {
 
     },
     "State" : {
@@ -10505,6 +10865,9 @@
           }
         }
       }
+    },
+    "Subcontractors" : {
+
     },
     "Subject" : {
 
@@ -10721,6 +11084,12 @@
         }
       }
     },
+    "Tap + to add your first employee." : {
+
+    },
+    "Tap + to add your first subcontractor." : {
+
+    },
     "Tap + to create an estimate for %@." : {
       "localizations" : {
         "ca" : {
@@ -10882,6 +11251,9 @@
       }
     },
     "Tax classification" : {
+
+    },
+    "Tax details (for their 1099-NEC)" : {
 
     },
     "Tax details (for W-9)" : {
@@ -11371,10 +11743,19 @@
     "The year these records cover." : {
 
     },
+    "These dates overlap a job you've already booked." : {
+
+    },
     "This change" : {
 
     },
     "This document hasn't been uploaded yet." : {
+
+    },
+    "This year" : {
+
+    },
+    "To" : {
 
     },
     "Total" : {
@@ -11463,6 +11844,9 @@
     "Trust / Estate" : {
 
     },
+    "Twice a month" : {
+
+    },
     "Type" : {
       "localizations" : {
         "ca" : {
@@ -11545,6 +11929,9 @@
           }
         }
       }
+    },
+    "Under the $600 threshold. No 1099-NEC required yet." : {
+
     },
     "Unit" : {
       "localizations" : {
@@ -11719,6 +12106,9 @@
           }
         }
       }
+    },
+    "Upcoming" : {
+
     },
     "Update tax details" : {
 
@@ -11938,10 +12328,22 @@
         }
       }
     },
+    "View gaps" : {
+
+    },
     "W-9" : {
 
     },
     "W-9 — %@" : {
+
+    },
+    "W-9 & Tax ID" : {
+
+    },
+    "W-9 on file" : {
+
+    },
+    "Weekly" : {
 
     },
     "What it's for (e.g. 30% progress payment)" : {
@@ -12024,6 +12426,9 @@
         }
       }
     },
+    "What was this for? (optional)" : {
+
+    },
     "What you're asking the customer to pay now. Leave at $0 to request the full balance of %@." : {
       "localizations" : {
         "ca" : {
@@ -12104,6 +12509,15 @@
         }
       }
     },
+    "Workday" : {
+
+    },
+    "Workdays" : {
+
+    },
+    "Workdays drive your next available date and the gaps between jobs. “One job at a time” warns you before you double-book a day." : {
+
+    },
     "Workers' Comp Exemption" : {
 
     },
@@ -12150,10 +12564,16 @@
         }
       }
     },
+    "Year-End Report" : {
+
+    },
     "Year-End Tax Report" : {
 
     },
     "Year-End Tax Report — %@" : {
+
+    },
+    "You have “book one job at a time” on. Schedule this on top of the existing job?" : {
 
     },
     "You have lifetime access" : {

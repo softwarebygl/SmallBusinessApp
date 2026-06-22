@@ -30,7 +30,7 @@ struct SubPayExportTests {
         #expect(s.contains("Yes"))   // over $600
 
         let l = ledger(files)
-        #expect(l.contains("Subcontractor,Date,Amount,Method,For"))
+        #expect(l.contains("Subcontractor,Paid on,Amount,Method,For"))
         #expect(l.contains("2026-05-01"))
         #expect(l.contains("Rough-in"))
     }
@@ -89,6 +89,17 @@ struct SubPayExportTests {
         let ia = lines.firstIndex { $0.contains("Acme Co") }
         let iz = lines.firstIndex { $0.contains("Zephyr Co") }
         #expect(ia != nil && iz != nil && ia! < iz!)   // Acme sorts before Zephyr
+    }
+
+    @Test func owedEntriesAreExcludedFromTheHandoff() {
+        let sub = TS.subcontractor(business: "Owed Co")
+        TS.paySub(sub, 700, date: TS.day(2026, 3, 1))     // paid → in the 1099
+        TS.oweSub(sub, 5_000, date: TS.day(2026, 3, 2))   // owed → must not appear or inflate the total
+        let files = SubPayExport.files(subcontractors: [sub], year: 2026, business: nil)
+        let s = summary(files)
+        #expect(s.contains("700.00"))
+        #expect(!s.contains("5000.00") && !s.contains("5700.00"))   // owed not added to the total
+        #expect(!ledger(files).contains("5000.00"))                  // owed not in the payment ledger
     }
 
     @Test func neutralizesFormulaInjection() {

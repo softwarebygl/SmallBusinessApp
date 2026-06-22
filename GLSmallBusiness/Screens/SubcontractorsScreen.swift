@@ -34,18 +34,21 @@ struct SubcontractorsScreen: View {
                     emptyState
                 } else {
                     summaryHeader(Subcontractor1099Summary.forYear(subs))
-                    ForEach(subs) { sub in
-                        Button { path.append(sub) } label: { row(sub) }
-                            .buttonStyle(.plain)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets())
+                    Section("Subcontractors") {
+                        ForEach(subs) { sub in
+                            Button { path.append(sub) } label: { row(sub) }
+                                .buttonStyle(.plain)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets())
+                        }
+                        .onDelete(perform: delete)
                     }
-                    .onDelete(perform: delete)
                 }
             }
             .scrollContentBackground(.hidden)
             .listStyle(.plain)
+            .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the script title's descenders
             .containerBackground(for: .navigation) { PrimaryBackground() }
             .navigationTitle("Subcontractors")
             .navigationDestination(for: Subcontractor.self) { SubcontractorDetailScreen(subcontractor: $0) }
@@ -106,35 +109,17 @@ struct SubcontractorsScreen: View {
     // MARK: - Row
 
     private func row(_ sub: Subcontractor) -> some View {
+        let owed = sub.outstanding
         let total = sub.totalPaid()
-        return HStack(spacing: 12) {
-            ZStack {
-                Circle().fill(gold.opacity(0.18))
-                Text(sub.initials).font(.subheadline.weight(.semibold)).foregroundStyle(gold)
-            }
-            .frame(width: 44, height: 44)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(sub.listDisplayName).lineLimit(1)
-                if sub.requires1099() {
-                    Text("1099-NEC due").font(.caption.weight(.medium)).foregroundStyle(gold)
-                } else {
-                    Text("This year").font(.caption).foregroundStyle(.secondary)
-                }
-            }
-            Spacer(minLength: 8)
-            if total > 0 {
-                Text(total.formatted(.currency(code: "USD")))
-                    .font(.subheadline.weight(.medium)).foregroundStyle(.primary)
-            }
-            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
-        }
-        .padding(.vertical, GLLayout.rowContentVerticalPadding)
-        .padding(.horizontal, GLLayout.rowContentPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glCardBackground()
-        .padding(.horizontal, GLLayout.rowCardInset)
-        .padding(.vertical, 4)
+        let subtitle = owed > 0.005 ? "Owed \(owed.formatted(.currency(code: "USD")))"
+                     : (sub.requires1099() ? "1099-NEC due" : "")
+        return PersonRowCard(
+            initials: sub.initials,
+            name: sub.listDisplayName,
+            subtitle: subtitle,
+            trailing: total > 0.005 ? total.formatted(.currency(code: "USD")) : "",
+            trailingTint: gold
+        )
     }
 
     private var emptyState: some View {

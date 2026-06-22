@@ -162,18 +162,24 @@ enum DemoSeed {
                                  email: "luis@mendozaplumbing.com", phone: "(850) 555-0164",
                                  address: Address(street1: "904 Industrial Dr", city: "Tallahassee", state: "FL", postalCode: "32310"))
         let sub2 = Subcontractor(firstName: "Tara", lastName: "Boyd", businessName: "Boyd Electric",
-                                 email: "tara@boydelectric.com", phone: "(850) 555-0188")
+                                 email: "tara@boydelectric.com", phone: "(850) 555-0188", hourlyRate: 20)
         [sub1, sub2].forEach(context.insert)
         sub1.w9TINType = .ein; sub1.updateTIN("12-3456789")     // EIN — has a W-9 on file
         sub2.w9TINType = .ssn; sub2.updateTIN("123-45-6789")
         for (offset, amount, note) in [(-30.0, 1_800.0, "Rough-in plumbing — Reed job"), (-10.0, 1_250.0, "Fixture set")] {
-            let p = SubPayment(amount: amount, date: .now.addingTimeInterval(offset * 86_400),
-                               method: .check, detail: note, subcontractor: sub1, customer: c1)
+            let d = Date.now.addingTimeInterval(offset * 86_400)
+            let p = SubPayment(amount: amount, date: d, paidDate: d, method: .check,
+                               detail: note, subcontractor: sub1, customer: c1)
             context.insert(p)
         }
-        let p2 = SubPayment(amount: 425, date: .now.addingTimeInterval(-5 * 86_400),
-                            method: .transfer, detail: "Panel inspection fix", subcontractor: sub2, customer: c2)
-        context.insert(p2)
+        let paid2 = SubPayment(amount: 425, date: .now.addingTimeInterval(-5 * 86_400),
+                               paidDate: .now.addingTimeInterval(-5 * 86_400), method: .transfer,
+                               detail: "Panel inspection fix", subcontractor: sub2, customer: c2)
+        context.insert(paid2)
+        // An OWED (unpaid) entry — the "I owe him $100 for 5 hours last Friday" scenario.
+        let owed = SubPayment(amount: 100, hours: 5, date: .now.addingTimeInterval(-3 * 86_400),
+                              detail: "5 hrs — helped on the Reed job", subcontractor: sub2, customer: c1)
+        context.insert(owed)
 
         // Demo calendar bookings — two jobs with open workdays between them so "View gaps" has content.
         let job1 = ScheduledJob(title: inv.jobTitle.isEmpty ? "Kitchen tile install" : inv.jobTitle,

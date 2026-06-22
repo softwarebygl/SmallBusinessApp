@@ -51,18 +51,19 @@ enum SubPayExport {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
 
-        var rows = ["Subcontractor,Date,Amount,Method,For"]
+        var rows = ["Subcontractor,Paid on,Amount,Method,For"]
+        // The 1099 ledger is money actually paid in the year (cash basis) — owed-but-unpaid is excluded.
         let payments = subs.flatMap { sub in
             (sub.payments ?? [])
-                .filter { Calendar.current.component(.year, from: $0.date) == year }
+                .filter { $0.isPaid && Calendar.current.component(.year, from: $0.paidDate ?? $0.date) == year }
                 .map { (sub, $0) }
         }
-        .sorted { $0.1.date < $1.1.date }
+        .sorted { ($0.1.paidDate ?? $0.1.date) < ($1.1.paidDate ?? $1.1.date) }
 
         for (sub, payment) in payments {
             let columns = [
                 sub.payeeName,
-                dateFormatter.string(from: payment.date),
+                dateFormatter.string(from: payment.paidDate ?? payment.date),
                 String(format: "%.2f", payment.amount),
                 payment.method.label,
                 payment.detail,

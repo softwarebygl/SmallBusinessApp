@@ -27,6 +27,8 @@ final class Subcontractor {
     var businessName: String = ""
     var email: String = ""
     var phone: String = ""
+    /// Optional default pay rate, so an amount can be logged as "hours × rate". 0 = no rate set.
+    var hourlyRate: Double = 0
     var address: Address = Address()
     var isActive: Bool = true
     var notes: String = ""
@@ -49,6 +51,7 @@ final class Subcontractor {
         businessName: String = "",
         email: String = "",
         phone: String = "",
+        hourlyRate: Double = 0,
         address: Address = Address(),
         isActive: Bool = true,
         notes: String = ""
@@ -58,36 +61,50 @@ final class Subcontractor {
         self.businessName = businessName
         self.email = email
         self.phone = phone
+        self.hourlyRate = hourlyRate
         self.address = address
         self.isActive = isActive
         self.notes = notes
     }
 }
 
-// MARK: - Payment to a subcontractor
+// MARK: - Subcontractor ledger entry (what you owe a sub, and what you've paid)
 
+/// One line in a subcontractor's ledger. `paidDate == nil` means it's **owed** (unpaid); once you
+/// pay it, `paidDate` is set and it counts toward the 1099 (which is cash-basis — money actually paid).
 @Model
 final class SubPayment {
     var amount: Double = 0
+    /// Hours behind the amount when logged as "hours × rate"; 0 for a flat amount.
+    var hours: Double = 0
+    /// When the work was done / the obligation was incurred.
     var date: Date = Date.now
+    /// When it was actually paid. nil = still owed.
+    var paidDate: Date?
     var method: PaymentMethod = PaymentMethod.check
-    /// What the payment was for (e.g. "Backsplash install — Reed job").
+    /// What it was for (e.g. "Backsplash install — Reed job").
     var detail: String = ""
 
     var subcontractor: Subcontractor?
     /// Optional job tag: the customer/job this work was for (enables cost-per-job including subs).
-    /// Nullified if the customer is removed, so the payment record survives.
+    /// Nullified if the customer is removed, so the record survives.
     var customer: Customer?
 
-    init(amount: Double = 0, date: Date = .now, method: PaymentMethod = .check,
-         detail: String = "", subcontractor: Subcontractor? = nil, customer: Customer? = nil) {
+    init(amount: Double = 0, hours: Double = 0, date: Date = .now, paidDate: Date? = nil,
+         method: PaymentMethod = .check, detail: String = "",
+         subcontractor: Subcontractor? = nil, customer: Customer? = nil) {
         self.amount = amount
+        self.hours = hours
         self.date = date
+        self.paidDate = paidDate
         self.method = method
         self.detail = detail
         self.subcontractor = subcontractor
         self.customer = customer
     }
+
+    /// Paid once a payment date is recorded; otherwise it's still owed.
+    var isPaid: Bool { paidDate != nil }
 }
 
 // MARK: - Display + 1099 math
@@ -137,15 +154,23 @@ nonisolated extension Subcontractor {
         (payments ?? []).sorted { $0.date > $1.date }
     }
 
+    /// Amount owed but not yet paid (the sum of unpaid ledger entries).
+    var outstanding: Double {
+        (payments ?? []).filter { !$0.isPaid }.reduce(0) { $0 + $1.amount }
+    }
+    var hasOutstanding: Bool { outstanding > 0.005 }
+
+    /// Amount actually PAID in `year` (by payment date) — the 1099-NEC figure (cash basis). Unpaid
+    /// "owed" entries do not count until they're paid.
     func totalPaid(year: Int = Calendar.current.component(.year, from: .now)) -> Double {
         (payments ?? [])
-            .filter { Calendar.current.component(.year, from: $0.date) == year }
+            .filter { $0.isPaid && Calendar.current.component(.year, from: $0.paidDate ?? $0.date) == year }
             .reduce(0) { $0 + $1.amount }
     }
 
-    /// All-time total paid (across every year).
+    /// All-time total actually paid (across every year).
     var lifetimePaid: Double {
-        (payments ?? []).reduce(0) { $0 + $1.amount }
+        (payments ?? []).filter(\.isPaid).reduce(0) { $0 + $1.amount }
     }
 
     /// True once year-to-date pay reaches the $600 1099-NEC threshold.

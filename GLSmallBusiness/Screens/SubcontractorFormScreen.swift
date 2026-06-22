@@ -31,8 +31,10 @@ struct SubcontractorFormScreen: View {
     @State private var postalCode: String
     @State private var isActive: Bool
     @State private var notes: String
+    @State private var hourlyRate: Double
     @State private var w9TINType: W9TINType?
     @State private var w9TIN: String
+    @State private var showingContactPicker = false
 
     init(editing: Subcontractor? = nil, onSave: ((Subcontractor) -> Void)? = nil) {
         self.editing = editing
@@ -49,6 +51,7 @@ struct SubcontractorFormScreen: View {
         _postalCode   = State(initialValue: editing?.address.postalCode ?? "")
         _isActive     = State(initialValue: editing?.isActive ?? true)
         _notes        = State(initialValue: editing?.notes ?? "")
+        _hourlyRate   = State(initialValue: editing?.hourlyRate ?? 0)
         _w9TINType    = State(initialValue: editing?.w9TINType)
         _w9TIN        = State(initialValue: editing?.secureTIN ?? "")
     }
@@ -62,6 +65,16 @@ struct SubcontractorFormScreen: View {
     var body: some View {
         NavigationStack {
             Form {
+                if editing == nil {
+                    Section {
+                        Button { showingContactPicker = true } label: {
+                            Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
+                        }
+                    } footer: {
+                        Text("Pull a name, business, phone, email, and address from your phone's contacts.")
+                            .textCase(nil)
+                    }
+                }
                 Section("Name") {
                     TextField("First name", text: $firstName)
                         .textContentType(.givenName)
@@ -102,6 +115,17 @@ struct SubcontractorFormScreen: View {
                         #endif
                 }
                 Section {
+                    LabeledContent("Hourly rate") {
+                        AutoClearNumberField(placeholder: "$0.00", value: $hourlyRate, style: .currency)
+                            .multilineTextAlignment(.trailing)
+                    }
+                } header: {
+                    Text("Pay rate")
+                } footer: {
+                    Text("Optional. If set, you can log what you owe as “hours × rate.” Leave at $0 to enter flat amounts.")
+                        .textCase(nil)
+                }
+                Section {
                     Picker("Taxpayer ID type", selection: $w9TINType) {
                         Text("Select…").tag(W9TINType?.none)
                         ForEach(W9TINType.allCases) { Text($0.label).tag(W9TINType?.some($0)) }
@@ -129,6 +153,20 @@ struct SubcontractorFormScreen: View {
                 }
             }
             .glFormBackground()
+            .sheet(isPresented: $showingContactPicker) {
+                ContactPickerView { contact in
+                    let draft = ContactsBridge.draft(from: contact)
+                    firstName = draft.firstName; lastName = draft.lastName
+                    businessName = draft.businessName
+                    email = draft.email; phone = draft.phoneNumber
+                    street1 = draft.street1; street2 = draft.street2
+                    city = draft.city; state = draft.state; postalCode = draft.postalCode
+                    showingContactPicker = false
+                } onCancel: {
+                    showingContactPicker = false
+                }
+                .ignoresSafeArea()
+            }
             .navigationTitle(editing == nil ? "New Subcontractor" : "Edit Subcontractor")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
@@ -156,6 +194,7 @@ struct SubcontractorFormScreen: View {
             sub.businessName = trim(businessName)
             sub.email = trim(email)
             sub.phone = trim(phone)
+            sub.hourlyRate = hourlyRate
             sub.address = address
             sub.isActive = isActive
             sub.notes = trim(notes)
@@ -164,7 +203,7 @@ struct SubcontractorFormScreen: View {
             let sub = Subcontractor(
                 firstName: trim(firstName), lastName: trim(lastName),
                 businessName: trim(businessName), email: trim(email), phone: trim(phone),
-                address: address, isActive: isActive, notes: trim(notes)
+                hourlyRate: hourlyRate, address: address, isActive: isActive, notes: trim(notes)
             )
             modelContext.insert(sub)
             saved = sub

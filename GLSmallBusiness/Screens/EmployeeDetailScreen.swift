@@ -18,18 +18,21 @@ struct EmployeeDetailScreen: View {
     let employee: Employee
 
     @State private var activeSheet: ActiveSheet?
+    @State private var showingSaveToContacts = false
 
-    /// One sheet driver for the screen: edit the employee, or add/edit an hours entry or a paycheck
-    /// (a nil associated value = "new"). A single `.sheet(item:)` avoids stacking many sheet modifiers.
+    /// One sheet driver for the screen: edit the employee, add/edit an hours entry or a paycheck
+    /// (nil = "new"), or view all hours. A single `.sheet(item:)` avoids stacking many sheet modifiers.
     private enum ActiveSheet: Identifiable {
         case editEmployee
         case logHours(TimeEntry?)
         case recordPaycheck(Paycheck?)
+        case allHours
         var id: String {
             switch self {
             case .editEmployee: "edit"
             case .logHours(let entry): "hours-\(entry?.persistentModelID.hashValue ?? 0)"
             case .recordPaycheck(let check): "check-\(check?.persistentModelID.hashValue ?? 0)"
+            case .allHours: "allHours"
             }
         }
     }
@@ -56,8 +59,15 @@ struct EmployeeDetailScreen: View {
         .toolbarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { activeSheet = .editEmployee } label: { Image(systemName: "pencil") }
-                    .accessibilityLabel("Edit employee")
+                Menu {
+                    Button { activeSheet = .editEmployee } label: { Label("Edit employee", systemImage: "pencil") }
+                    Button { showingSaveToContacts = true } label: {
+                        Label("Save to Contacts", systemImage: "person.crop.circle.badge.plus")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("More")
             }
         }
         .sheet(item: $activeSheet) { sheet in
@@ -68,7 +78,13 @@ struct EmployeeDetailScreen: View {
                 LogHoursSheet(employee: employee, existing: entry).glAppearance(colorScheme)
             case .recordPaycheck(let check):
                 RecordPaycheckSheet(employee: employee, existing: check).glAppearance(colorScheme)
+            case .allHours:
+                AllHoursSheet(employee: employee).glAppearance(colorScheme)
             }
+        }
+        .sheet(isPresented: $showingSaveToContacts) {
+            NewContactView(contact: ContactsBridge.contact(from: employee)) { showingSaveToContacts = false }
+                .ignoresSafeArea()
         }
     }
 
@@ -163,20 +179,25 @@ struct EmployeeDetailScreen: View {
     // MARK: - Hours
 
     private var hoursCard: some View {
-        GLCard(title: "Hours") {
+        GLCard {
             let entries = employee.sortedTimeEntries
+            HStack {
+                Text("Hours").font(.headline)
+                Spacer()
+                if entries.count > 5 {
+                    Button("View All") { activeSheet = .allHours }
+                        .font(.subheadline.weight(.medium)).foregroundStyle(gold)
+                }
+            }
             if entries.isEmpty {
                 Text("No hours logged yet.")
                     .font(.subheadline).foregroundStyle(.secondary)
             } else {
-                ForEach(entries.prefix(10)) { entry in
+                let recent = Array(entries.prefix(5))
+                ForEach(recent) { entry in
                     Button { activeSheet = .logHours(entry) } label: { hoursRow(entry) }
                         .buttonStyle(.plain)
-                    if entry.id != entries.prefix(10).last?.id { Divider() }
-                }
-                if entries.count > 10 {
-                    Text("Showing the 10 most recent of \(entries.count).")
-                        .font(.caption).foregroundStyle(.secondary).padding(.top, 2)
+                    if entry.id != recent.last?.id { Divider() }
                 }
             }
             Button { activeSheet = .logHours(nil) } label: {
@@ -262,6 +283,100 @@ struct EmployeeDetailScreen: View {
             Text(value)
         }
         .font(.subheadline)
+    }
+}
+
+// MARK: - All hours sheet (full, date-filterable list)
+
+private struct AllHoursSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    let employee: Employee
+
+    private enum Range: String, CaseIterable, Identifiable {
+        case all = "All", year = "This year", custom = "Custom"
+        var id: String { rawValue }
+    }
+    @State private var range: Range = .all
+    @State private var from: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
+    @State private var to: Date = .now
+    @State private var editing: TimeEntry?
+
+    private var filtered: [TimeEntry] {
+        let all = employee.sortedTimeEntries
+        let cal = Calendar.current
+        switch range {
+        case .all:
+            return all
+        case .year:
+            let y = cal.component(.year, from: .now)
+            return all.filter { cal.component(.year, from: $0.date) == y }
+        case .custom:
+            let lo = cal.startOfDay(for: from)
+            let hi = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: to)) ?? to
+            return all.filter { $0.date >= lo && $0.date < hi }
+        }
+    }
+    private var totalHours: Double { filtered.reduce(0) { $0 + $1.hours } }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                Picker("Range", selection: $range) {
+                    ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .padding()
+                if range == .custom {
+                    VStack(spacing: 6) {
+                        DatePicker("From", selection: $from, displayedComponents: .date)
+                        DatePicker("To", selection: $to, displayedComponents: .date)
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+                }
+                List {
+                    if filtered.isEmpty {
+                        ContentUnavailableView("No hours in this range", systemImage: "clock")
+                            .listRowBackground(Color.clear)
+                    } else {
+                        Section {
+                            ForEach(filtered) { entry in
+                                Button { editing = entry } label: { row(entry) }
+                                    .buttonStyle(.plain)
+                                    .listRowBackground(Color.clear)
+                            }
+                        } footer: {
+                            Text("\(totalHours.formatted(.number)) hours · \(filtered.count) \(filtered.count == 1 ? "entry" : "entries")")
+                        }
+                    }
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+            }
+            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+            .navigationTitle("All Hours")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } } }
+            .sheet(item: $editing) { entry in
+                LogHoursSheet(employee: employee, existing: entry).glAppearance(colorScheme)
+            }
+        }
+    }
+
+    private func row(_ entry: TimeEntry) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.date.formatted(date: .abbreviated, time: .omitted))
+                if let customer = entry.customer {
+                    Text(customer.listDisplayName).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Text("\(entry.hours.formatted(.number)) hr").foregroundStyle(.secondary)
+        }
+        .font(.subheadline)
+        .contentShape(Rectangle())
     }
 }
 

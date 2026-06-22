@@ -31,6 +31,7 @@ struct EmployeeFormScreen: View {
     @State private var hireDate: Date
     @State private var isActive: Bool
     @State private var notes: String
+    @State private var showingContactPicker = false
 
     init(editing: Employee? = nil, onSave: ((Employee) -> Void)? = nil) {
         self.editing = editing
@@ -56,6 +57,17 @@ struct EmployeeFormScreen: View {
     var body: some View {
         NavigationStack {
             Form {
+                if editing == nil {
+                    Section {
+                        Button { showingContactPicker = true } label: {
+                            Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
+                        }
+                    } footer: {
+                        Text("Pull a name, phone, and email straight from your phone's contacts.")
+                            .textCase(nil)
+                    }
+                }
+
                 Section("Name") {
                     TextField("First name", text: $firstName)
                         .textContentType(.givenName)
@@ -113,6 +125,17 @@ struct EmployeeFormScreen: View {
                 }
             }
             .glFormBackground()
+            .sheet(isPresented: $showingContactPicker) {
+                ContactPickerView { contact in
+                    let draft = ContactsBridge.draft(from: contact)
+                    firstName = draft.firstName; lastName = draft.lastName
+                    email = draft.email; phone = draft.phoneNumber
+                    showingContactPicker = false
+                } onCancel: {
+                    showingContactPicker = false
+                }
+                .ignoresSafeArea()
+            }
             .navigationTitle(editing == nil ? "New Employee" : "Edit Employee")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {

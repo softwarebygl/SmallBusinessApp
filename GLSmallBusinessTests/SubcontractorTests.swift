@@ -72,6 +72,7 @@ struct SubcontractorPayTests {
         #expect(sub.sortedPayments.isEmpty)
         #expect(close(sub.totalPaid(year: 2026), 0))
         #expect(close(sub.lifetimePaid, 0))
+        #expect(close(sub.outstanding, 0) && !sub.hasOutstanding)
         #expect(!sub.requires1099(year: 2026))
     }
 
@@ -102,6 +103,35 @@ struct Subcontractor1099SummaryTests {
     @Test func emptyRosterIsZero() {
         let totals = Subcontractor1099Summary.forYear([], year: 2026)
         #expect(close(totals.totalPaid, 0) && totals.count1099 == 0)
+    }
+}
+
+@MainActor
+struct SubcontractorOwedTests {
+    @Test func owedIsOutstandingAndExcludedFromPaid() {
+        let sub = TS.subcontractor()
+        TS.oweSub(sub, 500, hours: 25, date: TS.day(2026, 6, 19))   // owed
+        TS.paySub(sub, 400, date: TS.day(2026, 6, 1))               // paid
+        #expect(close(sub.outstanding, 500) && sub.hasOutstanding)
+        #expect(close(sub.totalPaid(year: 2026), 400))              // owed $500 NOT counted
+        #expect(close(sub.lifetimePaid, 400))
+        #expect(!sub.requires1099(year: 2026))                      // only $400 paid (< $600); owed doesn't trigger it
+    }
+
+    @Test func totalPaidUsesPaidDateNotWorkDate() {
+        let sub = TS.subcontractor()
+        let p = TS.paySub(sub, 700, date: TS.day(2026, 1, 5))
+        p.paidDate = TS.day(2027, 1, 5)                             // worked in 2026, paid in 2027
+        #expect(close(sub.totalPaid(year: 2026), 0))
+        #expect(close(sub.totalPaid(year: 2027), 700))
+    }
+
+    @Test func markingOwedPaidMovesItIntoPaid() {
+        let sub = TS.subcontractor()
+        let entry = TS.oweSub(sub, 600, date: TS.day(2026, 6, 1))
+        #expect(!entry.isPaid && close(sub.outstanding, 600) && close(sub.totalPaid(year: 2026), 0))
+        entry.paidDate = TS.day(2026, 6, 10)                        // pay it
+        #expect(entry.isPaid && close(sub.outstanding, 0) && close(sub.totalPaid(year: 2026), 600))
     }
 }
 

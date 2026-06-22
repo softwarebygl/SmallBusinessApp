@@ -88,6 +88,44 @@ enum ContactsBridge {
         }
         return c
     }
+
+    /// Builds an editable contact pre-filled from an employee (name + email + mobile phone).
+    static func contact(from employee: Employee) -> CNMutableContact {
+        let c = CNMutableContact()
+        c.givenName = employee.firstName
+        c.familyName = employee.lastName
+        if !employee.email.isEmpty {
+            c.emailAddresses = [CNLabeledValue(label: CNLabelWork, value: employee.email as NSString)]
+        }
+        if !employee.phone.isEmpty {
+            c.phoneNumbers = [CNLabeledValue(label: CNLabelPhoneNumberMobile, value: CNPhoneNumber(stringValue: employee.phone))]
+        }
+        return c
+    }
+
+    /// Builds an editable contact pre-filled from a subcontractor (name, business, email, phone, address).
+    static func contact(from sub: Subcontractor) -> CNMutableContact {
+        let c = CNMutableContact()
+        c.givenName = sub.firstName
+        c.familyName = sub.lastName
+        if !sub.businessName.isEmpty { c.organizationName = sub.businessName }
+        if !sub.email.isEmpty {
+            c.emailAddresses = [CNLabeledValue(label: CNLabelWork, value: sub.email as NSString)]
+        }
+        if !sub.phone.isEmpty {
+            c.phoneNumbers = [CNLabeledValue(label: CNLabelPhoneNumberMobile, value: CNPhoneNumber(stringValue: sub.phone))]
+        }
+        let a = sub.address
+        if !a.isEmpty {
+            let postal = CNMutablePostalAddress()
+            postal.street = [a.street1, a.street2 ?? ""].filter { !$0.isEmpty }.joined(separator: "\n")
+            postal.city = a.city
+            postal.state = a.state
+            postal.postalCode = a.postalCode
+            c.postalAddresses = [CNLabeledValue(label: CNLabelWork, value: postal)]
+        }
+        return c
+    }
 }
 
 // MARK: - Import: system contact picker
