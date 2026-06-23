@@ -163,40 +163,50 @@ enum StatsEngine {
         receipts: [Receipt],
         calendar: Calendar
     ) -> [InOutBucket] {
-        func moneyIn(where matches: (Date) -> Bool) -> Double {
-            invoices.reduce(0) { running, invoice in
-                running + invoice.sortedPayments.filter { matches($0.date) }.reduce(0) { $0 + $1.amount }
+        // Which bucket a date falls in for this period (month-of-year, year, or the single month),
+        // or nil when the date is outside the period. One pass over payments + receipts fills both
+        // dictionaries, instead of re-scanning every row once per bucket.
+        func bucketKey(for date: Date) -> Int? {
+            let parts = calendar.dateComponents([.year, .month], from: date)
+            switch period {
+            case .year(let year):
+                guard parts.year == year, let month = parts.month else { return nil }
+                return month
+            case .all:
+                return parts.year
+            case .month(let year, let month):
+                guard parts.year == year, parts.month == month else { return nil }
+                return 0
             }
         }
-        func moneyOut(where matches: (Date) -> Bool) -> Double {
-            receipts.filter { matches($0.date) }.reduce(0) { $0 + $1.total }
+
+        var inByKey: [Int: Double] = [:]
+        var outByKey: [Int: Double] = [:]
+        for invoice in invoices {
+            for payment in (invoice.payments ?? []) {   // order doesn't matter for a sum — skip the sort
+                if let key = bucketKey(for: payment.date) { inByKey[key, default: 0] += payment.amount }
+            }
+        }
+        for receipt in receipts {
+            if let key = bucketKey(for: receipt.date) { outByKey[key, default: 0] += receipt.total }
         }
 
         switch period {
-        case .year(let year):
+        case .year:
             let symbols = calendar.shortMonthSymbols
             return (1...12).map { month in
-                let matches: (Date) -> Bool = {
-                    let parts = calendar.dateComponents([.year, .month], from: $0)
-                    return parts.year == year && parts.month == month
-                }
-                return InOutBucket(label: symbols[month - 1], sortKey: month,
-                                   moneyIn: moneyIn(where: matches), moneyOut: moneyOut(where: matches))
+                InOutBucket(label: symbols[month - 1], sortKey: month,
+                            moneyIn: inByKey[month] ?? 0, moneyOut: outByKey[month] ?? 0)
             }
         case .all:
             let years = availableYears(invoices: invoices, estimates: [], receipts: receipts, calendar: calendar).sorted()
             return years.map { year in
-                let matches: (Date) -> Bool = { calendar.component(.year, from: $0) == year }
-                return InOutBucket(label: String(year), sortKey: year,
-                                   moneyIn: moneyIn(where: matches), moneyOut: moneyOut(where: matches))
+                InOutBucket(label: String(year), sortKey: year,
+                            moneyIn: inByKey[year] ?? 0, moneyOut: outByKey[year] ?? 0)
             }
-        case .month(let year, let month):
-            let matches: (Date) -> Bool = {
-                let parts = calendar.dateComponents([.year, .month], from: $0)
-                return parts.year == year && parts.month == month
-            }
+        case .month:
             return [InOutBucket(label: period.label, sortKey: 0,
-                                moneyIn: moneyIn(where: matches), moneyOut: moneyOut(where: matches))]
+                                moneyIn: inByKey[0] ?? 0, moneyOut: outByKey[0] ?? 0)]
         }
     }
 }

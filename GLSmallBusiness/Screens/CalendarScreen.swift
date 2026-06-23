@@ -231,20 +231,11 @@ private struct MonthGrid: View {
 
     /// Day cells for the displayed month: leading blanks (nil) then each day, aligned to firstWeekday.
     private func monthCells() -> [Date?] {
-        guard let range = calendar.range(of: .day, in: .month, for: monthStart) else { return [] }
-        let firstWeekday = calendar.component(.weekday, from: monthStart)
-        let leading = (firstWeekday - calendar.firstWeekday + 7) % 7
-        var cells: [Date?] = Array(repeating: nil, count: leading)
-        for day in range {
-            cells.append(calendar.date(byAdding: .day, value: day - 1, to: monthStart))
-        }
-        return cells
+        CalendarGrid.monthCells(monthStart: monthStart, calendar: calendar)
     }
 
     private func orderedShortWeekdaySymbols() -> [String] {
-        let symbols = calendar.veryShortWeekdaySymbols   // [Sun … Sat]
-        let start = calendar.firstWeekday - 1            // 0-based
-        return (0..<7).map { symbols[($0 + start) % 7] }
+        CalendarGrid.orderedShortWeekdaySymbols(calendar: calendar)
     }
 }
 

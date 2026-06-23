@@ -93,6 +93,18 @@ struct EmployeePayMathTests {
         #expect(close(employee.unpaidHours, 5))
     }
 
+    /// Hours logged later in the day on the paycheck's last covered day must count as PAID, not unpaid —
+    /// the figure is compared by whole day so it agrees with the next paycheck's prefilled date range.
+    @Test func unpaidHoursTreatsPeriodEndDayAsCovered() {
+        let employee = TS.employee(hourlyRate: 20)
+        let periodEndAfternoon = TS.day(2026, 6, 7).addingTimeInterval(14 * 3600)   // 2 PM on the period-end day
+        TS.logHours(employee, 6, date: periodEndAfternoon)    // same day as period end → covered
+        TS.logHours(employee, 4, date: TS.day(2026, 6, 8))    // the day after → unpaid
+        TS.paycheck(employee, gross: 320, hours: 16, periodStart: TS.day(2026, 6, 1),
+                    periodEnd: TS.day(2026, 6, 7), payDate: TS.day(2026, 6, 8))
+        #expect(close(employee.unpaidHours, 4))
+    }
+
     @Test func accruedGrossHourly() {
         let employee = TS.employee(payType: .hourly, hourlyRate: 30)
         TS.logHours(employee, 10)

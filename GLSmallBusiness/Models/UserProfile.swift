@@ -38,6 +38,15 @@ extension UserProfile {
             .joined(separator: " ")
     }
 
+    /// Up to two uppercase initials for the avatar monogram; "?" when no name is set.
+    var initials: String {
+        let parts = [firstName, lastName].compactMap {
+            $0.trimmingCharacters(in: .whitespacesAndNewlines).first
+        }
+        let combined = parts.map(String.init).joined().uppercased()
+        return combined.isEmpty ? "?" : combined
+    }
+
     var hasDetails: Bool {
         !fullName.isEmpty
             || !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

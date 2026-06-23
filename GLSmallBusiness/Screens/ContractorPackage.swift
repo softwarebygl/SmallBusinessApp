@@ -119,10 +119,10 @@ struct ContractorPackageSheet: View {
             .fileImporter(isPresented: $showingCOIImporter, allowedContentTypes: [.pdf, .image]) { result in
                 importCOI(result)
             }
-            .alert("Couldn't read that file", isPresented: $coiUploadFailed) {
+            .alert("Couldn’t read that file", isPresented: $coiUploadFailed) {
                 Button("OK", role: .cancel) {}
             } message: {
-                Text("That file couldn't be opened. Try a different file, or export it as a PDF first.")
+                Text("That file couldn’t be opened. Try a different file, or export it as a PDF first.")
             }
             .sheet(isPresented: $showingDocuments, onDismiss: refreshAvailability) {
                 ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)

@@ -366,24 +366,31 @@ struct W9DocumentSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(.black.opacity(0.1)))
                 .shadow(radius: 4, y: 2)
-        }
 
-        DocActionRow(title: "Update tax details",
-                     subtitle: "Name, classification, and Tax ID.",
-                     systemImage: "square.and.pencil") { showingEdit = true }
+            DocActionRow(title: "Update tax details",
+                         subtitle: "Name, classification, and Tax ID.",
+                         systemImage: "square.and.pencil") { showingEdit = true }
 
-        signatureControls
+            signatureControls
 
-        if signing {
-            Text("Signed with your saved signature, dated today. Review before sending.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+            if signing {
+                Text("Signed with your saved signature, dated today. Review before sending.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            } else {
+                Text("Review the details. Print or send the W-9, then sign and date it by hand before giving it to the requester.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
         } else {
-            Text("Review the details. Print or send the W-9, then sign and date it by hand before giving it to the requester.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+            // Details are complete but the document didn't build — show a clear retry instead of a
+            // blank screen with print/send instructions and nothing to share.
+            DocumentGenerationError { regenerate() }
+            DocActionRow(title: "Update tax details",
+                         subtitle: "Name, classification, and Tax ID.",
+                         systemImage: "square.and.pencil") { showingEdit = true }
         }
     }
 

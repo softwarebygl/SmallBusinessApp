@@ -56,8 +56,7 @@ struct EmployeeDetailScreen: View {
                 header
                 contactCard
                 moreInfoRow
-                VStack(alignment: .leading, spacing: 12) {
-                    GLSectionHeader(title: "Payroll")
+                GLSection("Payroll") {
                     paydayCard
                     if employee.isOverFortyThisWeek { overtimeFlag }
                     hoursCard
@@ -174,24 +173,7 @@ struct EmployeeDetailScreen: View {
     }
 
     private var moreInfoRow: some View {
-        NavigationLink {
-            EmployeeDetailsScreen(employee: employee)
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "list.bullet.rectangle")
-                    .frame(width: 24)
-                    .foregroundStyle(gold)
-                Text("More Info")
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glCardBackground()
-        }
-        .buttonStyle(.plain)
+        GLHubRow(title: "More Info") { EmployeeDetailsScreen(employee: employee) }
     }
 
     // MARK: - Payday due
@@ -664,7 +646,7 @@ private struct RecordPaycheckSheet: View {
     }
 
     /// The pay period must not run backwards.
-    private var periodValid: Bool { payPeriodEnd >= payPeriodStart }
+    private var periodValid: Bool { PayPeriod.isValid(start: payPeriodStart, end: payPeriodEnd) }
 
     var body: some View {
         NavigationStack {

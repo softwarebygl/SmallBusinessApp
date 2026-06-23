@@ -229,11 +229,16 @@ nonisolated extension Employee {
         (paychecks ?? []).map(\.payPeriodEnd).max()
     }
 
-    /// Hours logged that haven't been covered by a recorded paycheck yet.
+    /// Hours logged that haven't been covered by a recorded paycheck yet. Compared by whole day so the
+    /// dollar figure agrees with the next paycheck's prefilled date range (which starts the day after the
+    /// last covered period) — an entry on the period-end day itself counts as paid, not unpaid.
     var unpaidHours: Double {
-        let cutoff = lastCoveredThrough
+        guard let cutoff = lastCoveredThrough else {
+            return (timeEntries ?? []).reduce(0) { $0 + $1.hours }
+        }
+        let cutoffDay = calendar.startOfDay(for: cutoff)
         return (timeEntries ?? [])
-            .filter { cutoff == nil || $0.date > cutoff! }
+            .filter { calendar.startOfDay(for: $0.date) > cutoffDay }
             .reduce(0) { $0 + $1.hours }
     }
 

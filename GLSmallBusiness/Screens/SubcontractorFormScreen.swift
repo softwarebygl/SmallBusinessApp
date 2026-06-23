@@ -36,6 +36,9 @@ struct SubcontractorFormScreen: View {
     @State private var w9TIN: String
     @State private var showingContactPicker = false
     @State private var tinSaveFailed = false
+    /// In-flight guard: prevents a double-tap from inserting twice, but resets on a Tax-ID failure so
+    /// the user can unlock and tap Save again (unlike SaveOnceButton, which would stay dead).
+    @State private var isSaving = false
 
     init(editing: Subcontractor? = nil, onSave: ((Subcontractor) -> Void)? = nil) {
         self.editing = editing
@@ -169,13 +172,18 @@ struct SubcontractorFormScreen: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: !isValid, action: save)
+                    Button("Save") {
+                        guard !isSaving else { return }
+                        isSaving = true
+                        save()
+                    }
+                    .disabled(!isValid || isSaving)
                 }
             }
             .alert("Couldn’t save their Tax ID", isPresented: $tinSaveFailed) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("Their other details were saved, but the Tax ID wasn’t — it needs your device unlocked. You can add it later by editing them.")
+                Text("Their other details were saved, but the Tax ID wasn’t. Make sure your device is unlocked, then tap Save again.")
             }
         }
     }
@@ -214,7 +222,7 @@ struct SubcontractorFormScreen: View {
         let tinSaved = saved.updateTIN(w9TIN)
         // Everything but the secure Tax ID is saved; if that one write failed, keep the form open
         // and tell the user instead of dismissing as if it all saved.
-        guard tinSaved else { tinSaveFailed = true; return }
+        guard tinSaved else { tinSaveFailed = true; isSaving = false; return }
         onSave?(saved)
         dismiss()
     }

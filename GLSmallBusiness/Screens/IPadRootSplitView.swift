@@ -331,7 +331,7 @@ private struct CustomerListColumn: View {
         PersonRowCard(name: customer.listDisplayName,
                       showsChevron: false,
                       isSelected: selection == customer.persistentModelID) {
-            CustomerAvatar(customer: customer, size: 60)
+            ProfileAvatar(imageData: customer.profileImageData, initials: customer.initials, size: 60)
         }
     }
 

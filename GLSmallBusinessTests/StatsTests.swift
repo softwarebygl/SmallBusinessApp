@@ -103,4 +103,33 @@ struct StatsTests {
         #expect(close(june?.moneyIn ?? -1, 600))
         #expect(close(june?.moneyOut ?? -1, 200))
     }
+
+    // Covers the single-pass bucketing's all-time (by year) branch.
+    @Test func inOutBucketsByYearForAllTime() {
+        let inv = TS.invoice(createdAt: TS.day(2025, 1, 1), lines: [(1000, false)])
+        TS.pay(inv, 300, date: TS.day(2025, 7, 1))
+        TS.pay(inv, 400, date: TS.day(2026, 2, 1))
+        let r2025 = TS.receipt(total: 100, category: "Tools", date: TS.day(2025, 5, 1))
+        let r2026 = TS.receipt(total: 150, category: "Fuel", date: TS.day(2026, 3, 1))
+        let s = StatsEngine.summary(period: .all, invoices: [inv], estimates: [], receipts: [r2025, r2026])
+        let y2025 = s.inOut.first { $0.sortKey == 2025 }
+        let y2026 = s.inOut.first { $0.sortKey == 2026 }
+        #expect(close(y2025?.moneyIn ?? -1, 300))
+        #expect(close(y2025?.moneyOut ?? -1, 100))
+        #expect(close(y2026?.moneyIn ?? -1, 400))
+        #expect(close(y2026?.moneyOut ?? -1, 150))
+    }
+
+    // Covers the single-pass bucketing's single-month branch — items in other months are excluded.
+    @Test func inOutBucketForSpecificMonth() {
+        let inv = TS.invoice(createdAt: TS.day(2026, 6, 1), lines: [(2000, false)])
+        TS.pay(inv, 500, date: TS.day(2026, 6, 10))
+        TS.pay(inv, 999, date: TS.day(2026, 7, 10))   // different month — must be excluded
+        let rJune = TS.receipt(total: 80, category: "Tools", date: TS.day(2026, 6, 12))
+        let rJuly = TS.receipt(total: 70, category: "Fuel", date: TS.day(2026, 7, 12))   // excluded
+        let s = StatsEngine.summary(period: .month(year: 2026, month: 6), invoices: [inv], estimates: [], receipts: [rJune, rJuly])
+        #expect(s.inOut.count == 1)
+        #expect(close(s.inOut.first?.moneyIn ?? -1, 500))
+        #expect(close(s.inOut.first?.moneyOut ?? -1, 80))
+    }
 }

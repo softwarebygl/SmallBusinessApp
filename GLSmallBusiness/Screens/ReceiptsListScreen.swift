@@ -420,21 +420,8 @@ struct ReceiptListView: View {
     // MARK: - Rows
 
     private func thumbnail(_ receipt: Receipt) -> some View {
-        Group {
-            if let data = receipt.scanData, let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                ZStack {
-                    gold.opacity(0.15)
-                    Image(systemName: "doc.text.image")
-                        .foregroundStyle(gold)
-                }
-            }
-        }
-        .frame(width: 44, height: 44)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        // Downsamples off the main thread — full-resolution scans must never decode per row while scrolling.
+        ScanThumbnail(data: receipt.scanData, size: 44)
     }
 
     private func rowContent(_ receipt: Receipt) -> some View {

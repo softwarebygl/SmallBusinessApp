@@ -199,7 +199,7 @@ struct CustomersScreen: View {
                       showsChevron: showsChevron,
                       isSelected: isSelected,
                       selectionMark: selectionMark) {
-            CustomerAvatar(customer: customer, size: 60)
+            ProfileAvatar(imageData: customer.profileImageData, initials: customer.initials, size: 60)
         }
     }
 

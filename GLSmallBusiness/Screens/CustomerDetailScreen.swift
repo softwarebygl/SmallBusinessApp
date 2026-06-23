@@ -98,10 +98,10 @@ struct CustomerDetailScreen: View {
                 coiUploadFailed = true
             }
         }
-        .alert("Couldn't read that file", isPresented: $coiUploadFailed) {
+        .alert("Couldn’t read that file", isPresented: $coiUploadFailed) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("That file couldn't be opened. Try a different file, or export it as a PDF first.")
+            Text("That file couldn’t be opened. Try a different file, or export it as a PDF first.")
         }
         .sheet(isPresented: $showingPackage) {
             if let profile = profiles.first {
@@ -115,7 +115,7 @@ struct CustomerDetailScreen: View {
     private var header: some View {
         VStack(spacing: 12) {
             PhotosPicker(selection: $photoItem, matching: .images) {
-                CustomerAvatar(customer: customer, size: 110, showsCameraBadge: true)
+                ProfileAvatar(imageData: customer.profileImageData, initials: customer.initials, size: 110, showsCameraBadge: true)
             }
             .buttonStyle(.plain)
 
@@ -145,24 +145,7 @@ struct CustomerDetailScreen: View {
     /// The hub's link into the read-only categorized details (where Edit lives) — same flow as
     /// My Business Details.
     private var moreInfoRow: some View {
-        NavigationLink {
-            CustomerDetailsScreen(customer: customer)
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "list.bullet.rectangle")
-                    .frame(width: 24)
-                    .foregroundStyle(gold)
-                Text("More Info")
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glCardBackground()
-        }
-        .buttonStyle(.plain)
+        GLHubRow(title: "More Info") { CustomerDetailsScreen(customer: customer) }
     }
 
     private var documentsSection: some View {

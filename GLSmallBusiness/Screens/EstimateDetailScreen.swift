@@ -119,7 +119,9 @@ struct EstimateDetailScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .onAppear { regeneratePDF() }
+        // Only render on first appearance; the content-changing sheets re-render on dismiss, so revisiting
+        // the screen needn't rebuild the PDF.
+        .onAppear { if pdfURL == nil { regeneratePDF() } }
         .onChange(of: showingEdit) { _, isShowing in
             if !isShowing { regeneratePDF() }
         }

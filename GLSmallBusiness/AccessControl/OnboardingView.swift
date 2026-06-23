@@ -64,7 +64,7 @@ struct OnboardingView: View {
             VStack(spacing: 8) {
                 Image(systemName: "wifi.exclamationmark")
                     .font(.largeTitle).foregroundStyle(.secondary)
-                Text("Couldn't load plans right now").font(.headline)
+                Text("Couldn’t load plans right now").font(.headline)
                 Text("Check your connection and tap Retry.")
                     .font(.subheadline).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

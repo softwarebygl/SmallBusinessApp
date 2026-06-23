@@ -102,4 +102,23 @@ struct DateRangeFilterTests {
         #expect(DateRangeFilter.all.apply(to: empty, date: { $0 }).isEmpty)
         #expect(DateRangeFilter.year(2026).apply(to: empty, date: { $0 }).isEmpty)
     }
+
+    // MARK: - injected calendar
+
+    @Test func honorsInjectedCalendar() {
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(identifier: "UTC")!
+        let jan1 = utc.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+        let lateDec31 = utc.date(from: DateComponents(year: 2026, month: 12, day: 31, hour: 23))!
+        let nextYear = utc.date(from: DateComponents(year: 2027, month: 1, day: 1))!
+
+        let f = DateRangeFilter.year(2026)
+        #expect(f.matches(jan1, calendar: utc))
+        #expect(f.matches(lateDec31, calendar: utc))
+        #expect(!f.matches(nextYear, calendar: utc))
+
+        // apply(to:date:calendar:) routes through the same injected calendar.
+        let kept = f.apply(to: [jan1, lateDec31, nextYear], date: { $0 }, calendar: utc)
+        #expect(kept.count == 2)
+    }
 }

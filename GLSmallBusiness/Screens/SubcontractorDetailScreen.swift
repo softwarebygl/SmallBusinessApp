@@ -51,13 +51,11 @@ struct SubcontractorDetailScreen: View {
                 header
                 contactCard
                 moreInfoRow
-                VStack(alignment: .leading, spacing: 12) {
-                    GLSectionHeader(title: "Payments")
+                GLSection("Payments") {
                     balanceCard
                     activityCard
                 }
-                VStack(alignment: .leading, spacing: 12) {
-                    GLSectionHeader(title: "Tax")
+                GLSection("Tax") {
                     w9Card
                 }
             }
@@ -163,24 +161,7 @@ struct SubcontractorDetailScreen: View {
     }
 
     private var moreInfoRow: some View {
-        NavigationLink {
-            SubcontractorDetailsScreen(subcontractor: subcontractor)
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "list.bullet.rectangle")
-                    .frame(width: 24)
-                    .foregroundStyle(gold)
-                Text("More Info")
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glCardBackground()
-        }
-        .buttonStyle(.plain)
+        GLHubRow(title: "More Info") { SubcontractorDetailsScreen(subcontractor: subcontractor) }
     }
 
     // MARK: - Balance (owed + paid this year)
@@ -467,7 +448,7 @@ private struct Form1099NECSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    if canGenerate, let previewImage {
+                    if let previewImage {
                         Image(uiImage: previewImage)
                             .resizable().scaledToFit()
                             .frame(maxWidth: .infinity)
@@ -477,6 +458,10 @@ private struct Form1099NECSheet: View {
                             .shadow(radius: 4, y: 2)
                         Text("Copy B — give this to \(subcontractor.payeeName). Keep a copy for your records. File Copy A with the IRS yourself (e-file) or hand your accountant the Year-End Report.")
                             .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    } else if canGenerate {
+                        // Everything's filled in but the form didn't build — a generation failure, not
+                        // missing data. Offer a retry instead of an empty "add details" checklist.
+                        DocumentGenerationError { regenerate() }
                     } else {
                         missingCard
                     }

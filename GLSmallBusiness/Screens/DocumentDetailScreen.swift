@@ -118,10 +118,10 @@ struct DocumentDetailScreen: View {
                 dismiss()
             }
         }
-        .alert("Couldn't read that file", isPresented: $uploadFailed) {
+        .alert("Couldn’t read that file", isPresented: $uploadFailed) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("That file couldn't be opened. Try a different file, or export it as a PDF first.")
+            Text("That file couldn’t be opened. Try a different file, or export it as a PDF first.")
         }
     }
 }

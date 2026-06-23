@@ -53,19 +53,8 @@ struct MyPersonalInfoScreen: View {
     private func detail(_ profile: UserProfile) -> some View {
         ScrollView {
             VStack(spacing: 24) {
-                ZStack {
-                    if let data = profile.photoData, let uiImage = UIImage(data: data) {
-                        Image(uiImage: uiImage).resizable().scaledToFill()
-                    } else {
-                        gold.opacity(0.12)
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(gold)
-                    }
-                }
-                .frame(width: 110, height: 110)
-                .clipShape(Circle())
-                .frame(maxWidth: .infinity)
+                ProfileAvatar(imageData: profile.photoData, initials: profile.initials, size: 110)
+                    .frame(maxWidth: .infinity)
 
                 Text(profile.fullName.isEmpty ? String(localized: "Your name") : profile.fullName)
                     .font(.title2.weight(.semibold))
@@ -76,24 +65,7 @@ struct MyPersonalInfoScreen: View {
                     infoRow("Phone", profile.phone)
                 }
 
-                NavigationLink {
-                    PersonalDetailsScreen(profile: profile)
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "list.bullet.rectangle")
-                            .frame(width: 24)
-                            .foregroundStyle(gold)
-                        Text("More Info")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .glCardBackground()
-                }
-                .buttonStyle(.plain)
+                GLHubRow(title: "More Info") { PersonalDetailsScreen(profile: profile) }
 
                 Button {
                     Task { await openSignature(profile) }

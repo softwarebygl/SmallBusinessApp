@@ -138,7 +138,9 @@ struct InvoiceDetailScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .onAppear { regeneratePDF() }
+        // Only render on first appearance; every content-changing path (the edit / payment / amount-due /
+        // change-order sheets below) re-renders on dismiss, so revisiting the screen needn't rebuild the PDF.
+        .onAppear { if pdfURL == nil { regeneratePDF() } }
         .onChange(of: showingEdit) { _, isShowing in
             if !isShowing { regeneratePDF() }
         }
