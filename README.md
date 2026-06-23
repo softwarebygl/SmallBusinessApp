@@ -196,7 +196,34 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
-- **Done — NOT yet committed (built + verified on simulator):** **People-list polish + Contacts** (owner
+- **Done — committed `86a75d6` + follow-up (built + verified on iPhone & iPad simulators):** **App-wide
+  consistency pass (the GL way).** A sweep so every screen reads the same and nothing makes the user
+  do a double-take:
+  - **People rows** unified across Customers / Employees / Subcontractors (iPhone + iPad) via the one
+    `PersonRowCard`.
+  - **Detail hubs** all follow one shape: identity → **Contact** card → **More Info** (a read-only
+    categorized screen where Edit lives) → grouped action rows. Employee/Sub gained a Contact card;
+    hub avatars unified to `MonogramAvatar` @110.
+  - **Large navigation titles app-wide** on browse/list/hub screens — the entity name is the hub's
+    large title — with descender spacing. `Statistics` sits too deep in the Menu sheet for SwiftUI to
+    render a native large title, so it draws its title in-content with the same script font.
+  - **Sections everywhere:** hub action rows grouped under gray headers (new `GLSection`) matching the
+    Menu's `Section` style. Read-only "More Info" screens keep titled `GLCard`s.
+  - **Info popovers:** standalone explanatory footers replaced with a tappable ⓘ → popover (new
+    `InfoButton` / `InfoLabel`); live-value footers (running totals, end dates) and empty states stay
+    inline.
+  - **Preview everywhere:** new shared `DocumentPreviewSheet`; Estimate & Invoice get a **Preview**
+    action in their Menu, the contractor package reuses it, and Receipt / Change Order / W-9 / 1099 are
+    already preview-first — one PDFKit viewer (`CertificatePDFView`) throughout. CSV reports stay
+    share-only.
+  - **View All parity:** employee **Paychecks** and sub **Activity** got the date-filterable View-All
+    list the Hours card already had (`AllPaychecksSheet`, `AllActivitySheet`). Change-order **status**
+    picker moved into a `GLCard`.
+
+  New files: `GLSection`, `InfoButton`, `DocumentPreviewSheet`, and read-only
+  `Customer` / `Employee` / `Subcontractor` "More Info" detail screens. No model changes. 242 tests pass.
+
+- **Done — committed (built + verified on simulator):** **People-list polish + Contacts** (owner
   feedback). Employees & Subcontractors tabs: (a) the summary banner is split from a titled **section**
   (Team / Subcontractors); (b) rows now match the **Customers** style — a 60-pt monogram on the card, via a
   new shared `PersonRowCard` + `MonogramAvatar`; (c) added top breathing room below the script title
@@ -206,7 +233,7 @@ no migration needed until the first post-launch change).
   **Import from Contacts** (form) and **Save to Contacts** (detail), like customers (new
   `ContactsBridge.contact(from:)` overloads). No model changes. Tests: contact-builder mapping for
   employee/sub; 242 pass.
-- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Subcontractor owed → paid
+- **Done — committed (built + verified on iPhone & iPad simulators):** **Subcontractor owed → paid
   ledger** (owner feedback: "where do I record that I *owe* a sub, before I pay them?"). Each sub now has an
   optional **hourly rate**, and each ledger entry can be **owed (unpaid)** or **paid**: record what you owe
   (as hours × rate or a flat amount), see an **Outstanding (owed)** balance on the detail, and **mark it paid**
@@ -215,7 +242,7 @@ no migration needed until the first post-launch change).
   Additive model fields: `Subcontractor.hourlyRate`, `SubPayment.hours` + `SubPayment.paidDate` (nil = owed).
   Tests: outstanding vs. paid, owed excluded from 1099, paid-date-year, mark-paid; 240 tests pass. (Deploy
   the new fields to CloudKit Production — see TODO.)
-- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Calendar tab.** The 4th
+- **Done — committed (built + verified on iPhone & iPad simulators):** **Calendar tab.** The 4th
   top-level tab: scheduling for the business. A **"Next available date"** banner + **"View gaps"** (open
   workday stretches before booked work, looking 90 days ahead), a **month grid** with booked days marked,
   and an **Upcoming** agenda. You schedule **only from an accepted estimate or an invoice** (never free-form
@@ -230,7 +257,7 @@ no migration needed until the first post-launch change).
   bookings with a gap; `-demoScreen calendar` deep-links the tab. Tests: `SchedulingTests` cover workdays /
   occupied-days / next-available / gaps (engine 100% of reachable lines). 236 tests pass. *iPad shows the
   calendar in the content column (functional; a wider iPad layout is a possible later polish).*
-- **Done — NOT yet committed (built + render-verified on simulator):** **Real 1099-NEC generator
+- **Done — committed (built + render-verified on simulator):** **Real 1099-NEC generator
   (tax-document layer, part 2 — completes it).** Generates the official **IRS Form 1099-NEC (Rev. December
   2026), Copy B "For Recipient"** for a subcontractor: stamps the payer (this business), the recipient (the
   sub), both TINs, the calendar year, and **Box 1a Nonemployee compensation** onto the bundled official
@@ -243,7 +270,7 @@ no migration needed until the first post-launch change).
   Copy B page, form widgets stripped). DEBUG: `-demoScreen 1099` renders a filled sample (the demo business
   now carries an EIN). Tests: render + preview + missing-data + long-text/untyped-TIN edge cases
   (`Form1099NECFiller` 100% covered). 224 tests pass. **This completes the subcontractor tax-document layer.**
-- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Subcontractor W-9 / TIN
+- **Done — committed (built + verified on iPhone & iPad simulators):** **Subcontractor W-9 / TIN
   capture (the tax-document layer, part 1 of 2).** Each subcontractor can now hold their W-9 details: a
   **TIN secured in the Keychain** (generalized `SecureTINStore` — it was single-item for the business; now
   keyed per record via a stable `tinKey`), a **TIN type** (SSN/EIN), and their **uploaded W-9 PDF**
@@ -257,7 +284,7 @@ no migration needed until the first post-launch change).
   compensation / 1b Cash tips / 1c TTOC / 1d Overtime compensation**) is analyzed and every Copy B field
   is coordinate-mapped; the filler will stamp it like `W9FormFiller` and be render-verified. New file:
   `Models/Subcontractor.swift` (extended) + the W-9 wrapper in `SubcontractorDetailScreen.swift`.
-- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Subcontractors tab — Phase A
+- **Done — committed (built + verified on iPhone & iPad simulators):** **Subcontractors tab — Phase A
   (core).** A new top-level **Subcontractors** tab (iPhone) / sidebar section (iPad, "hammer" icon) for 1099
   trades you pay per job. A sub has name/business/contact/address + active toggle; you **record payments**
   (amount / date / method / what-for + optional customer/job tag). The tab shows a **1099 summary header**
@@ -273,7 +300,7 @@ no migration needed until the first post-launch change).
   IRS Copy A must be e-filed/scannable. (W-2s stay accountant-handoff-only: a real W-2 needs withholding the
   app doesn't track; a 1099-NEC doesn't, so it can be generated.) DEBUG: demo seeds 2 subs;
   `-demoScreen subcontractors` deep-links the tab. Tests: `SubcontractorTests`, `SubPayExportTests`.
-- **Done — NOT yet committed (built + verified on iPhone & iPad simulators):** **Employees tab — Phase A
+- **Done — committed (built + verified on iPhone & iPad simulators):** **Employees tab — Phase A
   (core).** A new top-level **Employees** tab (iPhone) / sidebar section (iPad). An employee has a pay type
   (hourly or salary) + rate, a pay frequency (weekly / every-2-weeks / twice-a-month / monthly) and a payday
   anchor; the app rolls these into **next payday + amount accrued**. Features: **daily hours log** with an
@@ -289,7 +316,7 @@ no migration needed until the first post-launch change).
   `Screens/EmployeeDetailScreen.swift`, `Screens/EmployeeFormScreen.swift`, `UIComponents/EmployeePayExport.swift`.
   **Phase B (next):** onboarding pack — real **W-4 / I-9** form-fill (like the W-9), SSN (Keychain), and the
   per-job labor-cost rollup. DEBUG demo seeds 3 employees; `-demoScreen employees` deep-links the tab.
-- **Done — NOT yet committed (built + launched on simulator; single-tab bar confirmed):** **Navigation
+- **Done — committed (built + launched on simulator; single-tab bar confirmed):** **Navigation
   reorg — Phase 1 of the tab restructure.** Removed the **Receipts** tab and the **Stats** tab; the iPhone
   tab bar is now just **Customers** (the Employees / Subcontractors / Calendar tabs land in later rounds).
   Receipts stay fully accessible (scan + add) via **Menu → Job Records → All Receipts**. Renamed the Menu's
@@ -336,7 +363,7 @@ no migration needed until the first post-launch change).
   `UIComponents/SignatureKit.swift`, `Screens/CompanyDocuments.swift`, `Screens/SignatureEditorSheet.swift`,
   and the bundled `Resources/W9Template.pdf` (official IRS form, public domain).
 - **Done — committed to `main` (e9e2bab):** the W-9 / signature / Documents-hub work above.
-- **Done — NOT yet committed (built + verified on simulator):** **Insurance & WC Exemption.** The owner
+- **Done — committed (built + verified on simulator):** **Insurance & WC Exemption.** The owner
   *uploads* the certificate PDFs manually (no generation — superseding the earlier "fill a blank COI" idea):
   a **Proof of Insurance** (COI) and a **Workers' Comp Exemption**, managed in **My Company → Insurance & WC
   Exemption** (`ComplianceDocsManagerSheet`: upload / replace / remove via `.fileImporter` `[.pdf]`, stored on
@@ -345,7 +372,7 @@ no migration needed until the first post-launch change).
   the uploaded cert(s) and shares them (navbar `ShareLink`); if none uploaded it routes to the uploader
   (same pattern as the W-9 "Add tax details"). Extracted the shared in-sheet `DocActionRow`. New file:
   `Screens/InsuranceDocuments.swift`.
-- **Done — NOT yet committed (built + verified on simulator):** **My Company restructure + personal info.**
+- **Done — committed (built + verified on simulator):** **My Company restructure + personal info.**
   The My Company screen condensed to a hub: logo, business name, a **Contact** card (now incl. the owner's
   **Name**), then rows — **Details**, Receipts, Signature, Insurance. New read-only **Details** screen
   (`CompanyDetails.swift`) shows *everything* from the edit form categorized (Contact, License, Address,
@@ -383,7 +410,7 @@ no migration needed until the first post-launch change).
   - **Host the privacy policy** at a public URL; finalize listing decisions (price, audience, keywords).
   - **App Store Connect:** create the app record, upload the archive (needs an ASC API key, or Xcode
     Organizer), add screenshots (iPhone 6.9" + iPad 13") + metadata, and submit for review.
-- **Done — NOT yet committed (built + verified on simulator):** **Owner reference COI (optional).** Added an
+- **Done — committed (built + verified on simulator):** **Owner reference COI (optional).** Added an
   optional, owner-only **Certificate of Insurance** slot to the **Insurance & Licensing** sheet
   (`ComplianceDocsManagerSheet`) so the owner can upload a spare/blank COI for their own records. It is
   deliberately **not** a `ComplianceKind`, so it's excluded from the sheet's "share all" `ShareLink` and the
@@ -427,6 +454,21 @@ every line of customer-facing copy must clear that bar.
   onto the Business screen. The owner prefers one category over a peer hub; group by owner, not by
   data-vs-actions.) The Menu's records section is **Job Records** (All Estimates / Invoices / Change Orders /
   Receipts).
+- **Consistency conventions (the GL way — any light difference that makes the user re-think is a miss):**
+  - **Rows:** every people list (Customers / Employees / Subcontractors) uses the one `PersonRowCard`
+    (60-pt avatar on the card), identical on iPhone and iPad.
+  - **Large titles:** browse / list / hub screens use a large nav title; a hub's title *is* the entity's
+    name (the name is not repeated in the header). Leaf detail screens, forms, and modal sheets stay
+    inline. List screens add `.contentMargins(.top:)` so the Italianno descenders don't crowd the first
+    row. A screen pushed two levels deep inside a sheet can't get a native large title (SwiftUI limitation)
+    — draw it in-content with the script font (`Statistics` does this).
+  - **Sections:** group action rows under gray headers (`GLSection`, matching the Menu's `Section`); data
+    cards keep their `GLCard(title:)`.
+  - **Explanations:** a standalone "what is this" footer becomes a tappable ⓘ (`InfoButton` / `InfoLabel`,
+    a real popover that dismisses on outside-tap/scroll); keep live-value footers and empty-state text inline.
+  - **Preview:** anything shareable previews through the one `DocumentPreviewSheet` (PDFKit `CertificatePDFView`)
+    — a **Preview** action in the Menu on interactive detail screens (Estimate/Invoice), preview-first on
+    single-purpose send sheets (Receipt / Change Order / W-9 / 1099). CSV exports are share-only.
 - **Sheet dismissal (see §8):** **X close** (`Button(role: .close)`, `.topBarLeading`) for presentational
   sheets; **Cancel + Save** for editing; **Edit↔Done** for list edit mode. Never a bare "Done" just to close.
 - **Cross-device — iPhone *and* iPad:** ships on iPhone (`RootTabView`, compact width) and iPad / large-iPhone

@@ -207,10 +207,13 @@ struct ChangeOrderDetailSheet: View {
                         ProgressView().frame(height: 460)
                     }
 
-                    Picker("Status", selection: $changeOrder.status) {
-                        ForEach(ChangeOrderStatus.allCases) { Text($0.label).tag($0) }
+                    GLCard(title: "Status") {
+                        Picker("Status", selection: $changeOrder.status) {
+                            ForEach(ChangeOrderStatus.allCases) { Text($0.label).tag($0) }
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
                     }
-                    .pickerStyle(.segmented)
 
                     if changeOrder.appliedToInvoice {
                         Label("Added to invoice", systemImage: "checkmark.circle.fill")

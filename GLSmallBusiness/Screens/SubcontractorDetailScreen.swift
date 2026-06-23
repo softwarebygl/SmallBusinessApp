@@ -22,10 +22,12 @@ struct SubcontractorDetailScreen: View {
     private enum ActiveSheet: Identifiable {
         case payment(SubPayment?)
         case form1099
+        case allActivity
         var id: String {
             switch self {
             case .payment(let p): "payment-\(p?.persistentModelID.hashValue ?? 0)"
             case .form1099: "1099"
+            case .allActivity: "allActivity"
             }
         }
     }
@@ -67,6 +69,8 @@ struct SubcontractorDetailScreen: View {
                 RecordSubPaymentSheet(subcontractor: subcontractor, existing: payment).glAppearance(colorScheme)
             case .form1099:
                 Form1099NECSheet(subcontractor: subcontractor).glAppearance(colorScheme)
+            case .allActivity:
+                AllActivitySheet(subcontractor: subcontractor).glAppearance(colorScheme)
             }
         }
         .sheet(isPresented: $showingSaveToContacts) {
@@ -207,20 +211,25 @@ struct SubcontractorDetailScreen: View {
     // MARK: - Activity (owed + paid entries)
 
     private var activityCard: some View {
-        GLCard(title: "Activity") {
+        GLCard {
             let entries = subcontractor.sortedPayments
+            HStack {
+                Text("Activity").font(.headline)
+                Spacer()
+                if entries.count > 5 {
+                    Button("View All") { activeSheet = .allActivity }
+                        .font(.subheadline.weight(.medium)).foregroundStyle(gold)
+                }
+            }
             if entries.isEmpty {
                 Text("Nothing recorded yet. Tap “Record what you owe” above.")
                     .font(.subheadline).foregroundStyle(.secondary)
             } else {
-                ForEach(entries.prefix(12)) { entry in
+                let recent = Array(entries.prefix(5))
+                ForEach(recent) { entry in
                     Button { activeSheet = .payment(entry) } label: { entryRow(entry) }
                         .buttonStyle(.plain)
-                    if entry.id != entries.prefix(12).last?.id { Divider() }
-                }
-                if entries.count > 12 {
-                    Text("Showing the 12 most recent of \(entries.count).")
-                        .font(.caption).foregroundStyle(.secondary).padding(.top, 2)
+                    if entry.id != recent.last?.id { Divider() }
                 }
             }
         }
@@ -252,6 +261,112 @@ struct SubcontractorDetailScreen: View {
         .contentShape(Rectangle())
     }
 
+}
+
+// MARK: - All activity sheet (full, date-filterable list)
+
+private struct AllActivitySheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    let subcontractor: Subcontractor
+
+    private var gold: Color { GLColor.gold.render(in: colorScheme) }
+
+    private enum Range: String, CaseIterable, Identifiable {
+        case all = "All", year = "This year", custom = "Custom"
+        var id: String { rawValue }
+    }
+    @State private var range: Range = .all
+    @State private var from: Date = Calendar.current.date(byAdding: .month, value: -3, to: .now) ?? .now
+    @State private var to: Date = .now
+    @State private var editing: SubPayment?
+
+    private var filtered: [SubPayment] {
+        let all = subcontractor.sortedPayments
+        let cal = Calendar.current
+        switch range {
+        case .all:
+            return all
+        case .year:
+            let y = cal.component(.year, from: .now)
+            return all.filter { cal.component(.year, from: $0.date) == y }
+        case .custom:
+            let lo = cal.startOfDay(for: from)
+            let hi = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: to)) ?? to
+            return all.filter { $0.date >= lo && $0.date < hi }
+        }
+    }
+    private var paidTotal: Double { filtered.filter(\.isPaid).reduce(0) { $0 + $1.amount } }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                Picker("Range", selection: $range) {
+                    ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .padding()
+                if range == .custom {
+                    VStack(spacing: 6) {
+                        DatePicker("From", selection: $from, displayedComponents: .date)
+                        DatePicker("To", selection: $to, displayedComponents: .date)
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+                }
+                List {
+                    if filtered.isEmpty {
+                        ContentUnavailableView("Nothing in this range", systemImage: "tray")
+                            .listRowBackground(Color.clear)
+                    } else {
+                        Section {
+                            ForEach(filtered) { entry in
+                                Button { editing = entry } label: { row(entry) }
+                                    .buttonStyle(.plain)
+                                    .listRowBackground(Color.clear)
+                            }
+                        } footer: {
+                            Text("\(paidTotal.formatted(.currency(code: "USD"))) paid · \(filtered.count) \(filtered.count == 1 ? "entry" : "entries")")
+                        }
+                    }
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+            }
+            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+            .navigationTitle("All Activity")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } } }
+            .sheet(item: $editing) { entry in
+                RecordSubPaymentSheet(subcontractor: subcontractor, existing: entry).glAppearance(colorScheme)
+            }
+        }
+    }
+
+    private func row(_ entry: SubPayment) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(entry.date.formatted(date: .abbreviated, time: .omitted))
+                    if !entry.isPaid {
+                        Text("OWED")
+                            .font(.caption2.weight(.bold)).foregroundStyle(gold)
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(Capsule().fill(gold.opacity(0.16)))
+                    }
+                }
+                let sub = entry.detail.isEmpty ? (entry.customer?.listDisplayName ?? "") : entry.detail
+                if !sub.isEmpty {
+                    Text(sub).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }
+            Spacer()
+            Text(entry.amount.formatted(.currency(code: "USD")))
+                .foregroundStyle(entry.isPaid ? .secondary : .primary)
+        }
+        .font(.subheadline)
+        .contentShape(Rectangle())
+    }
 }
 
 // MARK: - W-9 document (view / upload / replace / remove)

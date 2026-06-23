@@ -51,6 +51,13 @@ struct StatsScreen: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 18) {
+                // SwiftUI won't render a native large title this deep inside the Menu sheet
+                // (Menu → Business → Statistics), so the title is drawn in-content with the same
+                // script font the nav bar uses — visually identical to every other large title.
+                Text("Statistics")
+                    .font(.custom("Italianno-Regular", size: 48))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityAddTraits(.isHeader)
                 periodSelector
                 if hasData {
                     // Compute the summary ONCE per render — it scans the whole store, and the
@@ -76,9 +83,8 @@ struct StatsScreen: View {
         .containerBackground(for: .navigation) {
             GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
         }
-        .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
-        .navigationTitle("Statistics")
-        .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent
+        .navigationTitle("")   // title is drawn in-content (see note above); keep the bar compact
+        .toolbarTitleDisplayMode(.inline)
     }
 
     // MARK: - Period selector

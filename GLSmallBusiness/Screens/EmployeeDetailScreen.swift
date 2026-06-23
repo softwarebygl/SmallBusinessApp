@@ -26,11 +26,13 @@ struct EmployeeDetailScreen: View {
         case logHours(TimeEntry?)
         case recordPaycheck(Paycheck?)
         case allHours
+        case allPaychecks
         var id: String {
             switch self {
             case .logHours(let entry): "hours-\(entry?.persistentModelID.hashValue ?? 0)"
             case .recordPaycheck(let check): "check-\(check?.persistentModelID.hashValue ?? 0)"
             case .allHours: "allHours"
+            case .allPaychecks: "allPaychecks"
             }
         }
     }
@@ -76,6 +78,8 @@ struct EmployeeDetailScreen: View {
                 RecordPaycheckSheet(employee: employee, existing: check).glAppearance(colorScheme)
             case .allHours:
                 AllHoursSheet(employee: employee).glAppearance(colorScheme)
+            case .allPaychecks:
+                AllPaychecksSheet(employee: employee).glAppearance(colorScheme)
             }
         }
         .sheet(isPresented: $showingSaveToContacts) {
@@ -251,16 +255,25 @@ struct EmployeeDetailScreen: View {
     // MARK: - Paychecks
 
     private var paychecksCard: some View {
-        GLCard(title: "Paychecks") {
+        GLCard {
             let checks = employee.sortedPaychecks
+            HStack {
+                Text("Paychecks").font(.headline)
+                Spacer()
+                if checks.count > 5 {
+                    Button("View All") { activeSheet = .allPaychecks }
+                        .font(.subheadline.weight(.medium)).foregroundStyle(gold)
+                }
+            }
             if checks.isEmpty {
                 Text("No paychecks recorded yet.")
                     .font(.subheadline).foregroundStyle(.secondary)
             } else {
-                ForEach(checks.prefix(10)) { check in
+                let recent = Array(checks.prefix(5))
+                ForEach(recent) { check in
                     Button { activeSheet = .recordPaycheck(check) } label: { paycheckRow(check) }
                         .buttonStyle(.plain)
-                    if check.id != checks.prefix(10).last?.id { Divider() }
+                    if check.id != recent.last?.id { Divider() }
                 }
             }
         }
@@ -390,6 +403,99 @@ private struct AllHoursSheet: View {
             }
             Spacer()
             Text("\(entry.hours.formatted(.number)) hr").foregroundStyle(.secondary)
+        }
+        .font(.subheadline)
+        .contentShape(Rectangle())
+    }
+}
+
+// MARK: - All paychecks sheet (full, date-filterable list)
+
+private struct AllPaychecksSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    let employee: Employee
+
+    private enum Range: String, CaseIterable, Identifiable {
+        case all = "All", year = "This year", custom = "Custom"
+        var id: String { rawValue }
+    }
+    @State private var range: Range = .all
+    @State private var from: Date = Calendar.current.date(byAdding: .month, value: -3, to: .now) ?? .now
+    @State private var to: Date = .now
+    @State private var editing: Paycheck?
+
+    private var filtered: [Paycheck] {
+        let all = employee.sortedPaychecks
+        let cal = Calendar.current
+        switch range {
+        case .all:
+            return all
+        case .year:
+            let y = cal.component(.year, from: .now)
+            return all.filter { cal.component(.year, from: $0.payDate) == y }
+        case .custom:
+            let lo = cal.startOfDay(for: from)
+            let hi = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: to)) ?? to
+            return all.filter { $0.payDate >= lo && $0.payDate < hi }
+        }
+    }
+    private var totalGross: Double { filtered.reduce(0) { $0 + $1.grossAmount } }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                Picker("Range", selection: $range) {
+                    ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .padding()
+                if range == .custom {
+                    VStack(spacing: 6) {
+                        DatePicker("From", selection: $from, displayedComponents: .date)
+                        DatePicker("To", selection: $to, displayedComponents: .date)
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+                }
+                List {
+                    if filtered.isEmpty {
+                        ContentUnavailableView("No paychecks in this range", systemImage: "dollarsign.circle")
+                            .listRowBackground(Color.clear)
+                    } else {
+                        Section {
+                            ForEach(filtered) { check in
+                                Button { editing = check } label: { row(check) }
+                                    .buttonStyle(.plain)
+                                    .listRowBackground(Color.clear)
+                            }
+                        } footer: {
+                            Text("\(totalGross.formatted(.currency(code: "USD"))) gross · \(filtered.count) \(filtered.count == 1 ? "paycheck" : "paychecks")")
+                        }
+                    }
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+            }
+            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+            .navigationTitle("All Paychecks")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } } }
+            .sheet(item: $editing) { check in
+                RecordPaycheckSheet(employee: employee, existing: check).glAppearance(colorScheme)
+            }
+        }
+    }
+
+    private func row(_ check: Paycheck) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(check.payDate.formatted(date: .abbreviated, time: .omitted))
+                Text("\(check.payPeriodStart.formatted(date: .abbreviated, time: .omitted)) – \(check.payPeriodEnd.formatted(date: .abbreviated, time: .omitted))")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text(check.grossAmount.formatted(.currency(code: "USD"))).foregroundStyle(.secondary)
         }
         .font(.subheadline)
         .contentShape(Rectangle())
