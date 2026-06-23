@@ -78,6 +78,8 @@ final class Employee {
     var isActive: Bool = true
     var notes: String = ""
     var createdAt: Date = Date.now
+    /// Optional profile photo (stored outside the row, like Customer). Additive, V1.
+    @Attribute(.externalStorage) var profileImageData: Data?
 
     // CloudKit requires every relationship (incl. to-many) to be optional.
     @Relationship(deleteRule: .cascade, inverse: \TimeEntry.employee)

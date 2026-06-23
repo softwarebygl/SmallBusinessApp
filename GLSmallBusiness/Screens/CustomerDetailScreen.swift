@@ -10,15 +10,17 @@ import SwiftData
 import PhotosUI
 import UniformTypeIdentifiers
 
-private struct CroppableImage: Identifiable {
-    let id = UUID()
-    let image: UIImage
-}
-
 struct CustomerDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [BusinessProfile]
+    @Query private var allCustomers: [Customer]
     let customer: Customer
+
+    /// False once this customer is deleted out from under the view (e.g. on another device).
+    private var stillExists: Bool {
+        allCustomers.contains { $0.persistentModelID == customer.persistentModelID }
+    }
 
     @State private var photoItem: PhotosPickerItem?
     @State private var imageToCrop: CroppableImage?
@@ -41,6 +43,11 @@ struct CustomerDetailScreen: View {
         }
         .containerBackground(for: .navigation) {
             PrimaryBackground()
+        }
+        .overlay {
+            if !stillExists {
+                DeletedRecordView(noun: "customer") { dismiss() }
+            }
         }
         .navigationTitle(customer.listDisplayName)
         .toolbarTitleDisplayMode(.large)   // name is the large title; the whole nav chain is large

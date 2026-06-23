@@ -8,6 +8,13 @@
 import SwiftUI
 import UIKit
 
+/// A just-picked image waiting to be cropped — the `.fullScreenCover(item:)` wrapper that makes a
+/// `UIImage` Identifiable. Shared by every profile-photo flow (customer, employee, subcontractor).
+struct CroppableImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
+}
+
 /// A pinch-to-zoom / drag-to-position cropper that returns a square image, sized for the
 /// circular customer avatar.
 ///

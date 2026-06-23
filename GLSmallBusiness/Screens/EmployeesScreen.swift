@@ -113,7 +113,7 @@ struct EmployeesScreen: View {
             trailing: employee.accruedGross > 0.005 ? employee.accruedGross.formatted(.currency(code: "USD")) : "",
             trailingTint: gold
         ) {
-            MonogramAvatar(initials: employee.initials)
+            ProfileAvatar(imageData: employee.profileImageData, initials: employee.initials)
         }
     }
 

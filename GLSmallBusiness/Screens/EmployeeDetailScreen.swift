@@ -11,14 +11,25 @@
 
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct EmployeeDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @Query private var allEmployees: [Employee]
     let employee: Employee
+
+    /// False once this employee is deleted out from under the view (e.g. on another device).
+    private var stillExists: Bool {
+        allEmployees.contains { $0.persistentModelID == employee.persistentModelID }
+    }
 
     @State private var activeSheet: ActiveSheet?
     @State private var showingSaveToContacts = false
+    @State private var photoItem: PhotosPickerItem?
+    @State private var imageToCrop: CroppableImage?
+    @State private var photoLoadFailed = false
 
     /// One sheet driver for the screen: edit the employee, add/edit an hours entry or a paycheck
     /// (nil = "new"), or view all hours. A single `.sheet(item:)` avoids stacking many sheet modifiers.
@@ -59,6 +70,11 @@ struct EmployeeDetailScreen: View {
             .frame(maxWidth: .infinity)
         }
         .containerBackground(for: .navigation) { PrimaryBackground() }
+        .overlay {
+            if !stillExists {
+                DeletedRecordView(noun: "employee") { dismiss() }
+            }
+        }
         .navigationTitle(employee.listDisplayName)
         .toolbarTitleDisplayMode(.large)   // name is the large title; the whole nav chain is large
         .toolbar {
@@ -89,13 +105,37 @@ struct EmployeeDetailScreen: View {
             NewContactView(contact: ContactsBridge.contact(from: employee)) { showingSaveToContacts = false }
                 .ignoresSafeArea()
         }
+        .task(id: photoItem) {
+            guard let photoItem else { return }
+            guard let data = try? await photoItem.loadTransferable(type: Data.self),
+                  let uiImage = UIImage(data: data) else {
+                self.photoItem = nil
+                photoLoadFailed = true
+                return
+            }
+            imageToCrop = CroppableImage(image: uiImage)
+            self.photoItem = nil
+        }
+        .photoLoadFailureAlert($photoLoadFailed)
+        .fullScreenCover(item: $imageToCrop) { item in
+            ImageCropView(image: item.image) {
+                imageToCrop = nil
+            } onCrop: { cropped in
+                employee.profileImageData = cropped.jpegData(compressionQuality: 0.85)
+                imageToCrop = nil
+            }
+        }
     }
 
     // MARK: - Header
 
     private var header: some View {
         VStack(spacing: 12) {
-            MonogramAvatar(initials: employee.initials, size: 110)
+            PhotosPicker(selection: $photoItem, matching: .images) {
+                ProfileAvatar(imageData: employee.profileImageData, initials: employee.initials,
+                              size: 110, showsCameraBadge: true)
+            }
+            .buttonStyle(.plain)
 
             Text(paySummary)
                 .font(.subheadline)

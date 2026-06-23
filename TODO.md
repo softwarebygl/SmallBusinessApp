@@ -27,8 +27,9 @@ build 5). The rejection is fixed in code; the rest is owner-only (App Store Conn
       **Subcontractor owed/paid ledger:** new `hourlyRate` on `Subcontractor`, and `hours` + `paidDate`
       (optional) on `SubPayment` (paidDate nil = owed/unpaid).
       **Calendar feature:** new `ScheduledJob` record type, plus `scheduledJobs` relationship fields on
-      `Estimate` and `Invoice`. All additive/optional (still schema V1), but they MUST be in production or
-      sync drops them for real users. (The workdays / one-job-at-a-time settings are device-local `@AppStorage`
+      `Estimate` and `Invoice`. **Profile photos:** new `profileImageData` (externalStorage, optional) on
+      `Employee` and `Subcontractor`. All additive/optional (still schema V1), but they MUST be in production
+      or sync drops them for real users. (The workdays / one-job-at-a-time settings are device-local `@AppStorage`
       — not CloudKit, no deploy.)
 - [ ] **2.1(b): Submit the In-App Purchase products for review** — submit the two subscriptions
       (monthly / annual) in App Store Connect and attach the App Review screenshot. The binary

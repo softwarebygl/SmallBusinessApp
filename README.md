@@ -196,6 +196,21 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done (built + verified; 273 tests pass):** **Profile photos for employees & subcontractors + the two
+  deferred error cases.**
+  - **Profile photos** for employees and subcontractors, exactly like customers: tap the avatar →
+    PhotosPicker → crop → saved. The avatar (a new shared `ProfileAvatar`, replacing the initials-only
+    `MonogramAvatar`) shows the photo when set, otherwise the gold monogram — in the hub header *and* the
+    list rows, iPhone + iPad. New additive field `profileImageData` on `Employee` and `Subcontractor`
+    (externalStorage, optional, still V1 — **deploy to CloudKit Production, see TODO**).
+  - **Deleted out from under you:** if the record you're viewing is deleted (e.g. on another device, synced
+    over), the customer/employee/subcontractor detail now covers itself with a friendly "This … was removed
+    — Back" (`DeletedRecordView`) instead of showing frozen stale data. (The iPad split already reverts to its
+    "Select a …" placeholder.)
+  - **No iCloud account:** a one-time, friendly heads-up on first launch — "your info is saved on this device
+    only … sign in to iCloud to back up and sync" — instead of silently not syncing. Shown at most once,
+    skipped in demo mode.
+
 - **Done (built + verified; 273 tests pass):** **Zero-confusion error-handling pass.** Four independent
   audits (forms/validation, empty-states/stale-refs, external-ops/permissions, crashes/cascades), then
   fixed everything a user could hit and be lost by — every on-screen message is plain language, never a

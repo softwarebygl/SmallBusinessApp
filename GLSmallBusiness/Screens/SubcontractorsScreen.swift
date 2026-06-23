@@ -119,7 +119,7 @@ struct SubcontractorsScreen: View {
             trailing: total > 0.005 ? total.formatted(.currency(code: "USD")) : "",
             trailingTint: gold
         ) {
-            MonogramAvatar(initials: sub.initials)
+            ProfileAvatar(imageData: sub.profileImageData, initials: sub.initials)
         }
     }
 

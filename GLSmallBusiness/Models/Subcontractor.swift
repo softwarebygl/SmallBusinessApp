@@ -33,6 +33,8 @@ final class Subcontractor {
     var isActive: Bool = true
     var notes: String = ""
     var createdAt: Date = Date.now
+    /// Optional profile photo (stored outside the row, like Customer). Additive, V1.
+    @Attribute(.externalStorage) var profileImageData: Data?
 
     // W-9 / tax details (for issuing a 1099-NEC). The TIN itself is NOT stored here — it lives in
     // the Keychain (SecureTINStore), keyed by `tinKey`, exactly like the business TIN. `w9TINTypeRaw`

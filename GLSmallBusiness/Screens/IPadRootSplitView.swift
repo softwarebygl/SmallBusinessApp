@@ -17,11 +17,15 @@
 
 import SwiftUI
 import SwiftData
+import CloudKit
 
 /// Chooses the navigation shell by width: the single split view on regular width (iPad, large
 /// iPhone landscape); the existing tab bar on compact (iPhone portrait, narrow multitasking).
 struct RootView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
+    /// Shown at most once: a friendly heads-up that, with no iCloud account, data stays on-device.
+    @AppStorage("hasShownNoICloudNotice") private var hasShownNoICloudNotice = false
+    @State private var showICloudNotice = false
 
     var body: some View {
         #if DEBUG
@@ -37,10 +41,32 @@ struct RootView: View {
 
     @ViewBuilder
     private var shell: some View {
+        chrome
+            .task { await checkICloudAccount() }
+            .alert("Turn on iCloud to back up your work", isPresented: $showICloudNotice) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("You’re not signed in to iCloud, so your business info is saved on this device only — it won’t back up or sync to your other devices. You can turn that on anytime by signing in to iCloud in the Settings app.")
+            }
+    }
+
+    @ViewBuilder
+    private var chrome: some View {
         if sizeClass == .regular {
             IPadRootSplitView()
         } else {
             RootTabView()
+        }
+    }
+
+    /// Once, on a real (non-demo) launch, tell the user if there's no iCloud account — so they're not
+    /// surprised later that nothing synced. Any non-"no account" status (incl. transient) shows nothing.
+    private func checkICloudAccount() async {
+        guard !hasShownNoICloudNotice, !DemoMode.isActive else { return }
+        guard let status = try? await CKContainer.default().accountStatus() else { return }
+        if status == .noAccount {
+            showICloudNotice = true
+            hasShownNoICloudNotice = true
         }
     }
 }
@@ -393,7 +419,7 @@ private struct EmployeeListColumn: View {
             showsChevron: false,
             isSelected: selection == employee.persistentModelID
         ) {
-            MonogramAvatar(initials: employee.initials)
+            ProfileAvatar(imageData: employee.profileImageData, initials: employee.initials)
         }
     }
 
@@ -490,7 +516,7 @@ private struct SubcontractorListColumn: View {
             showsChevron: false,
             isSelected: selection == sub.persistentModelID
         ) {
-            MonogramAvatar(initials: sub.initials)
+            ProfileAvatar(imageData: sub.profileImageData, initials: sub.initials)
         }
     }
 

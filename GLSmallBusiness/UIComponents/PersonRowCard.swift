@@ -6,32 +6,50 @@
 //
 //  The single list row shared by all three people lists — Customers, Employees, Subcontractors —
 //  on iPhone AND iPad, so they're indistinguishable. A 60-pt avatar overlaid on the leading edge of
-//  a gold card (a photo for customers, a monogram for employees/subs), the name + optional subtitle,
-//  an optional trailing value, and a chevron. `selectionMark` powers the customers' multi-select mode.
+//  a gold card (a saved photo, or a gold monogram), the name + optional subtitle, an optional
+//  trailing value, and a chevron. `selectionMark` powers the customers' multi-select mode.
 //
 
 import SwiftUI
 
-/// A gold initials monogram in a circle — the same look as `CustomerAvatar`'s placeholder, for
-/// records that don't carry a photo (employees, subcontractors).
-struct MonogramAvatar: View {
+/// A circular profile avatar: the saved photo when present, otherwise a gold initials monogram —
+/// the one avatar used by every people row and hub (customers, employees, subcontractors), so they
+/// look identical. The camera badge appears only where the avatar is tappable to set a photo.
+struct ProfileAvatar: View {
     @Environment(\.colorScheme) private var colorScheme
+    var imageData: Data? = nil
     let initials: String
     var size: CGFloat = 60
+    var showsCameraBadge: Bool = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     var body: some View {
         ZStack {
-            GLColor.backgroundPrimary.render(in: colorScheme)
-            gold.opacity(0.2)
-            Text(initials)
-                .font(.system(size: size * 0.36, weight: .semibold))
-                .foregroundStyle(gold)
+            if let imageData, let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                GLColor.backgroundPrimary.render(in: colorScheme)
+                gold.opacity(0.2)
+                Text(initials)
+                    .font(.system(size: size * 0.36, weight: .semibold))
+                    .foregroundStyle(gold)
+            }
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
         .overlay(Circle().stroke(gold.opacity(0.4), lineWidth: size * 0.02))
+        .overlay(alignment: .bottomTrailing) {
+            if showsCameraBadge {
+                Image(systemName: "camera.fill")
+                    .font(.system(size: size * 0.12))
+                    .foregroundStyle(.white)
+                    .padding(size * 0.07)
+                    .background(Circle().fill(gold))
+            }
+        }
     }
 }
 

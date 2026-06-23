@@ -10,14 +10,25 @@
 
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct SubcontractorDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @Query private var allSubcontractors: [Subcontractor]
     let subcontractor: Subcontractor
+
+    /// False once this subcontractor is deleted out from under the view (e.g. on another device).
+    private var stillExists: Bool {
+        allSubcontractors.contains { $0.persistentModelID == subcontractor.persistentModelID }
+    }
 
     @State private var activeSheet: ActiveSheet?
     @State private var showingSaveToContacts = false
+    @State private var photoItem: PhotosPickerItem?
+    @State private var imageToCrop: CroppableImage?
+    @State private var photoLoadFailed = false
 
     private enum ActiveSheet: Identifiable {
         case payment(SubPayment?)
@@ -55,6 +66,11 @@ struct SubcontractorDetailScreen: View {
             .frame(maxWidth: .infinity)
         }
         .containerBackground(for: .navigation) { PrimaryBackground() }
+        .overlay {
+            if !stillExists {
+                DeletedRecordView(noun: "subcontractor") { dismiss() }
+            }
+        }
         .navigationTitle(subcontractor.listDisplayName)
         .toolbarTitleDisplayMode(.large)   // name is the large title; the whole nav chain is large
         .toolbar {
@@ -83,13 +99,37 @@ struct SubcontractorDetailScreen: View {
             NewContactView(contact: ContactsBridge.contact(from: subcontractor)) { showingSaveToContacts = false }
                 .ignoresSafeArea()
         }
+        .task(id: photoItem) {
+            guard let photoItem else { return }
+            guard let data = try? await photoItem.loadTransferable(type: Data.self),
+                  let uiImage = UIImage(data: data) else {
+                self.photoItem = nil
+                photoLoadFailed = true
+                return
+            }
+            imageToCrop = CroppableImage(image: uiImage)
+            self.photoItem = nil
+        }
+        .photoLoadFailureAlert($photoLoadFailed)
+        .fullScreenCover(item: $imageToCrop) { item in
+            ImageCropView(image: item.image) {
+                imageToCrop = nil
+            } onCrop: { cropped in
+                subcontractor.profileImageData = cropped.jpegData(compressionQuality: 0.85)
+                imageToCrop = nil
+            }
+        }
     }
 
     // MARK: - Header
 
     private var header: some View {
         VStack(spacing: 12) {
-            MonogramAvatar(initials: subcontractor.initials, size: 110)
+            PhotosPicker(selection: $photoItem, matching: .images) {
+                ProfileAvatar(imageData: subcontractor.profileImageData, initials: subcontractor.initials,
+                              size: 110, showsCameraBadge: true)
+            }
+            .buttonStyle(.plain)
 
             // Title (listDisplayName) is the person; show the business under it so "Boyd Electric"
             // stays visible. Skipped when the business is itself the title (no person on file).
