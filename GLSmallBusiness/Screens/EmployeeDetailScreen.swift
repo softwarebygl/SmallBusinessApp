@@ -554,7 +554,7 @@ private struct LogHoursSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(hours <= 0)
+                    SaveOnceButton(disabled: hours <= 0, action: save)
                 }
             }
         }
@@ -623,13 +623,23 @@ private struct RecordPaycheckSheet: View {
         _note = State(initialValue: existing?.note ?? "")
     }
 
+    /// The pay period must not run backwards.
+    private var periodValid: Bool { payPeriodEnd >= payPeriodStart }
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("Pay period") {
+                Section {
                     DatePicker("From", selection: $payPeriodStart, displayedComponents: .date)
                     DatePicker("To", selection: $payPeriodEnd, displayedComponents: .date)
                     DatePicker("Paid on", selection: $payDate, displayedComponents: .date)
+                } header: {
+                    Text("Pay period")
+                } footer: {
+                    if !periodValid {
+                        Text("The “To” date must be on or after the “From” date.")
+                            .foregroundStyle(.red)
+                    }
                 }
                 Section("Amount") {
                     LabeledContent("Gross") {
@@ -661,7 +671,7 @@ private struct RecordPaycheckSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(grossAmount <= 0)
+                    SaveOnceButton(disabled: grossAmount <= 0 || !periodValid, action: save)
                 }
             }
         }

@@ -43,6 +43,7 @@ struct EstimateDetailScreen: View {
     @State private var sendAction: SendAction?
     @State private var pdfURL: URL?
     @State private var showingPreview = false
+    @State private var sendFailureMessage: String?
     @State private var showingProfilePrompt = false
     @State private var convertedInvoice: Invoice?
     @State private var showingSchedule = false
@@ -99,6 +100,14 @@ struct EstimateDetailScreen: View {
                             }
                             ShareLink(item: pdfURL) { Label("Share estimate…", systemImage: "square.and.arrow.up") }
                         }
+                    } else if businessProfiles.first?.isComplete == true {
+                        // Profile is complete, so the missing PDF means generation failed — offer a retry
+                        // instead of the misleading "set up your profile" prompt.
+                        Section {
+                            Button { regeneratePDF() } label: {
+                                Label("Couldn’t create the document — try again", systemImage: "arrow.clockwise")
+                            }
+                        }
                     } else {
                         Section {
                             Button { showingProfilePrompt = true } label: { Label("Set up business profile to send", systemImage: "exclamationmark.circle") }
@@ -134,6 +143,20 @@ struct EstimateDetailScreen: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Add your business name, phone, and email in Menu → My Company before sending an estimate.")
+        }
+        .alert("Couldn’t send", isPresented: Binding(get: { sendFailureMessage != nil },
+                                                     set: { if !$0 { sendFailureMessage = nil } })) {
+            Button("OK", role: .cancel) { sendFailureMessage = nil }
+        } message: {
+            Text(sendFailureMessage ?? "")
+        }
+    }
+
+    /// After the Mail/Messages sheet closes, tell the user only when it actually failed — a sent or
+    /// cancelled message needs no interruption.
+    private func noteSend(_ outcome: SendOutcome) {
+        if outcome == .failed {
+            sendFailureMessage = "We couldn’t send your estimate. Check your internet connection and try again."
         }
     }
 
@@ -301,14 +324,14 @@ struct EstimateDetailScreen: View {
                 body: EstimateMessage.htmlBody(estimate: estimate, business: business),
                 isHTML: true,
                 attachmentURL: pdfURL
-            ) { sendAction = nil }
+            ) { outcome in sendAction = nil; noteSend(outcome) }
         case .text:
             // Logo first (renders as an inline image), then the estimate PDF.
             MessageComposeView(
                 recipients: [estimate.recipientPhone],
                 body: EstimateMessage.plainBody(estimate: estimate, business: business),
                 attachmentURLs: [EstimateMessage.logoAttachmentURL(business: business), pdfURL].compactMap { $0 }
-            ) { sendAction = nil }
+            ) { outcome in sendAction = nil; noteSend(outcome) }
         }
     }
 

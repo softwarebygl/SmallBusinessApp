@@ -19,7 +19,10 @@ enum NumberParsing {
             s = s.replacingOccurrences(of: symbol, with: "")
         }
         if decimal != "." { s = s.replacingOccurrences(of: decimal, with: ".") }
-        return s.isEmpty ? nil : Double(s)
+        // Reject empty and any non-finite result (a pasted ∞/NaN, or an absurdly long digit string
+        // that overflows to infinity) so a money/quantity field can never hold a garbage value.
+        guard !s.isEmpty, let parsed = Double(s), parsed.isFinite else { return nil }
+        return parsed
     }
 }
 

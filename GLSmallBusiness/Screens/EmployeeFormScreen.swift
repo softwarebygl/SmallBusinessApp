@@ -143,7 +143,7 @@ struct EmployeeFormScreen: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(!isValid)
+                    SaveOnceButton(disabled: !isValid, action: save)
                 }
             }
         }

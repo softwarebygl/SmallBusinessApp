@@ -22,6 +22,7 @@ struct CustomerDetailScreen: View {
 
     @State private var photoItem: PhotosPickerItem?
     @State private var imageToCrop: CroppableImage?
+    @State private var photoLoadFailed = false
     @State private var showingSaveToContacts = false
     @State private var showingCOIImporter = false
     @State private var coiUploadFailed = false
@@ -62,13 +63,17 @@ struct CustomerDetailScreen: View {
             .ignoresSafeArea()
         }
         .task(id: photoItem) {
-            guard let photoItem,
-                  let data = try? await photoItem.loadTransferable(type: Data.self),
-                  let uiImage = UIImage(data: data)
-            else { return }
+            guard let photoItem else { return }
+            guard let data = try? await photoItem.loadTransferable(type: Data.self),
+                  let uiImage = UIImage(data: data) else {
+                self.photoItem = nil
+                photoLoadFailed = true
+                return
+            }
             imageToCrop = CroppableImage(image: uiImage)
             self.photoItem = nil
         }
+        .photoLoadFailureAlert($photoLoadFailed)
         .fullScreenCover(item: $imageToCrop) { item in
             ImageCropView(image: item.image) {
                 imageToCrop = nil

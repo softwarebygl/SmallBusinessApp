@@ -608,7 +608,7 @@ private struct RecordSubPaymentSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(amount <= 0)
+                    SaveOnceButton(disabled: amount <= 0, action: save)
                 }
             }
         }

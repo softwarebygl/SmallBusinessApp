@@ -27,10 +27,12 @@ enum DateRangeFilter: Equatable {
         case .year(let year):
             return calendar.component(.year, from: date) == year
         case .custom(let from, let to):
-            let lo = calendar.startOfDay(for: from)
-            // Add a day to `to`'s start-of-day so the whole of the `to` day is included; this also
-            // keeps it correct across a DST transition (start-of-day arithmetic, not +86 400 s).
-            let hi = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: to)) ?? to
+            // Be forgiving if the user sets the dates backwards — treat it as the same range rather
+            // than silently showing "nothing here".
+            let lo = calendar.startOfDay(for: min(from, to))
+            // Add a day to the later date's start-of-day so the whole of that day is included; this
+            // also keeps it correct across a DST transition (start-of-day arithmetic, not +86 400 s).
+            let hi = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: max(from, to))) ?? max(from, to)
             return date >= lo && date < hi
         }
     }

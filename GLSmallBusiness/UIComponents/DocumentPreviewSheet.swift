@@ -13,6 +13,22 @@
 import SwiftUI
 import PDFKit
 
+/// Friendly placeholder shown when a document couldn't be built (e.g. the device is critically low
+/// on storage) — never an infinite spinner. The Try Again re-runs generation.
+struct DocumentGenerationError: View {
+    var retry: () -> Void
+
+    var body: some View {
+        ContentUnavailableView {
+            Label("Couldn’t create this document", systemImage: "doc.questionmark")
+        } description: {
+            Text("Please try again. If it keeps happening, make sure your device has some free storage space.")
+        } actions: {
+            Button("Try Again", action: retry)
+        }
+    }
+}
+
 struct DocumentPreviewSheet: View {
     @Environment(\.dismiss) private var dismiss
     let url: URL
@@ -26,7 +42,11 @@ struct DocumentPreviewSheet: View {
                 if let document = PDFDocument(url: url) {
                     CertificatePDFView(document: document)
                 } else {
-                    ContentUnavailableView("Couldn't open the document", systemImage: "doc.questionmark")
+                    ContentUnavailableView {
+                        Label("Couldn’t open this document", systemImage: "doc.questionmark")
+                    } description: {
+                        Text("Please try again in a moment. If it keeps happening, make sure your device has some free storage space.")
+                    }
                 }
             }
             .ignoresSafeArea(edges: .bottom)

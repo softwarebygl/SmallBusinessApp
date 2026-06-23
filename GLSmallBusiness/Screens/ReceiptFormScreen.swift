@@ -120,7 +120,7 @@ struct ReceiptFormScreen: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(!canSave)
+                    SaveOnceButton(disabled: !canSave, action: save)
                 }
             }
             .task { await readScanIfNeeded() }

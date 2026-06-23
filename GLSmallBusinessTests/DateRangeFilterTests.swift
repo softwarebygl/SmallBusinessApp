@@ -63,6 +63,16 @@ struct DateRangeFilterTests {
         #expect(!f.matches(TS.day(2026, 6, 11)))
     }
 
+    @Test func customRangeIsForgivingOfBackwardsDates() {
+        // A user who sets From after To still gets the intended range, not an empty list.
+        let backwards = DateRangeFilter.custom(from: TS.day(2026, 6, 12), to: TS.day(2026, 6, 10))
+        #expect(!backwards.matches(TS.day(2026, 6, 9)))
+        #expect(backwards.matches(TS.day(2026, 6, 10)))
+        #expect(backwards.matches(TS.day(2026, 6, 11)))
+        #expect(backwards.matches(TS.day(2026, 6, 12)))
+        #expect(!backwards.matches(TS.day(2026, 6, 13)))
+    }
+
     @Test func customSpansLeapDay() {
         // 2028 is a leap year — Feb 29 must be included in a range that straddles it.
         let f = DateRangeFilter.custom(from: TS.day(2028, 2, 28), to: TS.day(2028, 3, 1))

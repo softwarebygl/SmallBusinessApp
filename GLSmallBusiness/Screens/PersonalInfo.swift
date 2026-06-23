@@ -200,6 +200,7 @@ struct MyPersonalInfoFormScreen: View {
     @State private var photoData: Data?
     @State private var photoItem: PhotosPickerItem?
     @State private var photoToCrop: PendingPhoto?
+    @State private var photoLoadFailed = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -296,13 +297,17 @@ struct MyPersonalInfoFormScreen: View {
                 ToolbarItem(placement: .confirmationAction) { Button("Save", action: save) }
             }
             .task(id: photoItem) {
-                guard let photoItem,
-                      let data = try? await photoItem.loadTransferable(type: Data.self),
-                      let uiImage = UIImage(data: data)
-                else { return }
+                guard let photoItem else { return }
+                guard let data = try? await photoItem.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data) else {
+                    self.photoItem = nil
+                    photoLoadFailed = true
+                    return
+                }
                 photoToCrop = PendingPhoto(image: uiImage)
                 self.photoItem = nil
             }
+            .photoLoadFailureAlert($photoLoadFailed)
             .fullScreenCover(item: $photoToCrop) { pending in
                 ImageCropView(image: pending.image, guide: .circle) {
                     photoToCrop = nil

@@ -32,4 +32,11 @@ struct NumberParsingTests {
         #expect(NumberParsing.double(from: "abc", locale: us) == nil)
         #expect(NumberParsing.double(from: "   ", locale: us) == nil)
     }
+
+    @Test func rejectsNonFiniteOverflow() {
+        // An absurdly long digit string overflows Double to infinity — a money/quantity field must
+        // never hold that, so parsing returns nil instead of ∞.
+        let huge = String(repeating: "9", count: 400)
+        #expect(NumberParsing.double(from: huge, locale: us) == nil)
+    }
 }

@@ -35,6 +35,7 @@ struct SubcontractorFormScreen: View {
     @State private var w9TINType: W9TINType?
     @State private var w9TIN: String
     @State private var showingContactPicker = false
+    @State private var tinSaveFailed = false
 
     init(editing: Subcontractor? = nil, onSave: ((Subcontractor) -> Void)? = nil) {
         self.editing = editing
@@ -168,8 +169,13 @@ struct SubcontractorFormScreen: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(!isValid)
+                    SaveOnceButton(disabled: !isValid, action: save)
                 }
+            }
+            .alert("Couldn’t save their Tax ID", isPresented: $tinSaveFailed) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Their other details were saved, but the Tax ID wasn’t — it needs your device unlocked. You can add it later by editing them.")
             }
         }
     }
@@ -205,7 +211,10 @@ struct SubcontractorFormScreen: View {
             saved = sub
         }
         saved.w9TINType = w9TINType
-        saved.updateTIN(w9TIN)
+        let tinSaved = saved.updateTIN(w9TIN)
+        // Everything but the secure Tax ID is saved; if that one write failed, keep the form open
+        // and tell the user instead of dismissing as if it all saved.
+        guard tinSaved else { tinSaveFailed = true; return }
         onSave?(saved)
         dismiss()
     }

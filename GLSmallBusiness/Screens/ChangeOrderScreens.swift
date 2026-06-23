@@ -97,7 +97,7 @@ struct ChangeOrderFormScreen: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(!canSave)
+                    SaveOnceButton(disabled: !canSave, action: save)
                 }
             }
         }
@@ -184,7 +184,9 @@ struct ChangeOrderDetailSheet: View {
 
     @State private var pdfURL: URL?
     @State private var pdfData: Data?
+    @State private var generationFailed = false
     @State private var sendAction: SendAction?
+    @State private var sendFailureMessage: String?
     @State private var showingEdit = false
     @State private var confirmDelete = false
 
@@ -203,6 +205,8 @@ struct ChangeOrderDetailSheet: View {
                             .frame(height: 460)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                             .overlay(RoundedRectangle(cornerRadius: 14).stroke(.black.opacity(0.12)))
+                    } else if generationFailed {
+                        DocumentGenerationError { regenerate() }.frame(height: 460)
                     } else {
                         ProgressView().frame(height: 460)
                     }
@@ -278,6 +282,12 @@ struct ChangeOrderDetailSheet: View {
                 }
             }
             .sheet(item: $sendAction) { action in sendSheet(action).glAppearance(colorScheme) }
+            .alert("Couldn’t send", isPresented: Binding(get: { sendFailureMessage != nil },
+                                                         set: { if !$0 { sendFailureMessage = nil } })) {
+                Button("OK", role: .cancel) { sendFailureMessage = nil }
+            } message: {
+                Text(sendFailureMessage ?? "")
+            }
             .confirmationDialog("Delete this change order?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Delete", role: .destructive) {
                     modelContext.delete(changeOrder)
@@ -288,9 +298,14 @@ struct ChangeOrderDetailSheet: View {
     }
 
     private func regenerate() {
-        guard let url = ChangeOrderPDF.render(changeOrder, business: business) else { return }
+        guard let url = ChangeOrderPDF.render(changeOrder, business: business),
+              let data = try? Data(contentsOf: url) else {
+            generationFailed = true
+            return
+        }
         pdfURL = url
-        pdfData = try? Data(contentsOf: url)
+        pdfData = data
+        generationFailed = false
     }
 
     private func addToInvoice() {
@@ -322,14 +337,20 @@ struct ChangeOrderDetailSheet: View {
                     body: ChangeOrderMessage.htmlBody(changeOrder, business: business),
                     isHTML: true,
                     attachmentURL: pdfURL
-                ) { sendAction = nil }
+                ) { outcome in sendAction = nil; noteSend(outcome) }
             case .text:
                 MessageComposeView(
                     recipients: [invoice.recipientPhone],
                     body: ChangeOrderMessage.plainBody(changeOrder, business: business),
                     attachmentURLs: [pdfURL].compactMap { $0 }
-                ) { sendAction = nil }
+                ) { outcome in sendAction = nil; noteSend(outcome) }
             }
+        }
+    }
+
+    private func noteSend(_ outcome: SendOutcome) {
+        if outcome == .failed {
+            sendFailureMessage = "We couldn’t send your change order. Check your internet connection and try again."
         }
     }
 }

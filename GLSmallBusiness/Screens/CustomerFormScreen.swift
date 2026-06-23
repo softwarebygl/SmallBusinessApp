@@ -135,8 +135,7 @@ struct CustomerFormScreen: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save)
-                        .disabled(!isValid)
+                    SaveOnceButton(disabled: !isValid, action: save)
                 }
             }
         }

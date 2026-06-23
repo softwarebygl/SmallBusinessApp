@@ -196,6 +196,30 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done (built + verified; 273 tests pass):** **Zero-confusion error-handling pass.** Four independent
+  audits (forms/validation, empty-states/stale-refs, external-ops/permissions, crashes/cascades), then
+  fixed everything a user could hit and be lost by — every on-screen message is plain language, never a
+  developer error.
+  - **No more "did it send?":** the Mail/Messages sheet now reports its result via a tested `SendOutcome`
+    — a failed send shows "We couldn’t send your … — check your internet connection and try again"
+    (sent/cancelled stay silent). Covers estimate, invoice, payment receipt, change order.
+  - **Secure Tax ID:** if the Keychain write fails, the form stays open and says so (`updateTIN` now
+    returns success) instead of looking saved.
+  - **PDF failures are visible, not stuck:** the preview-first sheets (change order, payment receipt)
+    show a friendly "Couldn’t create this document — Try Again" instead of an endless spinner; the
+    estimate/invoice menu distinguishes "finish your profile" from "couldn’t create it — try again";
+    the shared preview's error copy is plain-language.
+  - **Photos:** a pick that can’t load (corrupted / unsupported / iCloud not downloaded) now shows a
+    friendly alert instead of silently doing nothing (logo, personal, customer, signature).
+  - **Input validation:** number fields reject non-finite/overflow values; a paycheck’s pay period
+    can’t end before it starts; custom "View All" date ranges are forgiving of reversed dates.
+  - **No double-submit:** a fast double-tap on Save can’t create a duplicate record (a duplicate
+    *payment* double-counts money) — `SaveOnceButton` fires once on every create/record form.
+  - Hardened two latent force-unwraps. Confirmed the SwiftData cascade/nullify delete rules are all
+    correct and the money math is overflow/zero-safe (no fixes needed).
+  - New helpers: `SendOutcome`, `SaveOnceButton`, `DocumentGenerationError`, `photoLoadFailureAlert`.
+    New tests: `SendOutcomeTests`, plus date-range and non-finite-parse cases.
+
 - **Done (built + verified; 263 tests pass):** **Robustness + remaining consistency polish.**
   - **Loss-of-internet / StoreKit feedback:** **Restore Purchases** and **Redeem Code** now show a
     clear result alert instead of silently spinning when offline — backed by a pure, unit-tested

@@ -219,9 +219,12 @@ extension BusinessProfile {
     }
 
     /// Writes the taxpayer ID to the Keychain and purges any legacy plaintext copy from the store.
-    func updateTIN(_ value: String) {
-        SecureTINStore.write(value)
+    /// Returns false if the secure write failed, so the caller can tell the user it wasn't saved.
+    @discardableResult
+    func updateTIN(_ value: String) -> Bool {
+        let ok = SecureTINStore.write(value)
         if !w9TIN.isEmpty { w9TIN = "" }
+        return ok
     }
 
     /// Line 1 of the W-9 — the name as shown on the tax return, falling back to the business name.

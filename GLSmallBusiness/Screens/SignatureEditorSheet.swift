@@ -33,6 +33,7 @@ struct SignatureEditorSheet: View {
     @State private var typedName = ""
     @State private var importedImage: UIImage?
     @State private var photoItem: PhotosPickerItem?
+    @State private var photoLoadFailed = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -78,11 +79,16 @@ struct SignatureEditorSheet: View {
                 }
             }
             .task(id: photoItem) {
-                guard let photoItem,
-                      let data = try? await photoItem.loadTransferable(type: Data.self),
-                      let image = UIImage(data: data) else { return }
+                guard let photoItem else { return }
+                guard let data = try? await photoItem.loadTransferable(type: Data.self),
+                      let image = UIImage(data: data) else {
+                    self.photoItem = nil
+                    photoLoadFailed = true
+                    return
+                }
                 importedImage = image
             }
+            .photoLoadFailureAlert($photoLoadFailed)
         }
     }
 

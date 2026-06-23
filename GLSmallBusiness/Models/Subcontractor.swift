@@ -203,13 +203,15 @@ nonisolated extension Subcontractor {
     }
 
     /// Stores (or clears) the sub's TIN in the Keychain, assigning a stable `tinKey` on first write.
-    func updateTIN(_ value: String) {
+    /// Returns false if the secure write failed, so the caller can tell the user it wasn't saved.
+    @discardableResult
+    func updateTIN(_ value: String) -> Bool {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         if tinKey.isEmpty {
-            guard !trimmed.isEmpty else { return }   // nothing to store yet — don't allocate a key
+            guard !trimmed.isEmpty else { return true }   // nothing to store yet — don't allocate a key
             tinKey = UUID().uuidString
         }
-        SecureTINStore.write(trimmed, account: tinAccount)
+        return SecureTINStore.write(trimmed, account: tinAccount)
     }
 
     /// Removes the Keychain TIN — call before deleting a sub so its TIN doesn't linger in the Keychain.

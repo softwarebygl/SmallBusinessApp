@@ -43,6 +43,7 @@ struct InvoiceDetailScreen: View {
     @State private var sendAction: SendAction?
     @State private var pdfURL: URL?
     @State private var showingPreview = false
+    @State private var sendFailureMessage: String?
     @State private var showingProfilePrompt = false
     @State private var receiptPayment: InvoicePayment?
     @State private var showingNewChangeOrder = false
@@ -120,6 +121,12 @@ struct InvoiceDetailScreen: View {
                             }
                             ShareLink(item: pdfURL) { Label("Share invoice…", systemImage: "square.and.arrow.up") }
                         }
+                    } else if businessProfiles.first?.isComplete == true {
+                        Section {
+                            Button { regeneratePDF() } label: {
+                                Label("Couldn’t create the document — try again", systemImage: "arrow.clockwise")
+                            }
+                        }
                     } else {
                         Section {
                             Button { showingProfilePrompt = true } label: { Label("Set up business profile to send", systemImage: "exclamationmark.circle") }
@@ -178,6 +185,12 @@ struct InvoiceDetailScreen: View {
         } message: {
             Text("Add your business name, phone, and email in Menu → My Company before sending an invoice.")
         }
+        .alert("Couldn’t send", isPresented: Binding(get: { sendFailureMessage != nil },
+                                                     set: { if !$0 { sendFailureMessage = nil } })) {
+            Button("OK", role: .cancel) { sendFailureMessage = nil }
+        } message: {
+            Text(sendFailureMessage ?? "")
+        }
     }
 
     /// The Mail / Messages compose sheet, pre-filled with branded content and attachments.
@@ -192,13 +205,20 @@ struct InvoiceDetailScreen: View {
                 body: InvoiceMessage.htmlBody(invoice: invoice, business: business),
                 isHTML: true,
                 attachmentURL: pdfURL
-            ) { sendAction = nil }
+            ) { outcome in sendAction = nil; noteSend(outcome) }
         case .text:
             MessageComposeView(
                 recipients: [invoice.recipientPhone],
                 body: InvoiceMessage.plainBody(invoice: invoice, business: business),
                 attachmentURLs: [EstimateMessage.logoAttachmentURL(business: business), pdfURL].compactMap { $0 }
-            ) { sendAction = nil }
+            ) { outcome in sendAction = nil; noteSend(outcome) }
+        }
+    }
+
+    /// Tell the user only when a send actually failed; sent/cancelled needs no interruption.
+    private func noteSend(_ outcome: SendOutcome) {
+        if outcome == .failed {
+            sendFailureMessage = "We couldn’t send your invoice. Check your internet connection and try again."
         }
     }
 
@@ -524,7 +544,7 @@ private struct RecordPaymentSheet: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(amount <= 0)
+                    SaveOnceButton(disabled: amount <= 0, action: save)
                 }
             }
         }
@@ -611,7 +631,9 @@ private struct PaymentReceiptSheet: View {
 
     @State private var pdfURL: URL?
     @State private var pdfData: Data?
+    @State private var generationFailed = false
     @State private var sendAction: SendAction?
+    @State private var sendFailureMessage: String?
 
     private enum SendAction: Int, Identifiable { case email, text; var id: Int { rawValue } }
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
@@ -625,6 +647,10 @@ private struct PaymentReceiptSheet: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(.black.opacity(0.12)))
+                } else if generationFailed {
+                    Spacer()
+                    DocumentGenerationError { regenerate() }
+                    Spacer()
                 } else {
                     Spacer()
                     ProgressView()
@@ -658,13 +684,30 @@ private struct PaymentReceiptSheet: View {
             }
             .onAppear { regenerate() }
             .sheet(item: $sendAction) { action in sendSheet(action).glAppearance(colorScheme) }
+            .alert("Couldn’t send", isPresented: Binding(get: { sendFailureMessage != nil },
+                                                         set: { if !$0 { sendFailureMessage = nil } })) {
+                Button("OK", role: .cancel) { sendFailureMessage = nil }
+            } message: {
+                Text(sendFailureMessage ?? "")
+            }
         }
     }
 
     private func regenerate() {
-        guard let url = PaymentReceiptPDF.render(invoice, payment: payment, business: business) else { return }
+        guard let url = PaymentReceiptPDF.render(invoice, payment: payment, business: business),
+              let data = try? Data(contentsOf: url) else {
+            generationFailed = true
+            return
+        }
         pdfURL = url
-        pdfData = try? Data(contentsOf: url)
+        pdfData = data
+        generationFailed = false
+    }
+
+    private func noteSend(_ outcome: SendOutcome) {
+        if outcome == .failed {
+            sendFailureMessage = "We couldn’t send your receipt. Check your internet connection and try again."
+        }
     }
 
     @ViewBuilder
@@ -677,13 +720,13 @@ private struct PaymentReceiptSheet: View {
                 body: PaymentReceiptMessage.htmlBody(invoice: invoice, payment: payment, business: business),
                 isHTML: true,
                 attachmentURL: pdfURL
-            ) { sendAction = nil }
+            ) { outcome in sendAction = nil; noteSend(outcome) }
         case .text:
             MessageComposeView(
                 recipients: [invoice.recipientPhone],
                 body: PaymentReceiptMessage.plainBody(invoice: invoice, payment: payment, business: business),
                 attachmentURLs: [pdfURL].compactMap { $0 }
-            ) { sendAction = nil }
+            ) { outcome in sendAction = nil; noteSend(outcome) }
         }
     }
 }

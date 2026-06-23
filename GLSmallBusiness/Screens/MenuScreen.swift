@@ -345,6 +345,8 @@ struct MyCompanyFormScreen: View {
     @State private var w9TIN: String
     @State private var w9ExemptPayeeCode: String
     @State private var w9FATCACode: String
+    @State private var tinSaveFailed = false
+    @State private var photoLoadFailed = false
 
     init(profile: BusinessProfile) {
         self.profile = profile
@@ -544,21 +546,28 @@ struct MyCompanyFormScreen: View {
                 }
             }
             .task(id: logoItem) {
-                guard let logoItem,
-                      let data = try? await logoItem.loadTransferable(type: Data.self),
-                      let uiImage = UIImage(data: data)
-                else { return }
+                guard let logoItem else { return }
+                guard let data = try? await logoItem.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data) else {
+                    self.logoItem = nil
+                    photoLoadFailed = true
+                    return
+                }
                 logoToCrop = LogoCrop(image: uiImage, isDark: false)
                 self.logoItem = nil
             }
             .task(id: logoItemDark) {
-                guard let logoItemDark,
-                      let data = try? await logoItemDark.loadTransferable(type: Data.self),
-                      let uiImage = UIImage(data: data)
-                else { return }
+                guard let logoItemDark else { return }
+                guard let data = try? await logoItemDark.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data) else {
+                    self.logoItemDark = nil
+                    photoLoadFailed = true
+                    return
+                }
                 logoToCrop = LogoCrop(image: uiImage, isDark: true)
                 self.logoItemDark = nil
             }
+            .photoLoadFailureAlert($photoLoadFailed)
             .fullScreenCover(item: $logoToCrop) { crop in
                 ImageCropView(image: crop.image, guide: .roundedRect,
                               windowBackground: GLColor.backgroundPrimary.render(in: crop.isDark ? .dark : .light)) {
@@ -568,6 +577,11 @@ struct MyCompanyFormScreen: View {
                     if crop.isDark { logoDataDark = data } else { logoData = data }
                     logoToCrop = nil
                 }
+            }
+            .alert("Couldn’t save your Tax ID", isPresented: $tinSaveFailed) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Your other details were saved, but your Tax ID wasn’t. Make sure your device is unlocked, then tap Save again.")
             }
         }
     }
@@ -681,10 +695,16 @@ struct MyCompanyFormScreen: View {
         profile.w9LLCClassification = w9LLCClassification.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         profile.w9OtherClassification = w9OtherClassification.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.w9TINType = w9TINType
-        profile.updateTIN(w9TIN)
+        let tinSaved = profile.updateTIN(w9TIN)
         profile.w9ExemptPayeeCode = w9ExemptPayeeCode.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.w9FATCACode = w9FATCACode.trimmingCharacters(in: .whitespacesAndNewlines)
-        dismiss()
+        // The rest of the profile is saved; only the secure Tax ID write can fail. If it did, keep
+        // the form open and tell the user rather than dismissing as if everything saved.
+        if tinSaved {
+            dismiss()
+        } else {
+            tinSaveFailed = true
+        }
     }
 }
 

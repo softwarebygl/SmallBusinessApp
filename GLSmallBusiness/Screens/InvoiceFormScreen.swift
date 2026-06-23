@@ -248,7 +248,7 @@ struct InvoiceFormScreen: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(!canSave)
+                    SaveOnceButton(disabled: !canSave, action: save)
                 }
             }
         }
@@ -375,7 +375,8 @@ struct InvoiceFormScreen: View {
         return counts.keys
             .filter { $0.lowercased().contains(lower) && $0.lowercased() != lower }
             .sorted { a, b in
-                counts[a]! != counts[b]! ? counts[a]! > counts[b]! : a < b
+                let ca = counts[a] ?? 0, cb = counts[b] ?? 0
+                return ca != cb ? ca > cb : a < b
             }
             .prefix(4)
             .map { $0 }

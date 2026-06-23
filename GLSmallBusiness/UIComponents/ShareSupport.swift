@@ -8,6 +8,34 @@
 import SwiftUI
 import MessageUI
 
+/// What actually happened when the Mail / Messages sheet closed, so the screen can tell the user
+/// (a closed compose sheet looks the same whether it sent, failed, or was cancelled — and a
+/// contractor must never *think* a document went out when it didn't). Mapping is pure so it's tested.
+enum SendOutcome: Equatable {
+    case sent
+    case cancelled
+    case failed
+
+    init(mailResult: MFMailComposeResult, error: Error?) {
+        if error != nil { self = .failed; return }
+        switch mailResult {
+        case .sent: self = .sent
+        case .failed: self = .failed
+        case .cancelled, .saved: self = .cancelled   // saved-to-drafts wasn't actually sent
+        @unknown default: self = .cancelled
+        }
+    }
+
+    init(messageResult: MessageComposeResult) {
+        switch messageResult {
+        case .sent: self = .sent
+        case .failed: self = .failed
+        case .cancelled: self = .cancelled
+        @unknown default: self = .cancelled
+        }
+    }
+}
+
 /// Apple's Mail compose sheet, pre-filled with recipient/subject/body and a PDF attachment.
 /// Note: `MFMailComposeViewController.canSendMail()` is false on the Simulator.
 struct MailComposeView: UIViewControllerRepresentable {
@@ -16,7 +44,7 @@ struct MailComposeView: UIViewControllerRepresentable {
     let body: String
     var isHTML: Bool = false
     let attachmentURL: URL?
-    let onFinish: () -> Void
+    let onFinish: (SendOutcome) -> Void
 
     func makeUIViewController(context: Context) -> MFMailComposeViewController {
         let controller = MFMailComposeViewController()
@@ -35,10 +63,10 @@ struct MailComposeView: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(onFinish: onFinish) }
 
     final class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
-        let onFinish: () -> Void
-        init(onFinish: @escaping () -> Void) { self.onFinish = onFinish }
+        let onFinish: (SendOutcome) -> Void
+        init(onFinish: @escaping (SendOutcome) -> Void) { self.onFinish = onFinish }
         func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-            onFinish()
+            onFinish(SendOutcome(mailResult: result, error: error))
         }
     }
 }
@@ -50,7 +78,7 @@ struct MessageComposeView: UIViewControllerRepresentable {
     let body: String
     /// Attachments shown in order — typically the brand logo image followed by the estimate PDF.
     let attachmentURLs: [URL]
-    let onFinish: () -> Void
+    let onFinish: (SendOutcome) -> Void
 
     func makeUIViewController(context: Context) -> MFMessageComposeViewController {
         let controller = MFMessageComposeViewController()
@@ -68,10 +96,10 @@ struct MessageComposeView: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(onFinish: onFinish) }
 
     final class Coordinator: NSObject, MFMessageComposeViewControllerDelegate {
-        let onFinish: () -> Void
-        init(onFinish: @escaping () -> Void) { self.onFinish = onFinish }
+        let onFinish: (SendOutcome) -> Void
+        init(onFinish: @escaping (SendOutcome) -> Void) { self.onFinish = onFinish }
         func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
-            onFinish()
+            onFinish(SendOutcome(messageResult: result))
         }
     }
 }
