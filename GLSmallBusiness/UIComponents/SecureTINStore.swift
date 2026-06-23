@@ -11,7 +11,8 @@
 import Foundation
 import Security
 
-enum SecureTINStore {
+// Keychain/Security only — no main-actor state — so callers (model accessors) can read/write off-actor.
+nonisolated enum SecureTINStore {
     private static let service = "GLSecureTIN"
     /// The single business profile's TIN account. Subcontractors use per-record accounts via
     /// `subcontractorAccount(_:)`, so many TINs can coexist, each keyed by its owner's stable id.

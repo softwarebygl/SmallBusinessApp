@@ -15,7 +15,8 @@
 
 import Foundation
 
-enum CSV {
+// Pure string escaping — runs anywhere; not main-actor work (the project defaults to MainActor).
+nonisolated enum CSV {
     static func field(_ field: String) -> String {
         var value = field
         if let first = value.first, "=+-@\t".contains(first) {

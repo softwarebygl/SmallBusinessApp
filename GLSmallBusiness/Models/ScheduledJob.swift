@@ -15,7 +15,8 @@ import SwiftData
 
 // MARK: - Scheduling preferences (device-local, like the appearance settings)
 
-enum SchedulingPrefs {
+// Pure prefs + calendar math; safe off any actor (SchedulingEngine, already nonisolated, calls in).
+nonisolated enum SchedulingPrefs {
     static let workdaysMaskKey = "scheduleWorkdaysMask"
     static let oneJobAtATimeKey = "scheduleOneJobAtATime"
 

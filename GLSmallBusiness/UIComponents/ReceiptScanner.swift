@@ -7,7 +7,7 @@
 
 import Foundation
 import UIKit
-import Vision
+@preconcurrency import Vision
 
 /// Best-effort details read off a scanned receipt.
 struct ScannedReceipt {

@@ -99,5 +99,5 @@ enum StatsExport {
         }
     }
 
-    private static func csvField(_ field: String) -> String { CSV.field(field) }
+    private nonisolated static func csvField(_ field: String) -> String { CSV.field(field) }
 }
