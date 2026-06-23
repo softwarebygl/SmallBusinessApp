@@ -733,12 +733,6 @@
     "1 invoice has no customer — it still counts in Stats. Swipe left to delete it." : {
 
     },
-    "12-3456789" : {
-
-    },
-    "123-45-6789" : {
-
-    },
     "1099-NEC" : {
 
     },
@@ -3079,6 +3073,9 @@
     "Couldn’t load plans right now" : {
 
     },
+    "Couldn’t load that address" : {
+
+    },
     "Couldn’t open this document" : {
 
     },
@@ -5205,6 +5202,9 @@
           }
         }
       }
+    },
+    "Find Address" : {
+
     },
     "Finish your tax details to include it." : {
 
@@ -7666,6 +7666,9 @@
         }
       }
     },
+    "No addresses found yet — keep typing." : {
+
+    },
     "No Change Orders" : {
 
     },
@@ -7814,6 +7817,9 @@
 
     },
     "No line items." : {
+
+    },
+    "No matches" : {
 
     },
     "No name" : {
@@ -10099,6 +10105,9 @@
     "Scope changes" : {
 
     },
+    "Search for an address" : {
+
+    },
     "Search vendor, customer, notes" : {
       "localizations" : {
         "ca" : {
@@ -10629,6 +10638,9 @@
     "Signed with your saved signature, dated today. Review before sending." : {
 
     },
+    "Something went wrong getting that address. Pick another, or type it in by hand." : {
+
+    },
     "sq ft" : {
       "localizations" : {
         "ca" : {
@@ -10793,6 +10805,9 @@
 
     },
     "Start date" : {
+
+    },
+    "Start typing a street address to see suggestions." : {
 
     },
     "State" : {
@@ -11000,6 +11015,9 @@
           }
         }
       }
+    },
+    "Street address" : {
+
     },
     "Subcontractors" : {
 

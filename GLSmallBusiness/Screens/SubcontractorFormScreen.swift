@@ -109,6 +109,7 @@ struct SubcontractorFormScreen: View {
                         #endif
                 }
                 Section("Address") {
+                    AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)
                     TextField("Street", text: $street1)
                         .textContentType(.streetAddressLine1)
                     TextField("Apt / Suite (optional)", text: $street2)
@@ -121,7 +122,7 @@ struct SubcontractorFormScreen: View {
                     TextField("Postal code", text: $postalCode)
                         .textContentType(.postalCode)
                         #if !os(macOS)
-                        .keyboardType(.numbersAndPunctuation)
+                        .keyboardType(.numberPad)
                         #endif
                 }
                 Section {

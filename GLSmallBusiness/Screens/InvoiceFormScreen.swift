@@ -181,6 +181,7 @@ struct InvoiceFormScreen: View {
                 }
 
                 Section {
+                    AddressSearchButton(street1: $serviceStreet, city: $serviceCity, state: $serviceState, postalCode: $servicePostal)
                     TextField("Street", text: $serviceStreet)
                         .textContentType(.streetAddressLine1)
                     TextField("City", text: $serviceCity)
@@ -191,7 +192,7 @@ struct InvoiceFormScreen: View {
                     TextField("ZIP", text: $servicePostal)
                         .textContentType(.postalCode)
                         #if !os(macOS)
-                        .keyboardType(.numbersAndPunctuation)
+                        .keyboardType(.numberPad)
                         #endif
                 } header: {
                     InfoLabel("Service Address", info: "The specific job site or lot this invoice is for. Optional — leave blank if it's at the customer's own address.")
