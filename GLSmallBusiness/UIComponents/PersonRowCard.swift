@@ -25,8 +25,11 @@ struct ProfileAvatar: View {
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     var body: some View {
-        ZStack {
-            if let imageData, let uiImage = UIImage(data: imageData) {
+        let uiImage = imageData.flatMap { UIImage(data: $0) }
+        // The monogram (empty) state uses a ring half as thick as the photo state.
+        let strokeWidth = size * (uiImage == nil ? 0.01 : 0.02)
+        return ZStack {
+            if let uiImage {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
@@ -40,7 +43,7 @@ struct ProfileAvatar: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        .overlay(Circle().stroke(gold.opacity(0.4), lineWidth: size * 0.02))
+        .overlay(Circle().stroke(gold.opacity(0.4), lineWidth: strokeWidth))
         .overlay(alignment: .bottomTrailing) {
             if showsCameraBadge {
                 Image(systemName: "camera.fill")
