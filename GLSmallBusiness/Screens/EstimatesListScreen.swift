@@ -17,11 +17,16 @@ struct EstimatesListScreen: View {
     @State private var isEditing = false
     @State private var selection = Set<PersistentIdentifier>()
     @State private var selectedEstimate: Estimate?
+    @State private var searchText = ""
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     private var estimates: [Estimate] {
         (customer.estimates ?? []).sorted { $0.createdAt > $1.createdAt }
+    }
+
+    private var visibleEstimates: [Estimate] {
+        searchText.isEmpty ? estimates : estimates.filter { $0.matchesSearch(searchText) }
     }
 
     var body: some View {
@@ -34,7 +39,7 @@ struct EstimatesListScreen: View {
                 }
                 .listRowBackground(Color.clear)
             } else {
-                ForEach(estimates) { estimate in
+                ForEach(visibleEstimates) { estimate in
                     Button {
                         if isEditing {
                             toggleSelection(estimate)
@@ -78,6 +83,10 @@ struct EstimatesListScreen: View {
         .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) {
             PrimaryBackground()
+        }
+        .searchable(text: $searchText, prompt: "Search estimates")
+        .overlay {
+            if !searchText.isEmpty && visibleEstimates.isEmpty { ContentUnavailableView.search(text: searchText) }
         }
         .navigationTitle("Estimates")
         .toolbarTitleDisplayMode(.large)
@@ -181,7 +190,7 @@ struct EstimatesListScreen: View {
     }
 
     private func delete(at offsets: IndexSet) {
-        let toDelete = offsets.map { estimates[$0] }
+        let toDelete = offsets.map { visibleEstimates[$0] }
         for estimate in toDelete {
             modelContext.delete(estimate)
         }

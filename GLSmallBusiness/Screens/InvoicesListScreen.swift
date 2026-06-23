@@ -17,11 +17,16 @@ struct InvoicesListScreen: View {
     @State private var isEditing = false
     @State private var selection = Set<PersistentIdentifier>()
     @State private var selectedInvoice: Invoice?
+    @State private var searchText = ""
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     private var invoices: [Invoice] {
         (customer.invoices ?? []).sorted { $0.createdAt > $1.createdAt }
+    }
+
+    private var visibleInvoices: [Invoice] {
+        searchText.isEmpty ? invoices : invoices.filter { $0.matchesSearch(searchText) }
     }
 
     var body: some View {
@@ -34,7 +39,7 @@ struct InvoicesListScreen: View {
                 }
                 .listRowBackground(Color.clear)
             } else {
-                ForEach(invoices) { invoice in
+                ForEach(visibleInvoices) { invoice in
                     Button {
                         if isEditing {
                             toggleSelection(invoice)
@@ -78,6 +83,10 @@ struct InvoicesListScreen: View {
         .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) {
             PrimaryBackground()
+        }
+        .searchable(text: $searchText, prompt: "Search invoices")
+        .overlay {
+            if !searchText.isEmpty && visibleInvoices.isEmpty { ContentUnavailableView.search(text: searchText) }
         }
         .navigationTitle("Invoices")
         .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent (the hub)
@@ -191,7 +200,7 @@ struct InvoicesListScreen: View {
     }
 
     private func delete(at offsets: IndexSet) {
-        let toDelete = offsets.map { invoices[$0] }
+        let toDelete = offsets.map { visibleInvoices[$0] }
         for invoice in toDelete {
             modelContext.delete(invoice)
         }
