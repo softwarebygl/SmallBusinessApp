@@ -1952,6 +1952,9 @@
         }
       }
     },
+    "Back" : {
+
+    },
     "Balance" : {
       "localizations" : {
         "ca" : {
@@ -3026,7 +3029,14 @@
     "Copy B — give this to %@. Keep a copy for your records. File Copy A with the IRS yourself (e-file) or hand your accountant the Year-End Report." : {
 
     },
+    "Couldn’t create the document — try again" : {
+
+    },
+    "Couldn’t create this document" : {
+
+    },
     "Couldn't load plans right now" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -3066,10 +3076,25 @@
         }
       }
     },
-    "Couldn't open the document" : {
+    "Couldn’t load plans right now" : {
 
     },
-    "Couldn't read that file" : {
+    "Couldn’t open this document" : {
+
+    },
+    "Couldn’t read that file" : {
+
+    },
+    "Couldn’t save their Tax ID" : {
+
+    },
+    "Couldn’t save your Tax ID" : {
+
+    },
+    "Couldn’t send" : {
+
+    },
+    "Couldn’t use that photo" : {
 
     },
     "Counts toward this year's total and the 1099-NEC." : {
@@ -5922,6 +5947,9 @@
     "Issued to %@, sent as provided." : {
 
     },
+    "It looks like this %@ was deleted — possibly on another device. Head back to the list." : {
+
+    },
     "Item name" : {
       "localizations" : {
         "ca" : {
@@ -7554,6 +7582,9 @@
     "NEXT PAYDAY" : {
 
     },
+    "No activity recorded yet." : {
+
+    },
     "No activity yet" : {
       "localizations" : {
         "ca" : {
@@ -8212,9 +8243,6 @@
     "Nothing in this range" : {
 
     },
-    "Nothing recorded yet. Tap “Record what you owe” above." : {
-
-    },
     "Nothing to schedule yet" : {
 
     },
@@ -8715,6 +8743,9 @@
         }
       }
     },
+    "Payroll" : {
+
+    },
     "Pays" : {
 
     },
@@ -8885,6 +8916,12 @@
       }
     },
     "Photo" : {
+
+    },
+    "Please try again in a moment. If it keeps happening, make sure your device has some free storage space." : {
+
+    },
+    "Please try again. If it keeps happening, make sure your device has some free storage space." : {
 
     },
     "Postal code" : {
@@ -11758,7 +11795,13 @@
         }
       }
     },
-    "That file couldn't be opened. Try a different file, or export it as a PDF first." : {
+    "That file couldn’t be opened. Try a different file, or export it as a PDF first." : {
+
+    },
+    "That photo couldn’t be opened — it may be in a format we can’t read, or it didn’t finish downloading from iCloud. Please try a different one." : {
+
+    },
+    "The “To” date must be on or after the “From” date." : {
 
     },
     "The package is built around the Certificate of Liability Insurance your insurer issued with %@ named as the certificate holder. Upload it once, here, and you can send their full package." : {
@@ -11847,7 +11890,13 @@
     "The year these records cover." : {
 
     },
+    "Their other details were saved, but the Tax ID wasn’t. Make sure your device is unlocked, then tap Save again." : {
+
+    },
     "These dates overlap a job you've already booked." : {
+
+    },
+    "This %@ was removed" : {
 
     },
     "This change" : {
@@ -11946,6 +11995,12 @@
 
     },
     "Trust / Estate" : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Turn on iCloud to back up your work" : {
 
     },
     "Twice a month" : {
@@ -12724,6 +12779,9 @@
         }
       }
     },
+    "You’re not signed in to iCloud, so your business info is saved on this device only — it won’t back up or sync to your other devices. You can turn that on anytime by signing in to iCloud in the Settings app." : {
+
+    },
     "Your business" : {
       "localizations" : {
         "ca" : {
@@ -12768,6 +12826,9 @@
 
     },
     "Your name (as shown on your tax return)" : {
+
+    },
+    "Your other details were saved, but your Tax ID wasn’t. Make sure your device is unlocked, then tap Save again." : {
 
     },
     "Your signature" : {
