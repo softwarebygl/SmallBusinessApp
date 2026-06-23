@@ -69,17 +69,21 @@ struct EmployeesScreen: View {
                 .accessibilityLabel("Menu")
         }
         ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-                Button { showingAdd = true } label: { Label("New employee", systemImage: "plus") }
-                if !exportFiles.isEmpty {
+            if exportFiles.isEmpty {
+                // Nothing else to bundle yet — a one-tap add, matching the Customers screen.
+                Button { showingAdd = true } label: { Image(systemName: "plus") }
+                    .accessibilityLabel("Add Employee")
+            } else {
+                Menu {
+                    Button { showingAdd = true } label: { Label("New employee", systemImage: "plus") }
                     ShareLink(items: exportFiles) {
                         Label("Year-End Report", systemImage: "square.and.arrow.up")
                     }
+                } label: {
+                    Image(systemName: "ellipsis")
                 }
-            } label: {
-                Image(systemName: "ellipsis")
+                .accessibilityLabel("More")
             }
-            .accessibilityLabel("More")
         }
     }
 
