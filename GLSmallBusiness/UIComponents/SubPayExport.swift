@@ -85,14 +85,5 @@ enum SubPayExport {
         }
     }
 
-    private static func csvField(_ field: String) -> String {
-        var value = field
-        if let first = value.first, "=+-@\t".contains(first) {
-            value = "'" + value
-        }
-        guard value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r") else {
-            return value
-        }
-        return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
-    }
+    private static func csvField(_ field: String) -> String { CSV.field(field) }
 }

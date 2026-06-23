@@ -214,7 +214,7 @@ struct CustomersScreen: View {
         }
         // Cascades to the customer's invoices/estimates/receipts; commit now so Stats and CloudKit
         // reflect it immediately instead of waiting on deferred autosave.
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 
     private func toggleSelection(_ customer: Customer) {
@@ -236,7 +236,7 @@ struct CustomersScreen: View {
             }
             selection.removeAll()
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 }
 

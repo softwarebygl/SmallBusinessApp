@@ -168,7 +168,7 @@ struct ChangeOrderFormScreen: View {
             li.changeOrder = target
             modelContext.insert(li)
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
         dismiss()
     }
 }

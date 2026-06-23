@@ -480,6 +480,16 @@
         }
       }
     },
+    "%@ gross · %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ gross · %2$lld %3$@"
+          }
+        }
+      }
+    },
     "%@ hours · %lld %@" : {
       "localizations" : {
         "en" : {
@@ -495,6 +505,16 @@
     },
     "%@ hr" : {
 
+    },
+    "%@ paid · %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ paid · %2$lld %3$@"
+          }
+        }
+      }
     },
     "%@ unpaid hours logged." : {
 
@@ -1377,6 +1397,9 @@
         }
       }
     },
+    "All Activity" : {
+
+    },
     "All Change Orders" : {
 
     },
@@ -1387,6 +1410,9 @@
 
     },
     "All Invoices" : {
+
+    },
+    "All Paychecks" : {
 
     },
     "All Receipts" : {
@@ -1839,6 +1865,9 @@
           }
         }
       }
+    },
+    "Assignment" : {
+
     },
     "Attached is your %lld Form 1099-NEC." : {
 
@@ -3037,7 +3066,7 @@
         }
       }
     },
-    "Couldn't open the package" : {
+    "Couldn't open the document" : {
 
     },
     "Couldn't read that file" : {
@@ -3250,6 +3279,7 @@
       }
     },
     "Customizes the app" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -4726,6 +4756,9 @@
         }
       }
     },
+    "Estimate %@" : {
+
+    },
     "Estimate message" : {
       "localizations" : {
         "ca" : {
@@ -4933,6 +4966,9 @@
 
     },
     "Exempt payee code" : {
+
+    },
+    "Exemption codes" : {
 
     },
     "Expenses" : {
@@ -7789,6 +7825,9 @@
         }
       }
     },
+    "No paychecks in this range" : {
+
+    },
     "No paychecks recorded yet." : {
 
     },
@@ -8170,6 +8209,9 @@
         }
       }
     },
+    "Nothing in this range" : {
+
+    },
     "Nothing recorded yet. Tap “Record what you owe” above." : {
 
     },
@@ -8246,7 +8288,11 @@
     "Optional. A spare, blank Certificate of Insurance kept only for your own records — it's never sent to customers or added to a package." : {
 
     },
+    "Optional. Appears on your estimates and invoices, and customizes the app." : {
+
+    },
     "Optional. Appears on your estimates and invoices." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -8960,6 +9006,9 @@
           }
         }
       }
+    },
+    "Preview" : {
+
     },
     "Preview full package" : {
 
@@ -10526,9 +10575,6 @@
       }
     },
     "Sharing sends two files for %@ — this tax summary and a receipts CSV listing every expense. Hand them to your accountant or keep them for your records." : {
-
-    },
-    "Showing the 12 most recent of %lld." : {
 
     },
     "Sign and date your W-9 automatically." : {
@@ -12404,6 +12450,9 @@
     "Weekly" : {
 
     },
+    "What is this?" : {
+
+    },
     "What it's for (e.g. 30% progress payment)" : {
       "localizations" : {
         "ca" : {
@@ -12719,6 +12768,9 @@
 
     },
     "Your name (as shown on your tax return)" : {
+
+    },
+    "Your signature" : {
 
     },
     "Your W-9 already uses the business name and address from My Company. To complete it, just add:" : {

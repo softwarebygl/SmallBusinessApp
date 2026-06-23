@@ -100,6 +100,6 @@ struct AllEstimatesScreen: View {
         for estimate in offsets.map({ estimates[$0] }) {
             modelContext.delete(estimate)
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 }

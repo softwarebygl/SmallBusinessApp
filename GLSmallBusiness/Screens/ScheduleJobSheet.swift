@@ -122,7 +122,7 @@ struct ScheduleJobSheet: View {
         case .invoice(let i): job.invoice = i
         }
         modelContext.insert(job)
-        try? modelContext.save()
+        modelContext.saveChanges()
         dismiss()
     }
 }

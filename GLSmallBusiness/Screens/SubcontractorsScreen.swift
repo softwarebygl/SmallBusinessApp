@@ -139,7 +139,7 @@ struct SubcontractorsScreen: View {
             subs[index].clearSecureTIN()   // don't leave the TIN behind in the Keychain
             modelContext.delete(subs[index])
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 
     private func regenerateExport() {

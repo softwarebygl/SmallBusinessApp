@@ -196,6 +196,22 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done (built + verified; 263 tests pass):** **Robustness + remaining consistency polish.**
+  - **Loss-of-internet / StoreKit feedback:** **Restore Purchases** and **Redeem Code** now show a
+    clear result alert instead of silently spinning when offline — backed by a pure, unit-tested
+    `SubscriptionActions` error→message mapping (`nil` = user cancelled → no alert). (The paywall
+    already had a Retry on product-load failure; CloudKit/SwiftData already queue writes offline.)
+  - **No more silent saves:** every `try? modelContext.save()` (~20 sites) replaced with
+    `modelContext.saveChanges()`, which logs failures via `Logger.data` instead of swallowing them.
+  - **Hub data cards sectioned:** Employee (`Payroll`) and Subcontractor (`Payments` / `Tax`) hubs now
+    group their cards under gray section headers, matching Customer/Business. Empty-state copy aligned.
+  - **Shared, testable logic extracted:** date-range filtering behind every "View All" list
+    (`DateRangeFilter`) and the CSV formula-injection guard duplicated across three exports
+    (`CSV.field`) are now single, unit-tested helpers.
+  - New tests: `DateRangeFilterTests` (year rollover, inclusive custom end day, leap day),
+    `SubscriptionActionsTests` (offline / cancel / generic), `CSVTests` (=,+,-,@ injection + RFC-4180
+    quoting). New files: `DateRangeFilter`, `SubscriptionActions`, `CSV`, `ModelContextSave`.
+
 - **Done — committed `86a75d6` + follow-up (built + verified on iPhone & iPad simulators):** **App-wide
   consistency pass (the GL way).** A sweep so every screen reads the same and nothing makes the user
   do a double-take:

@@ -68,6 +68,7 @@ struct SettingsScreen: View {
     @State private var managingSubscription = false
     @State private var redeemingCode = false
     @State private var restoring = false
+    @State private var subscriptionAlert: String?   // result of a restore / redeem; nil = no alert
 
     private let privacyURL = URL(string: "https://evolvedbygl.github.io/privacy/")!
     private let termsURL   = URL(string: "https://evolvedbygl.github.io/terms/")!
@@ -117,7 +118,16 @@ struct SettingsScreen: View {
                 }
                 Button {
                     restoring = true
-                    Task { try? await AppStore.sync(); restoring = false }
+                    Task {
+                        defer { restoring = false }
+                        do {
+                            try await AppStore.sync()
+                            subscriptionAlert = "Your purchases have been restored. If you have an active subscription, it’s now active on this device."
+                        } catch {
+                            // nil message = the user cancelled the sign-in sheet — say nothing.
+                            subscriptionAlert = SubscriptionActions.restoreFailureMessage(for: error)
+                        }
+                    }
                 } label: {
                     if restoring {
                         ProgressView()
@@ -125,6 +135,7 @@ struct SettingsScreen: View {
                         Label("Restore Purchases", systemImage: "arrow.clockwise")
                     }
                 }
+                .disabled(restoring)
                 Button {
                     redeemingCode = true
                 } label: {
@@ -150,7 +161,19 @@ struct SettingsScreen: View {
         .navigationTitle("Settings")
         .toolbarTitleDisplayMode(.large)
         .manageSubscriptionsSheet(isPresented: $managingSubscription)
-        .offerCodeRedemption(isPresented: $redeemingCode) { _ in }
+        .offerCodeRedemption(isPresented: $redeemingCode) { result in
+            if case .failure(let error) = result {
+                subscriptionAlert = SubscriptionActions.redeemFailureMessage(for: error)
+            }
+        }
+        .alert("Subscription", isPresented: Binding(
+            get: { subscriptionAlert != nil },
+            set: { if !$0 { subscriptionAlert = nil } }
+        )) {
+            Button("OK", role: .cancel) { subscriptionAlert = nil }
+        } message: {
+            Text(subscriptionAlert ?? "")
+        }
     }
 }
 

@@ -45,11 +45,14 @@ struct EmployeeDetailScreen: View {
                 header
                 contactCard
                 moreInfoRow
-                paydayCard
-                if employee.isOverFortyThisWeek { overtimeFlag }
-                hoursCard
-                paychecksCard
-                ytdCard
+                VStack(alignment: .leading, spacing: 12) {
+                    GLSectionHeader(title: "Payroll")
+                    paydayCard
+                    if employee.isOverFortyThisWeek { overtimeFlag }
+                    hoursCard
+                    paychecksCard
+                    ytdCard
+                }
             }
             .padding()
             .frame(maxWidth: 640)
@@ -332,18 +335,13 @@ private struct AllHoursSheet: View {
     @State private var editing: TimeEntry?
 
     private var filtered: [TimeEntry] {
-        let all = employee.sortedTimeEntries
-        let cal = Calendar.current
+        rangeFilter.apply(to: employee.sortedTimeEntries, date: \.date)
+    }
+    private var rangeFilter: DateRangeFilter {
         switch range {
-        case .all:
-            return all
-        case .year:
-            let y = cal.component(.year, from: .now)
-            return all.filter { cal.component(.year, from: $0.date) == y }
-        case .custom:
-            let lo = cal.startOfDay(for: from)
-            let hi = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: to)) ?? to
-            return all.filter { $0.date >= lo && $0.date < hi }
+        case .all: return .all
+        case .year: return .year(Calendar.current.component(.year, from: .now))
+        case .custom: return .custom(from: from, to: to)
         }
     }
     private var totalHours: Double { filtered.reduce(0) { $0 + $1.hours } }
@@ -426,18 +424,13 @@ private struct AllPaychecksSheet: View {
     @State private var editing: Paycheck?
 
     private var filtered: [Paycheck] {
-        let all = employee.sortedPaychecks
-        let cal = Calendar.current
+        rangeFilter.apply(to: employee.sortedPaychecks, date: \.payDate)
+    }
+    private var rangeFilter: DateRangeFilter {
         switch range {
-        case .all:
-            return all
-        case .year:
-            let y = cal.component(.year, from: .now)
-            return all.filter { cal.component(.year, from: $0.payDate) == y }
-        case .custom:
-            let lo = cal.startOfDay(for: from)
-            let hi = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: to)) ?? to
-            return all.filter { $0.payDate >= lo && $0.payDate < hi }
+        case .all: return .all
+        case .year: return .year(Calendar.current.component(.year, from: .now))
+        case .custom: return .custom(from: from, to: to)
         }
     }
     private var totalGross: Double { filtered.reduce(0) { $0 + $1.grossAmount } }
@@ -586,12 +579,12 @@ private struct LogHoursSheet: View {
             )
             modelContext.insert(entry)
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
         dismiss()
     }
 
     private func delete() {
-        if let entry = existing { modelContext.delete(entry); try? modelContext.save() }
+        if let entry = existing { modelContext.delete(entry); modelContext.saveChanges() }
         dismiss()
     }
 }
@@ -691,12 +684,12 @@ private struct RecordPaycheckSheet: View {
             )
             modelContext.insert(check)
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
         dismiss()
     }
 
     private func delete() {
-        if let check = existing { modelContext.delete(check); try? modelContext.save() }
+        if let check = existing { modelContext.delete(check); modelContext.saveChanges() }
         dismiss()
     }
 }

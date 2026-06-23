@@ -313,7 +313,7 @@ private struct CustomerListColumn: View {
         for index in offsets { modelContext.delete(customers[index]) }
         // Persist now (cascades to the customer's estimates/invoices/receipts) so Stats and the
         // detail pane reflect it immediately — matching every other delete path in the app.
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 }
 
@@ -406,7 +406,7 @@ private struct EmployeeListColumn: View {
 
     private func delete(at offsets: IndexSet) {
         for index in offsets { modelContext.delete(employees[index]) }
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 }
 
@@ -499,7 +499,7 @@ private struct SubcontractorListColumn: View {
             subcontractors[index].clearSecureTIN()   // don't leave the TIN behind in the Keychain
             modelContext.delete(subcontractors[index])
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 }
 

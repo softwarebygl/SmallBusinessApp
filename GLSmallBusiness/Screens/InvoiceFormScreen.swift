@@ -510,7 +510,7 @@ struct InvoiceFormScreen: View {
 
         // Commit now — this path deletes the old groups and rebuilds them, so persisting
         // immediately avoids a crash leaving the invoice with neither old nor new line items.
-        try? modelContext.save()
+        modelContext.saveChanges()
         dismiss()
     }
 }

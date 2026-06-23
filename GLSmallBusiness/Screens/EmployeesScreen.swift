@@ -137,7 +137,7 @@ struct EmployeesScreen: View {
 
     private func delete(at offsets: IndexSet) {
         for index in offsets { modelContext.delete(employees[index]) }
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 
     private func regenerateExport() {

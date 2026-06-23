@@ -187,7 +187,7 @@ struct InvoicesListScreen: View {
         }
         // Commit immediately so the deletion reflects in Stats and syncs to CloudKit right away,
         // rather than waiting on deferred autosave.
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 
     private func delete(at offsets: IndexSet) {
@@ -195,6 +195,6 @@ struct InvoicesListScreen: View {
         for invoice in toDelete {
             modelContext.delete(invoice)
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 }

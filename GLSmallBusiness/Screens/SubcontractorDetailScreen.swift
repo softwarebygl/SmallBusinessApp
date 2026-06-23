@@ -40,9 +40,15 @@ struct SubcontractorDetailScreen: View {
                 header
                 contactCard
                 moreInfoRow
-                balanceCard
-                w9Card
-                activityCard
+                VStack(alignment: .leading, spacing: 12) {
+                    GLSectionHeader(title: "Payments")
+                    balanceCard
+                    activityCard
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    GLSectionHeader(title: "Tax")
+                    w9Card
+                }
             }
             .padding()
             .frame(maxWidth: 640)
@@ -222,7 +228,7 @@ struct SubcontractorDetailScreen: View {
                 }
             }
             if entries.isEmpty {
-                Text("Nothing recorded yet. Tap “Record what you owe” above.")
+                Text("No activity recorded yet.")
                     .font(.subheadline).foregroundStyle(.secondary)
             } else {
                 let recent = Array(entries.prefix(5))
@@ -282,18 +288,13 @@ private struct AllActivitySheet: View {
     @State private var editing: SubPayment?
 
     private var filtered: [SubPayment] {
-        let all = subcontractor.sortedPayments
-        let cal = Calendar.current
+        rangeFilter.apply(to: subcontractor.sortedPayments, date: \.date)
+    }
+    private var rangeFilter: DateRangeFilter {
         switch range {
-        case .all:
-            return all
-        case .year:
-            let y = cal.component(.year, from: .now)
-            return all.filter { cal.component(.year, from: $0.date) == y }
-        case .custom:
-            let lo = cal.startOfDay(for: from)
-            let hi = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: to)) ?? to
-            return all.filter { $0.date >= lo && $0.date < hi }
+        case .all: return .all
+        case .year: return .year(Calendar.current.component(.year, from: .now))
+        case .custom: return .custom(from: from, to: to)
         }
     }
     private var paidTotal: Double { filtered.filter(\.isPaid).reduce(0) { $0 + $1.amount } }
@@ -626,12 +627,12 @@ private struct RecordSubPaymentSheet: View {
         target.customer = selectedCustomer
         target.paidDate = isPaid ? paidDate : nil
         target.method = method
-        try? modelContext.save()
+        modelContext.saveChanges()
         dismiss()
     }
 
     private func delete() {
-        if let existing { modelContext.delete(existing); try? modelContext.save() }
+        if let existing { modelContext.delete(existing); modelContext.saveChanges() }
         dismiss()
     }
 }

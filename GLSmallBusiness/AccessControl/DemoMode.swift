@@ -105,7 +105,7 @@ enum DemoSeed {
             .init(name: "Underlayment", quantity: 540, unit: .squareFoot, unitPrice: 0.45, kind: .material, isTaxable: true),
         ])
 
-        try? context.save()
+        context.saveChanges()
 
         // Invoice — converted from Estimate 2, deposit paid (Partially Paid)
         let inv = Invoice.make(from: e2, number: "INV-0001", in: context)
@@ -189,7 +189,7 @@ enum DemoSeed {
                                 startDate: .now.addingTimeInterval(18 * 86_400), durationDays: 4, estimate: e1)
         [job1, job2].forEach(context.insert)
 
-        try? context.save()
+        context.saveChanges()
     }
 
     @MainActor

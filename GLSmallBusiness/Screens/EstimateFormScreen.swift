@@ -480,7 +480,7 @@ struct EstimateFormScreen: View {
 
         // Commit now — the edit path deletes the old groups and rebuilds them, so persist
         // immediately rather than risk a crash between dismiss and the next autosave.
-        try? modelContext.save()
+        modelContext.saveChanges()
         dismiss()
     }
 }

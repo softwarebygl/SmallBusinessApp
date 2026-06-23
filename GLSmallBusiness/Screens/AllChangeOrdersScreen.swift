@@ -92,6 +92,6 @@ struct AllChangeOrdersScreen: View {
         for changeOrder in offsets.map({ changeOrders[$0] }) {
             modelContext.delete(changeOrder)
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 }

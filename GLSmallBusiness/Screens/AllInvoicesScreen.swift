@@ -103,6 +103,6 @@ struct AllInvoicesScreen: View {
         for invoice in offsets.map({ invoices[$0] }) {
             modelContext.delete(invoice)
         }
-        try? modelContext.save()
+        modelContext.saveChanges()
     }
 }
