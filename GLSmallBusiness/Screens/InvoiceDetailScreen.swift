@@ -178,7 +178,7 @@ struct InvoiceDetailScreen: View {
         .sheet(isPresented: $showingNewChangeOrder) {
             ChangeOrderFormScreen(invoice: invoice).glAppearance(colorScheme)
         }
-        .sheet(item: $selectedChangeOrder) { changeOrder in
+        .sheet(item: $selectedChangeOrder, onDismiss: { regeneratePDF() }) { changeOrder in
             ChangeOrderDetailSheet(changeOrder: changeOrder).glAppearance(colorScheme)
         }
         .onChange(of: showingNewChangeOrder) { _, isShowing in if !isShowing { regeneratePDF() } }

@@ -39,6 +39,9 @@ struct SubcontractorFormScreen: View {
     /// In-flight guard: prevents a double-tap from inserting twice, but resets on a Tax-ID failure so
     /// the user can unlock and tap Save again (unlike SaveOnceButton, which would stay dead).
     @State private var isSaving = false
+    /// On the add path, the subcontractor inserted on the first attempt — reused on a retry so a
+    /// Tax-ID-failure re-save mutates the same record instead of creating a duplicate.
+    @State private var insertedSubcontractor: Subcontractor?
 
     init(editing: Subcontractor? = nil, onSave: ((Subcontractor) -> Void)? = nil) {
         self.editing = editing
@@ -198,7 +201,9 @@ struct SubcontractorFormScreen: View {
             postalCode: trim(postalCode)
         )
         let saved: Subcontractor
-        if let sub = editing {
+        // On the add path, reuse the record inserted on a prior attempt — otherwise a Tax-ID-failure
+        // retry would insert a SECOND subcontractor (the resettable Save re-runs this whole method).
+        if let sub = editing ?? insertedSubcontractor {
             sub.firstName = trim(firstName)
             sub.lastName = trim(lastName)
             sub.businessName = trim(businessName)
@@ -216,6 +221,7 @@ struct SubcontractorFormScreen: View {
                 hourlyRate: hourlyRate, address: address, isActive: isActive, notes: trim(notes)
             )
             modelContext.insert(sub)
+            insertedSubcontractor = sub
             saved = sub
         }
         saved.w9TINType = w9TINType

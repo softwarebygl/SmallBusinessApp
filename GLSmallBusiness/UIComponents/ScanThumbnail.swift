@@ -18,8 +18,10 @@ import UIKit
 
 enum ImageDownsampler {
     /// Decode just a thumbnail no larger than `maxPixelSize` px from `data`, without decoding the
-    /// full image into memory. Safe to call off the main thread.
-    static func thumbnail(from data: Data, maxPixelSize: CGFloat) -> UIImage? {
+    /// full image into memory. `nonisolated` so the decode genuinely runs off the main actor — the
+    /// project defaults declarations to @MainActor, which would otherwise pull this back onto it and
+    /// defeat the whole point (it touches only its params + ImageIO/UIImage, no main-actor state).
+    nonisolated static func thumbnail(from data: Data, maxPixelSize: CGFloat) -> UIImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
