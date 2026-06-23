@@ -166,6 +166,7 @@ struct EstimateFormScreen: View {
                         .textContentType(.addressCity)
                     TextField("State", text: $serviceState)
                         .textContentType(.addressState)
+                        .textInputAutocapitalization(.characters)
                     TextField("ZIP", text: $servicePostal)
                         .textContentType(.postalCode)
                         #if !os(macOS)

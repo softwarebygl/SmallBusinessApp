@@ -111,6 +111,7 @@ struct CustomerFormScreen: View {
                         .textContentType(.addressCity)
                     TextField("State", text: $state)
                         .textContentType(.addressState)
+                        .textInputAutocapitalization(.characters)
                     TextField("Postal code", text: $postalCode)
                         .textContentType(.postalCode)
                         #if !os(macOS)

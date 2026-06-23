@@ -117,6 +117,7 @@ struct SubcontractorFormScreen: View {
                         .textContentType(.addressCity)
                     TextField("State", text: $state)
                         .textContentType(.addressState)
+                        .textInputAutocapitalization(.characters)
                     TextField("Postal code", text: $postalCode)
                         .textContentType(.postalCode)
                         #if !os(macOS)
@@ -138,11 +139,7 @@ struct SubcontractorFormScreen: View {
                     }
                     .onChange(of: w9TINType) { _, _ in w9TIN = "" }
                     LabeledContent(w9TINType?.label ?? String(localized: "Tax ID")) {
-                        TextField(w9TINType == .ein ? "12-3456789" : "123-45-6789", text: $w9TIN)
-                            .multilineTextAlignment(.trailing)
-                            #if !os(macOS)
-                            .keyboardType(.numbersAndPunctuation)
-                            #endif
+                        TINField(kind: w9TINType, text: $w9TIN)
                     }
                 } header: {
                     InfoLabel("Tax details (for their 1099-NEC)", info: "Optional. The SSN/EIN from the W-9 they gave you. Stored securely in your Keychain, not the synced database — used to generate their 1099-NEC.")

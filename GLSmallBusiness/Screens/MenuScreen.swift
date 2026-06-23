@@ -421,6 +421,7 @@ struct MyCompanyFormScreen: View {
                         requiredMark
                     }
                     TextField("License number", text: $licenseNumber)
+                        .idCodeStyle()
                 }
 
                 Section("Contact") {
@@ -455,6 +456,7 @@ struct MyCompanyFormScreen: View {
                         .textContentType(.addressCity)
                     TextField("State", text: $state)
                         .textContentType(.addressState)
+                        .textInputAutocapitalization(.characters)
                     TextField("Postal code", text: $postalCode)
                         .textContentType(.postalCode)
                         #if !os(macOS)
@@ -492,11 +494,7 @@ struct MyCompanyFormScreen: View {
                         w9TIN = ""
                     }
                     LabeledContent(w9TINType?.label ?? String(localized: "Tax ID")) {
-                        TextField(w9TINType == .ein ? "12-3456789" : "123-45-6789", text: $w9TIN)
-                            .multilineTextAlignment(.trailing)
-                            #if !os(macOS)
-                            .keyboardType(.numbersAndPunctuation)
-                            #endif
+                        TINField(kind: w9TINType, text: $w9TIN)
                     }
                 } header: {
                     InfoLabel("Tax details (for W-9)", info: "Optional. Used to generate a W-9. Your Tax ID is stored securely in your Keychain, not the synced database. Sign and date the form by hand after you print or send it.")
@@ -504,7 +502,9 @@ struct MyCompanyFormScreen: View {
 
                 Section {
                     TextField("Exempt payee code", text: $w9ExemptPayeeCode)
+                        .idCodeStyle()
                     TextField("FATCA exemption code", text: $w9FATCACode)
+                        .idCodeStyle()
                 } header: {
                     InfoLabel("Exemption codes", info: "Optional W-9 exemption codes. Most small businesses leave these blank.")
                 }

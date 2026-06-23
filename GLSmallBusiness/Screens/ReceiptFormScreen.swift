@@ -88,6 +88,8 @@ struct ReceiptFormScreen: View {
 
                 Section("Details") {
                     TextField("Vendor", text: $vendor)
+                        .textContentType(.organizationName)
+                        .textInputAutocapitalization(.words)
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                     LabeledContent("Total") {
                         AutoClearNumberField(placeholder: "0", value: $total, style: .currency, clearsAt: 0)
