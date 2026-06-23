@@ -26,6 +26,13 @@
         "identifier" : "AA0000000000000000000006",
         "name" : "GLSmallBusinessTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:GLSmallBusiness.xcodeproj",
+        "identifier" : "BB0000000000000000000006",
+        "name" : "GLSmallBusinessUITests"
+      }
     }
   ],
   "version" : 1
