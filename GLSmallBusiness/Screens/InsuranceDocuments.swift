@@ -100,12 +100,17 @@ struct ComplianceDocsManagerSheet: View {
     @Environment(\.colorScheme) private var colorScheme
     let profile: BusinessProfile
 
-    /// `importTarget` (which slot is being filled) is kept separate from `showingImporter` (the
-    /// presentation flag) on purpose: if the two shared one state, dismissing the importer could
-    /// clear the target before the completion handler reads it — and the upload would silently no-op.
-    @State private var importTarget: ComplianceKind?
+    /// Which slot a file is being imported into. Compliance certificates and the owner's reference COI
+    /// share ONE `.fileImporter` — SwiftUI silently presents only the last of several stacked
+    /// `.fileImporter` modifiers on the same view, which previously left every compliance row dead and
+    /// only the reference row working. `importTarget` is kept separate from `showingImporter` so
+    /// dismissing the importer can't clear the target before the completion handler reads it.
+    private enum ImportTarget {
+        case compliance(ComplianceKind)
+        case reference
+    }
+    @State private var importTarget: ImportTarget?
     @State private var showingImporter = false
-    @State private var showingReferenceImporter = false
     @State private var uploadFailed = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
@@ -150,23 +155,20 @@ struct ComplianceDocsManagerSheet: View {
                     }
                 }
             }
+            // One importer for every slot. Two stacked `.fileImporter`s would leave all but one dead.
             .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.pdf, .image]) { result in
-                guard let kind = importTarget else { return }
+                let target = importTarget
                 importTarget = nil
                 guard case .success(let url) = result else { return }
-                if let data = url.readSecurityScoped() {
+                guard let data = url.readSecurityScoped() else { uploadFailed = true; return }
+                switch target {
+                case .compliance(let kind):
                     kind.store(profile, data: data, name: url.lastPathComponent)
-                } else {
-                    uploadFailed = true
-                }
-            }
-            .fileImporter(isPresented: $showingReferenceImporter, allowedContentTypes: [.pdf, .image]) { result in
-                guard case .success(let url) = result else { return }
-                if let data = url.readSecurityScoped() {
+                case .reference:
                     profile.ownerReferenceCOIData = data
                     profile.ownerReferenceCOIName = url.lastPathComponent
-                } else {
-                    uploadFailed = true
+                case .none:
+                    break
                 }
             }
             .alert("Couldn’t read that file", isPresented: $uploadFailed) {
@@ -193,7 +195,7 @@ struct ComplianceDocsManagerSheet: View {
             .buttonStyle(.plain)
         } else {
             Button {
-                importTarget = kind
+                importTarget = .compliance(kind)
                 showingImporter = true
             } label: {
                 cardLabel(title: kind.title, systemImage: kind.systemImage, subtitle: subtitle, uploaded: false)
@@ -243,7 +245,8 @@ struct ComplianceDocsManagerSheet: View {
             .buttonStyle(.plain)
         } else {
             Button {
-                showingReferenceImporter = true
+                importTarget = .reference
+                showingImporter = true
             } label: {
                 cardLabel(title: String(localized: "Certificate of Insurance"),
                           systemImage: "doc.text",
