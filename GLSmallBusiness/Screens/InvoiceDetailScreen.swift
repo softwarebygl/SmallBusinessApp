@@ -42,6 +42,7 @@ struct InvoiceDetailScreen: View {
     @State private var showingSetAmountDue = false
     @State private var sendAction: SendAction?
     @State private var pdfURL: URL?
+    @State private var showingPreview = false
     @State private var showingProfilePrompt = false
     @State private var receiptPayment: InvoicePayment?
     @State private var showingNewChangeOrder = false
@@ -110,6 +111,7 @@ struct InvoiceDetailScreen: View {
                     }
                     if let pdfURL {
                         Section {
+                            Button { showingPreview = true } label: { Label("Preview", systemImage: "eye") }
                             if !invoice.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
                                 Button { sendAction = .email } label: { Label("Email invoice", systemImage: "envelope") }
                             }
@@ -153,6 +155,13 @@ struct InvoiceDetailScreen: View {
         }
         .sheet(item: $sendAction) { action in
             sendSheet(for: action).glAppearance(colorScheme)
+        }
+        .sheet(isPresented: $showingPreview) {
+            if let pdfURL {
+                DocumentPreviewSheet(url: pdfURL,
+                                     title: invoice.number.isEmpty ? "Invoice" : "Invoice \(invoice.number)")
+                    .glAppearance(colorScheme)
+            }
         }
         .sheet(item: $receiptPayment) { payment in
             PaymentReceiptSheet(invoice: invoice, payment: payment).glAppearance(colorScheme)

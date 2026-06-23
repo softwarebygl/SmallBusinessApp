@@ -91,10 +91,10 @@ struct ReceiptListView: View {
             }
         }
         .navigationTitle(Text(title))
-        // Large/leading title for the universal list (iPhone tab + iPad column), matching Customers;
-        // inline only for the pushed per-customer / business lists.
-        .toolbarTitleDisplayMode(enablesFilters ? .automatic : .inline)
-        .contentMargins(.top, 16, for: .scrollContent)   // room for the script title's descenders above the sticky header
+        // Force large everywhere — matches Customers and every other list screen. (.automatic would
+        // inherit the inline parent when pushed from a customer hub.)
+        .toolbarTitleDisplayMode(.large)
+        .contentMargins(.top, 16, for: .scrollContent)   // room for the title's descenders above the sticky header
         .navigationDestination(item: $selectedReceipt) { receipt in
             ReceiptDetailScreen(receipt: receipt)
         }

@@ -20,12 +20,10 @@ struct SubcontractorDetailScreen: View {
     @State private var showingSaveToContacts = false
 
     private enum ActiveSheet: Identifiable {
-        case edit
         case payment(SubPayment?)
         case form1099
         var id: String {
             switch self {
-            case .edit: "edit"
             case .payment(let p): "payment-\(p?.persistentModelID.hashValue ?? 0)"
             case .form1099: "1099"
             }
@@ -36,12 +34,13 @@ struct SubcontractorDetailScreen: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 header
+                contactCard
+                moreInfoRow
                 balanceCard
                 w9Card
                 activityCard
-                if !subcontractor.notes.isEmpty { notesCard }
             }
             .padding()
             .frame(maxWidth: 640)
@@ -49,11 +48,10 @@ struct SubcontractorDetailScreen: View {
         }
         .containerBackground(for: .navigation) { PrimaryBackground() }
         .navigationTitle(subcontractor.listDisplayName)
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)   // name is the large title; the whole nav chain is large
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button { activeSheet = .edit } label: { Label("Edit subcontractor", systemImage: "pencil") }
                     Button { showingSaveToContacts = true } label: {
                         Label("Save to Contacts", systemImage: "person.crop.circle.badge.plus")
                     }
@@ -65,8 +63,6 @@ struct SubcontractorDetailScreen: View {
         }
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
-            case .edit:
-                SubcontractorFormScreen(editing: subcontractor).glAppearance(colorScheme)
             case .payment(let payment):
                 RecordSubPaymentSheet(subcontractor: subcontractor, existing: payment).glAppearance(colorScheme)
             case .form1099:
@@ -83,20 +79,12 @@ struct SubcontractorDetailScreen: View {
 
     private var header: some View {
         VStack(spacing: 12) {
-            ZStack {
-                Circle().fill(gold.opacity(0.18))
-                Text(subcontractor.initials)
-                    .font(.system(size: 36, weight: .semibold))
-                    .foregroundStyle(gold)
-            }
-            .frame(width: 96, height: 96)
+            MonogramAvatar(initials: subcontractor.initials, size: 110)
 
-            Text(subcontractor.payeeName.isEmpty ? subcontractor.listDisplayName : subcontractor.payeeName)
-                .font(.title2.weight(.semibold))
-                .multilineTextAlignment(.center)
-
+            // Title (listDisplayName) is the person; show the business under it so "Boyd Electric"
+            // stays visible. Skipped when the business is itself the title (no person on file).
             if !subcontractor.businessName.isEmpty && !subcontractor.fullName.isEmpty {
-                Text(subcontractor.fullName).font(.subheadline).foregroundStyle(.secondary)
+                Text(subcontractor.businessName).font(.subheadline).foregroundStyle(.secondary)
             }
 
             if !subcontractor.isActive {
@@ -107,6 +95,42 @@ struct SubcontractorDetailScreen: View {
                     .background(Capsule().fill(Color.secondary.opacity(0.18)))
             }
         }
+    }
+
+    private var contactCard: some View {
+        GLCard(title: "Contact") {
+            infoRow("Email", subcontractor.email)
+            infoRow("Phone", subcontractor.phone)
+        }
+    }
+
+    private func infoRow(_ label: LocalizedStringKey, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(label).foregroundStyle(.secondary)
+            Spacer()
+            Text(value.isEmpty ? "—" : value).multilineTextAlignment(.trailing)
+        }
+    }
+
+    private var moreInfoRow: some View {
+        NavigationLink {
+            SubcontractorDetailsScreen(subcontractor: subcontractor)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "list.bullet.rectangle")
+                    .frame(width: 24)
+                    .foregroundStyle(gold)
+                Text("More Info")
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glCardBackground()
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Balance (owed + paid this year)
@@ -149,18 +173,7 @@ struct SubcontractorDetailScreen: View {
     // MARK: - W-9 & Tax ID
 
     private var w9Card: some View {
-        GLCard(title: "W-9 & Tax ID") {
-            HStack {
-                Text("Tax ID").foregroundStyle(.secondary)
-                Spacer()
-                if subcontractor.hasTIN {
-                    Text("\(subcontractor.w9TINType?.label ?? "TIN") \(subcontractor.maskedTIN)")
-                } else {
-                    Text("Not on file — add via Edit").foregroundStyle(.secondary)
-                }
-            }
-            .font(.subheadline)
-            Divider()
+        GLCard(title: "W-9") {
             NavigationLink {
                 SubcontractorW9DetailScreen(subcontractor: subcontractor)
             } label: {
@@ -175,7 +188,7 @@ struct SubcontractorDetailScreen: View {
                     if subcontractor.hasW9OnFile {
                         Image(systemName: "checkmark.seal.fill").font(.footnote).foregroundStyle(gold)
                     }
-                    Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
                 }
                 .font(.subheadline)
                 .contentShape(Rectangle())
@@ -233,17 +246,12 @@ struct SubcontractorDetailScreen: View {
             Spacer()
             Text(entry.amount.formatted(.currency(code: "USD")))
                 .foregroundStyle(entry.isPaid ? .secondary : .primary)
-            Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
         }
         .font(.subheadline)
         .contentShape(Rectangle())
     }
 
-    private var notesCard: some View {
-        GLCard(title: "Notes") {
-            Text(subcontractor.notes).font(.subheadline)
-        }
-    }
 }
 
 // MARK: - W-9 document (view / upload / replace / remove)

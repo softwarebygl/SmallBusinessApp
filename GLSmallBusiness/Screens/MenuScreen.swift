@@ -126,7 +126,7 @@ struct MenuScreen: View {
                 GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
             }
             .navigationTitle("Menu")
-            .toolbarTitleDisplayMode(.inline)
+            .toolbarTitleDisplayMode(.large)   // large so the Records lists pushed from here render large too
             .navigationDestination(isPresented: $showingSettings) {
                 SettingsScreen()
             }
@@ -174,7 +174,7 @@ struct MyCompanyDetailScreen: View {
             GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
         }
         .navigationTitle("My Business Details")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)   // large so Statistics (pushed from here) renders large too
         .sheet(item: $activeDocument) { document in
             if let profile = profiles.first {
                 switch document {
@@ -191,7 +191,7 @@ struct MyCompanyDetailScreen: View {
 
     private func detail(_ profile: BusinessProfile) -> some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 logo(profile)
                 Text(profile.businessName.isEmpty ? String(localized: "Your business") : profile.businessName)
                     .font(.title2.weight(.semibold))
@@ -206,71 +206,57 @@ struct MyCompanyDetailScreen: View {
                 NavigationLink {
                     CompanyDetailsScreen(profile: profile)
                 } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "list.bullet.rectangle")
-                            .frame(width: 24)
-                            .foregroundStyle(gold)
-                        Text("More Info")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .glCardBackground()
+                    rowLabel("More Info", systemImage: "list.bullet.rectangle")
                 }
                 .buttonStyle(.plain)
 
-                actionRow("Insurance & Licensing", systemImage: "checkmark.shield",
-                          badge: profile.hasComplianceDocuments) { activeDocument = .insurance }
-                actionRow("Year-End Tax Report", systemImage: "doc.text") { activeDocument = .taxReport }
-                actionRow("Generate a W-9", systemImage: "doc.plaintext") { activeDocument = .w9 }
-
-                NavigationLink {
-                    StatsScreen()
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "chart.bar")
-                            .frame(width: 24)
-                            .foregroundStyle(gold)
-                        Text("Statistics")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .glCardBackground()
+                GLSection("Compliance") {
+                    actionRow("Insurance & Licensing", systemImage: "checkmark.shield",
+                              badge: profile.hasComplianceDocuments) { activeDocument = .insurance }
+                    actionRow("Generate a W-9", systemImage: "doc.plaintext") { activeDocument = .w9 }
                 }
-                .buttonStyle(.plain)
+
+                GLSection("Reports") {
+                    actionRow("Year-End Tax Report", systemImage: "doc.text") { activeDocument = .taxReport }
+                    NavigationLink {
+                        StatsScreen()
+                    } label: {
+                        rowLabel("Statistics", systemImage: "chart.bar")
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             .padding()
         }
     }
 
+    /// The shared icon + label + chevron row body, used by both tap-action rows and navigation rows
+    /// so every hub row is visually identical.
+    private func rowLabel(_ title: LocalizedStringKey, systemImage: String, badge: Bool = false) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .frame(width: 24)
+                .foregroundStyle(gold)
+            Text(title)
+            Spacer()
+            if badge {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.footnote)
+                    .foregroundStyle(gold)
+            }
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glCardBackground()
+    }
+
     private func actionRow(_ title: LocalizedStringKey, systemImage: String,
                            badge: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: systemImage)
-                    .frame(width: 24)
-                    .foregroundStyle(gold)
-                Text(title)
-                Spacer()
-                if badge {
-                    Image(systemName: "checkmark.seal.fill")
-                        .font(.footnote)
-                        .foregroundStyle(gold)
-                }
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glCardBackground()
+            rowLabel(title, systemImage: systemImage, badge: badge)
         }
         .buttonStyle(.plain)
     }
@@ -423,17 +409,7 @@ struct MyCompanyFormScreen: View {
                     }
                     .listRowBackground(Color.clear)
                 } header: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Logo")
-                        Text("Optional. Appears on your estimates and invoices.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .textCase(nil)
-                        Text("Customizes the app")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .textCase(nil)
-                    }
+                    InfoLabel("Logo", info: "Optional. Appears on your estimates and invoices, and customizes the app.")
                 }
 
                 Section("Business") {
@@ -521,18 +497,14 @@ struct MyCompanyFormScreen: View {
                             #endif
                     }
                 } header: {
-                    Text("Tax details (for W-9)")
-                } footer: {
-                    Text("Optional. Used to generate a W-9. Your Tax ID is stored securely in your Keychain, not the synced database. Sign and date the form by hand after you print or send it.")
-                        .textCase(nil)
+                    InfoLabel("Tax details (for W-9)", info: "Optional. Used to generate a W-9. Your Tax ID is stored securely in your Keychain, not the synced database. Sign and date the form by hand after you print or send it.")
                 }
 
                 Section {
                     TextField("Exempt payee code", text: $w9ExemptPayeeCode)
                     TextField("FATCA exemption code", text: $w9FATCACode)
-                } footer: {
-                    Text("Optional W-9 exemption codes. Most small businesses leave these blank.")
-                        .textCase(nil)
+                } header: {
+                    InfoLabel("Exemption codes", info: "Optional W-9 exemption codes. Most small businesses leave these blank.")
                 }
 
                 messageSection("Estimate message", document: "estimate",
@@ -672,10 +644,7 @@ struct MyCompanyFormScreen: View {
             TextField(closingHint, text: closing, axis: .vertical)
                 .lineLimit(2...6)
         } header: {
-            Text(title)
-        } footer: {
-            Text("Subject line, then the message between the greeting and your signature, used when you send the \(document) by email or text. Leave any field blank to use the suggested wording shown.")
-                .textCase(nil)
+            InfoLabel(title, info: "Subject line, then the message between the greeting and your signature, used when you send the \(document) by email or text. Leave any field blank to use the suggested wording shown.")
         }
     }
 

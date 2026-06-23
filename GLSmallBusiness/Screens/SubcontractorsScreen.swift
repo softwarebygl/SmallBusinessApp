@@ -114,12 +114,13 @@ struct SubcontractorsScreen: View {
         let subtitle = owed > 0.005 ? "Owed \(owed.formatted(.currency(code: "USD")))"
                      : (sub.requires1099() ? "1099-NEC due" : "")
         return PersonRowCard(
-            initials: sub.initials,
             name: sub.listDisplayName,
             subtitle: subtitle,
             trailing: total > 0.005 ? total.formatted(.currency(code: "USD")) : "",
             trailingTint: gold
-        )
+        ) {
+            MonogramAvatar(initials: sub.initials)
+        }
     }
 
     private var emptyState: some View {

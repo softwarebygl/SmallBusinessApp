@@ -195,37 +195,12 @@ struct CustomersScreen: View {
     /// `selectionMark` is nil outside multi-select; in it, true/false draws a filled/empty checkmark.
     private func customerRow(_ customer: Customer, isSelected: Bool, showsChevron: Bool,
                              selectionMark: Bool? = nil) -> some View {
-        HStack(spacing: 12) {
-            if let selectionMark {
-                Image(systemName: selectionMark ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundStyle(selectionMark ? gold : Color.secondary)
-            }
-            ZStack(alignment: .leading) {
-                HStack(spacing: 8) {
-                    Spacer(minLength: 0)
-                    Text(customer.listDisplayName)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    if showsChevron {
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.vertical, GLLayout.rowContentVerticalPadding)
-                .padding(.leading, 74)
-                .padding(.trailing, GLLayout.rowContentPadding)
-                .frame(maxWidth: .infinity)
-                .glCardBackground()
-                .glSelectionStroke(isSelected)
-
-                CustomerAvatar(customer: customer, size: 60)
-                    .padding(.leading, 6)
-            }
+        PersonRowCard(name: customer.listDisplayName,
+                      showsChevron: showsChevron,
+                      isSelected: isSelected,
+                      selectionMark: selectionMark) {
+            CustomerAvatar(customer: customer, size: 60)
         }
-        .padding(.horizontal, GLLayout.rowCardInset)
-        .padding(.vertical, 4)
     }
 
     private func selectFirstOnIPad() {
@@ -277,6 +252,7 @@ private struct CustomerListChrome: ViewModifier {
         content
             .scrollContentBackground(.hidden)
             .listStyle(.plain)
+            .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the script title's descenders
             .containerBackground(for: .navigation) {
                 if showsMonogram {
                     PrimaryBackground()

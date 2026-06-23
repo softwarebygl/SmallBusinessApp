@@ -103,8 +103,8 @@ struct ReceiptFormScreen: View {
                             Text(customer.listDisplayName).tag(customer.persistentModelID as PersistentIdentifier?)
                         }
                     }
-                } footer: {
-                    Text("Leave as Business for general expenses, or assign this receipt to a customer's job.")
+                } header: {
+                    InfoLabel("Assignment", info: "Leave as Business for general expenses, or assign this receipt to a customer's job.")
                 }
 
                 Section("Notes") {

@@ -42,6 +42,7 @@ struct EstimateDetailScreen: View {
     @State private var showingEdit = false
     @State private var sendAction: SendAction?
     @State private var pdfURL: URL?
+    @State private var showingPreview = false
     @State private var showingProfilePrompt = false
     @State private var convertedInvoice: Invoice?
     @State private var showingSchedule = false
@@ -89,6 +90,7 @@ struct EstimateDetailScreen: View {
                     }
                     if let pdfURL {
                         Section {
+                            Button { showingPreview = true } label: { Label("Preview", systemImage: "eye") }
                             if !estimate.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
                                 Button { sendAction = .email } label: { Label("Email estimate", systemImage: "envelope") }
                             }
@@ -120,6 +122,13 @@ struct EstimateDetailScreen: View {
         }
         .sheet(item: $sendAction) { action in
             sendSheet(for: action).glAppearance(colorScheme)
+        }
+        .sheet(isPresented: $showingPreview) {
+            if let pdfURL {
+                DocumentPreviewSheet(url: pdfURL,
+                                     title: estimate.number.isEmpty ? "Estimate" : "Estimate \(estimate.number)")
+                    .glAppearance(colorScheme)
+            }
         }
         .alert("Complete your business profile", isPresented: $showingProfilePrompt) {
             Button("OK", role: .cancel) { }

@@ -53,9 +53,8 @@ struct SignatureEditorSheet: View {
                     case .type: typeArea
                     case .importPhoto: importArea
                     }
-                } footer: {
-                    Text("Stored privately in your iCloud account and protected by Face ID. Used to sign documents like your W-9.")
-                        .textCase(nil)
+                } header: {
+                    InfoLabel("Your signature", info: "Stored privately in your iCloud account and protected by Face ID. Used to sign documents like your W-9.")
                 }
 
                 if profile.hasSignature {

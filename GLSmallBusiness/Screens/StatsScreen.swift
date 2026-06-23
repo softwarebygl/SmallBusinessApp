@@ -76,8 +76,9 @@ struct StatsScreen: View {
         .containerBackground(for: .navigation) {
             GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
         }
+        .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .navigationTitle("Statistics")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent
     }
 
     // MARK: - Period selector

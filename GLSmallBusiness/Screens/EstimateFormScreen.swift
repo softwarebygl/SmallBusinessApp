@@ -172,10 +172,7 @@ struct EstimateFormScreen: View {
                         .keyboardType(.numbersAndPunctuation)
                         #endif
                 } header: {
-                    Text("Service Address")
-                } footer: {
-                    Text("The specific job site or lot this estimate is for. Optional — leave blank if it's at the customer's own address.")
-                        .textCase(nil)
+                    InfoLabel("Service Address", info: "The specific job site or lot this estimate is for. Optional — leave blank if it's at the customer's own address.")
                 }
 
                 ForEach($groups) { $group in

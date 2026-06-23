@@ -64,9 +64,7 @@ struct ChangeOrderFormScreen: View {
                 Section {
                     TextField("Summary (e.g. Add second coat of sealer)", text: $title)
                 } header: {
-                    Text("Change Order")
-                } footer: {
-                    Text("Set an item to Credit to subtract for removed work.")
+                    InfoLabel("Change Order", info: "Set an item to Credit to subtract for removed work.")
                 }
 
                 Section("Items") {

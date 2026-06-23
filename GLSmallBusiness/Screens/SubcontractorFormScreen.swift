@@ -67,12 +67,14 @@ struct SubcontractorFormScreen: View {
             Form {
                 if editing == nil {
                     Section {
-                        Button { showingContactPicker = true } label: {
-                            Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
+                        HStack {
+                            Button { showingContactPicker = true } label: {
+                                Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
+                            }
+                            .buttonStyle(.borderless)
+                            Spacer()
+                            InfoButton(text: "Pull a name, business, phone, email, and address from your phone's contacts.")
                         }
-                    } footer: {
-                        Text("Pull a name, business, phone, email, and address from your phone's contacts.")
-                            .textCase(nil)
                     }
                 }
                 Section("Name") {
@@ -120,10 +122,7 @@ struct SubcontractorFormScreen: View {
                             .multilineTextAlignment(.trailing)
                     }
                 } header: {
-                    Text("Pay rate")
-                } footer: {
-                    Text("Optional. If set, you can log what you owe as “hours × rate.” Leave at $0 to enter flat amounts.")
-                        .textCase(nil)
+                    InfoLabel("Pay rate", info: "Optional. If set, you can log what you owe as “hours × rate.” Leave at $0 to enter flat amounts.")
                 }
                 Section {
                     Picker("Taxpayer ID type", selection: $w9TINType) {
@@ -139,10 +138,7 @@ struct SubcontractorFormScreen: View {
                             #endif
                     }
                 } header: {
-                    Text("Tax details (for their 1099-NEC)")
-                } footer: {
-                    Text("Optional. The SSN/EIN from the W-9 they gave you. Stored securely in your Keychain, not the synced database — used to generate their 1099-NEC.")
-                        .textCase(nil)
+                    InfoLabel("Tax details (for their 1099-NEC)", info: "Optional. The SSN/EIN from the W-9 they gave you. Stored securely in your Keychain, not the synced database — used to generate their 1099-NEC.")
                 }
                 Section {
                     Toggle("Active", isOn: $isActive)

@@ -384,16 +384,6 @@
         }
       }
     },
-    "%@ %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ %2$@"
-          }
-        }
-      }
-    },
     "%@ %@ × %@" : {
       "localizations" : {
         "ca" : {
@@ -486,6 +476,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ due to %2$lld %3$@"
+          }
+        }
+      }
+    },
+    "%@ hours · %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ hours · %2$lld %3$@"
           }
         }
       }
@@ -981,6 +981,9 @@
         }
       }
     },
+    "Activity" : {
+
+    },
     "Add" : {
       "localizations" : {
         "ca" : {
@@ -1378,6 +1381,9 @@
 
     },
     "All Estimates" : {
+
+    },
+    "All Hours" : {
 
     },
     "All Invoices" : {
@@ -1833,9 +1839,6 @@
           }
         }
       }
-    },
-    "At or over the $600 threshold — a 1099-NEC is required this year." : {
-
     },
     "Attached is your %lld Form 1099-NEC." : {
 
@@ -2899,6 +2902,9 @@
         }
       }
     },
+    "Compliance" : {
+
+    },
     "Contact" : {
       "localizations" : {
         "ca" : {
@@ -3035,6 +3041,9 @@
 
     },
     "Couldn't read that file" : {
+
+    },
+    "Counts toward this year's total and the 1099-NEC." : {
 
     },
     "Created" : {
@@ -3612,9 +3621,6 @@
     "Delete paycheck" : {
 
     },
-    "Delete payment" : {
-
-    },
     "Delete saved signature" : {
 
     },
@@ -3920,6 +3926,9 @@
       }
     },
     "Draw" : {
+
+    },
+    "Drive your next available date and the gaps between jobs." : {
 
     },
     "Due" : {
@@ -4270,6 +4279,9 @@
     "Edit Employee" : {
 
     },
+    "Edit Entry" : {
+
+    },
     "Edit estimate" : {
 
     },
@@ -4360,9 +4372,6 @@
       }
     },
     "Edit Paycheck" : {
-
-    },
-    "Edit Payment" : {
 
     },
     "Edit receipt" : {
@@ -4592,6 +4601,9 @@
           }
         }
       }
+    },
+    "Enter hours and it fills the amount at %@/hr — or just type an amount." : {
+
     },
     "Enter your GL access code to unlock full access on this device." : {
       "extractionState" : "stale",
@@ -5690,6 +5702,9 @@
     "Individual / Sole Proprietor" : {
 
     },
+    "Insurance" : {
+
+    },
     "Insurance & Licensing" : {
 
     },
@@ -6162,6 +6177,9 @@
           }
         }
       }
+    },
+    "Leave off to track it as owed. It won't count toward the 1099 until you mark it paid." : {
+
     },
     "Legal" : {
 
@@ -7541,6 +7559,7 @@
       }
     },
     "No address on file" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -7673,6 +7692,9 @@
 
     },
     "No gaps in the next 90 days" : {
+
+    },
+    "No hours in this range" : {
 
     },
     "No hours logged yet." : {
@@ -7982,9 +8004,6 @@
     "None yet. Add one from the ••• menu when the job's scope changes." : {
 
     },
-    "Not on file — add via Edit" : {
-
-    },
     "Note" : {
 
     },
@@ -8151,6 +8170,9 @@
         }
       }
     },
+    "Nothing recorded yet. Tap “Record what you owe” above." : {
+
+    },
     "Nothing to schedule yet" : {
 
     },
@@ -8263,6 +8285,9 @@
           }
         }
       }
+    },
+    "Optional. If set, you can log what you owe as “hours × rate.” Leave at $0 to enter flat amounts." : {
+
     },
     "Optional. The SSN/EIN from the W-9 they gave you. Stored securely in your Keychain, not the synced database — used to generate their 1099-NEC." : {
 
@@ -8433,6 +8458,12 @@
         }
       }
     },
+    "OWED" : {
+
+    },
+    "OWED (UNPAID)" : {
+
+    },
     "Owner first name" : {
 
     },
@@ -8541,6 +8572,9 @@
 
     },
     "Pay period" : {
+
+    },
+    "Pay rate" : {
 
     },
     "Pay type" : {
@@ -9096,6 +9130,12 @@
         }
       }
     },
+    "Pull a name, business, phone, email, and address from your phone's contacts." : {
+
+    },
+    "Pull a name, phone, and email straight from your phone's contacts." : {
+
+    },
     "Pull a name, phone, email, and address straight from your phone's contacts." : {
 
     },
@@ -9138,6 +9178,12 @@
           }
         }
       }
+    },
+    "Range" : {
+
+    },
+    "Rate" : {
+
     },
     "Reading receipt…" : {
       "localizations" : {
@@ -9309,7 +9355,7 @@
         }
       }
     },
-    "Record a payment" : {
+    "Record Amount" : {
 
     },
     "Record Paycheck" : {
@@ -9359,6 +9405,12 @@
       }
     },
     "Record this paycheck" : {
+
+    },
+    "Record what you owe" : {
+
+    },
+    "Records" : {
 
     },
     "Redeem" : {
@@ -9591,6 +9643,9 @@
 
     },
     "Replace file" : {
+
+    },
+    "Reports" : {
 
     },
     "Required" : {
@@ -10473,9 +10528,6 @@
     "Sharing sends two files for %@ — this tax summary and a receipts CSV listing every expense. Hand them to your accountant or keep them for your records." : {
 
     },
-    "Showing the 10 most recent of %lld." : {
-
-    },
     "Showing the 12 most recent of %lld." : {
 
     },
@@ -11250,6 +11302,9 @@
         }
       }
     },
+    "Tax & pay" : {
+
+    },
     "Tax classification" : {
 
     },
@@ -11355,6 +11410,9 @@
       }
     },
     "Taxpayer ID type" : {
+
+    },
+    "Team" : {
 
     },
     "Terms" : {
@@ -11930,9 +11988,6 @@
         }
       }
     },
-    "Under the $600 threshold. No 1099-NEC required yet." : {
-
-    },
     "Unit" : {
       "localizations" : {
         "ca" : {
@@ -12328,6 +12383,9 @@
         }
       }
     },
+    "View All" : {
+
+    },
     "View gaps" : {
 
     },
@@ -12337,10 +12395,10 @@
     "W-9 — %@" : {
 
     },
-    "W-9 & Tax ID" : {
+    "W-9 on file" : {
 
     },
-    "W-9 on file" : {
+    "Warns you before you double-book a day." : {
 
     },
     "Weekly" : {
@@ -12509,13 +12567,13 @@
         }
       }
     },
+    "Work date" : {
+
+    },
     "Workday" : {
 
     },
     "Workdays" : {
-
-    },
-    "Workdays drive your next available date and the gaps between jobs. “One job at a time” warns you before you double-book a day." : {
 
     },
     "Workers' Comp Exemption" : {

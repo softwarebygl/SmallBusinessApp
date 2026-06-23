@@ -208,16 +208,15 @@ struct ComplianceDocsManagerSheet: View {
     @ViewBuilder
     private var referenceCOISection: some View {
         VStack(spacing: 10) {
-            Text("For your own reference")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, 8)
+            HStack(spacing: 6) {
+                Text("For your own reference")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                InfoButton(text: "Optional. A spare, blank Certificate of Insurance kept only for your own records — it's never sent to customers or added to a package.")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 8)
             referenceCOICard
-            Text("Optional. A spare, blank Certificate of Insurance kept only for your own records — it's never sent to customers or added to a package.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
         }
     }
 

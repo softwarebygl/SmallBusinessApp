@@ -88,26 +88,25 @@ struct SettingsScreen: View {
                 .pickerStyle(.segmented)
                 .listRowBackground(Color.clear)
             } header: {
-                Text("Appearance")
-            } footer: {
-                Text("Choose Light or Dark, or Auto to follow your device’s setting.")
+                InfoLabel("Appearance", info: "Choose Light or Dark, or Auto to follow your device’s setting.")
             }
 
             Section {
                 Toggle("Use company logo", isOn: $useCompanyLogo)
             } header: {
-                Text("Branding")
-            } footer: {
-                Text("Personalize the app with your uploaded company logo — it appears on the Menu button and faintly behind your screens. Turn this off to use the app’s built-in monogram instead.")
+                InfoLabel("Branding", info: "Personalize the app with your uploaded company logo — it appears on the Menu button and faintly behind your screens. Turn this off to use the app’s built-in monogram instead.")
             }
 
             Section {
                 Toggle("Book one job at a time", isOn: $oneJobAtATime)
+            } header: {
+                InfoLabel("Scheduling", info: "Warns you before you double-book a day.")
+            }
+
+            Section {
                 WorkdayPicker(mask: $workdaysMask)
             } header: {
-                Text("Scheduling")
-            } footer: {
-                Text("Workdays drive your next available date and the gaps between jobs. “One job at a time” warns you before you double-book a day.")
+                InfoLabel("Workdays", info: "Drive your next available date and the gaps between jobs.")
             }
 
             Section {
@@ -132,9 +131,7 @@ struct SettingsScreen: View {
                     Label("Redeem Code", systemImage: "gift")
                 }
             } header: {
-                Text("Subscription")
-            } footer: {
-                Text("Manage or restore your subscription, or redeem an App Store code.")
+                InfoLabel("Subscription", info: "Manage or restore your subscription, or redeem an App Store code.")
             }
 
             Section {
@@ -149,8 +146,9 @@ struct SettingsScreen: View {
             }
         }
         .glFormBackground()
+        .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .navigationTitle("Settings")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)
         .manageSubscriptionsSheet(isPresented: $managingSubscription)
         .offerCodeRedemption(isPresented: $redeemingCode) { _ in }
     }

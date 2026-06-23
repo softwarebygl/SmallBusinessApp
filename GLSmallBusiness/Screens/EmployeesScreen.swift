@@ -108,12 +108,13 @@ struct EmployeesScreen: View {
 
     private func row(_ employee: Employee) -> some View {
         PersonRowCard(
-            initials: employee.initials,
             name: employee.listDisplayName,
             subtitle: paySummary(employee),
             trailing: employee.accruedGross > 0.005 ? employee.accruedGross.formatted(.currency(code: "USD")) : "",
             trailingTint: gold
-        )
+        ) {
+            MonogramAvatar(initials: employee.initials)
+        }
     }
 
     private func paySummary(_ employee: Employee) -> String {

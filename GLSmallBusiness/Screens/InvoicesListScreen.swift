@@ -75,11 +75,12 @@ struct InvoicesListScreen: View {
         }
         .scrollContentBackground(.hidden)
         .listStyle(.plain)
+        .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) {
             PrimaryBackground()
         }
         .navigationTitle("Invoices")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent (the hub)
         .navigationDestination(item: $selectedInvoice) { invoice in
             InvoiceDetailScreen(invoice: invoice)
         }

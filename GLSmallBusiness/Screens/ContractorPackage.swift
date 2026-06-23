@@ -137,9 +137,10 @@ struct ContractorPackageSheet: View {
             }
             .sheet(isPresented: $showingPreview) {
                 if let packageURL {
-                    PackagePreviewSheet(url: packageURL,
-                                        subject: ContractorPackageMessage.subject(business: profile),
-                                        message: ContractorPackageMessage.body(business: profile))
+                    DocumentPreviewSheet(url: packageURL,
+                                         title: "Package preview",
+                                         subject: ContractorPackageMessage.subject(business: profile),
+                                         message: ContractorPackageMessage.body(business: profile))
                         .glAppearance(colorScheme)
                 }
             }
@@ -417,34 +418,3 @@ struct ContractorPackageSheet: View {
 // MARK: - Full package preview
 
 /// Shows the assembled package PDF (COI + W-9 + workers'-comp + license) so the whole thing can be
-/// reviewed before sharing — the "see exactly what you're sharing" flow, applied to the merged
-/// document. Scrollable / zoomable via the shared PDFKit viewer; Share sits in the navbar.
-private struct PackagePreviewSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    let url: URL
-    let subject: String
-    let message: String
-
-    var body: some View {
-        NavigationStack {
-            Group {
-                if let document = PDFDocument(url: url) {
-                    CertificatePDFView(document: document)
-                } else {
-                    ContentUnavailableView("Couldn't open the package", systemImage: "doc.questionmark")
-                }
-            }
-            .ignoresSafeArea(edges: .bottom)
-            .navigationTitle("Package preview")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
-                ToolbarItem(placement: .topBarTrailing) {
-                    ShareLink(item: url, subject: Text(subject), message: Text(message)) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                }
-            }
-        }
-    }
-}

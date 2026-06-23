@@ -39,9 +39,10 @@ struct AllChangeOrdersScreen: View {
         }
         .scrollContentBackground(.hidden)
         .listStyle(.plain)
+        .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) { PrimaryBackground() }
         .navigationTitle("All Change Orders")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent (the Menu)
         .sheet(item: $selectedChangeOrder) { changeOrder in
             ChangeOrderDetailSheet(changeOrder: changeOrder).glAppearance(colorScheme)
         }

@@ -4,9 +4,10 @@
 //
 //  Created by Gold Life LLC on 6/21/26.
 //
-//  A list row matching the Customers tab: a 60-pt monogram overlaid on the leading edge of a gold
-//  card, the name (with an optional subtitle), an optional trailing value, and a chevron. Used by the
-//  Employees and Subcontractors tabs so the three people lists look identical.
+//  The single list row shared by all three people lists — Customers, Employees, Subcontractors —
+//  on iPhone AND iPad, so they're indistinguishable. A 60-pt avatar overlaid on the leading edge of
+//  a gold card (a photo for customers, a monogram for employees/subs), the name + optional subtitle,
+//  an optional trailing value, and a chevron. `selectionMark` powers the customers' multi-select mode.
 //
 
 import SwiftUI
@@ -34,42 +35,53 @@ struct MonogramAvatar: View {
     }
 }
 
-struct PersonRowCard: View {
-    let initials: String
+struct PersonRowCard<Avatar: View>: View {
     let name: String
     var subtitle: String = ""
     var trailing: String = ""
     var trailingTint: Color? = nil
     var showsChevron: Bool = true
     var isSelected: Bool = false
+    /// nil = no multi-select; true/false draws a filled/empty leading checkmark (customers' Edit mode).
+    var selectionMark: Bool? = nil
+    @ViewBuilder var avatar: Avatar
+
+    @Environment(\.colorScheme) private var colorScheme
+    private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     var body: some View {
-        ZStack(alignment: .leading) {
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(name).lineLimit(1).truncationMode(.tail)
-                    if !subtitle.isEmpty {
-                        Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+        HStack(spacing: 12) {
+            if let selectionMark {
+                Image(systemName: selectionMark ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(selectionMark ? gold : Color.secondary)
+            }
+            ZStack(alignment: .leading) {
+                HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(name).lineLimit(1).truncationMode(.tail)
+                        if !subtitle.isEmpty {
+                            Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        }
+                    }
+                    Spacer(minLength: 8)
+                    if !trailing.isEmpty {
+                        Text(trailing).font(.subheadline.weight(.medium)).foregroundStyle(trailingTint ?? .primary)
+                    }
+                    if showsChevron {
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
                     }
                 }
-                Spacer(minLength: 8)
-                if !trailing.isEmpty {
-                    Text(trailing).font(.subheadline.weight(.medium)).foregroundStyle(trailingTint ?? .primary)
-                }
-                if showsChevron {
-                    Image(systemName: "chevron.right")
-                        .font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
-                }
-            }
-            .padding(.vertical, GLLayout.rowContentVerticalPadding)
-            .padding(.leading, 74)
-            .padding(.trailing, GLLayout.rowContentPadding)
-            .frame(maxWidth: .infinity)
-            .glCardBackground()
-            .glSelectionStroke(isSelected)
+                .padding(.vertical, GLLayout.rowContentVerticalPadding)
+                .padding(.leading, 74)
+                .padding(.trailing, GLLayout.rowContentPadding)
+                .frame(maxWidth: .infinity)
+                .glCardBackground()
+                .glSelectionStroke(isSelected)
 
-            MonogramAvatar(initials: initials, size: 60)
-                .padding(.leading, 6)
+                avatar.padding(.leading, 6)
+            }
         }
         .padding(.horizontal, GLLayout.rowCardInset)
         .padding(.vertical, 4)

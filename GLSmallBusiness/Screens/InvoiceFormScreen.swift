@@ -193,10 +193,7 @@ struct InvoiceFormScreen: View {
                         .keyboardType(.numbersAndPunctuation)
                         #endif
                 } header: {
-                    Text("Service Address")
-                } footer: {
-                    Text("The specific job site or lot this invoice is for. Optional — leave blank if it's at the customer's own address.")
-                        .textCase(nil)
+                    InfoLabel("Service Address", info: "The specific job site or lot this invoice is for. Optional — leave blank if it's at the customer's own address.")
                 }
 
                 ForEach($groups) { $group in
@@ -230,10 +227,7 @@ struct InvoiceFormScreen: View {
                     }
                     TextField("What it's for (e.g. Deposit to start)", text: $amountDueDetail)
                 } header: {
-                    Text("Amount due now")
-                } footer: {
-                    Text("Bill a deposit or milestone now. Leave at $0 to request the full balance.")
-                        .textCase(nil)
+                    InfoLabel("Amount due now", info: "Bill a deposit or milestone now. Leave at $0 to request the full balance.")
                 }
 
                 Section("Notes") {

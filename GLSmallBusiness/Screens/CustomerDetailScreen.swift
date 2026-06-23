@@ -22,7 +22,6 @@ struct CustomerDetailScreen: View {
 
     @State private var photoItem: PhotosPickerItem?
     @State private var imageToCrop: CroppableImage?
-    @State private var showingEdit = false
     @State private var showingSaveToContacts = false
     @State private var showingCOIImporter = false
     @State private var coiUploadFailed = false
@@ -33,9 +32,9 @@ struct CustomerDetailScreen: View {
             VStack(spacing: 24) {
                 header
                 contactCard
-                addressCard
-                documentsSection
-                insuranceSection
+                moreInfoRow
+                GLSection("Records") { documentsSection }
+                GLSection("Insurance") { insuranceSection }
             }
             .padding()
         }
@@ -43,11 +42,10 @@ struct CustomerDetailScreen: View {
             PrimaryBackground()
         }
         .navigationTitle(customer.listDisplayName)
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)   // name is the large title; the whole nav chain is large
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button { showingEdit = true } label: { Label("Edit customer", systemImage: "pencil") }
                     Button { showingSaveToContacts = true } label: {
                         Label("Save to Contacts", systemImage: "person.crop.circle.badge.plus")
                     }
@@ -56,9 +54,6 @@ struct CustomerDetailScreen: View {
                 }
                 .accessibilityLabel("More")
             }
-        }
-        .sheet(isPresented: $showingEdit) {
-            CustomerFormScreen(editing: customer).glAppearance(colorScheme)
         }
         .sheet(isPresented: $showingSaveToContacts) {
             NewContactView(contact: ContactsBridge.contact(from: customer)) {
@@ -112,10 +107,6 @@ struct CustomerDetailScreen: View {
             }
             .buttonStyle(.plain)
 
-            Text(customer.listDisplayName)
-                .font(.title2.weight(.semibold))
-                .multilineTextAlignment(.center)
-
             Text("Customer since \(customer.createdAt.formatted(date: .abbreviated, time: .omitted))")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -139,15 +130,27 @@ struct CustomerDetailScreen: View {
         }
     }
 
-    private var addressCard: some View {
-        card("Address") {
-            if formattedAddress.isEmpty {
-                Text("No address on file")
+    /// The hub's link into the read-only categorized details (where Edit lives) — same flow as
+    /// My Business Details.
+    private var moreInfoRow: some View {
+        NavigationLink {
+            CustomerDetailsScreen(customer: customer)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "list.bullet.rectangle")
+                    .frame(width: 24)
+                    .foregroundStyle(gold)
+                Text("More Info")
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(.secondary)
-            } else {
-                Text(formattedAddress)
             }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glCardBackground()
         }
+        .buttonStyle(.plain)
     }
 
     private var documentsSection: some View {
@@ -284,15 +287,6 @@ struct CustomerDetailScreen: View {
         }
     }
 
-    private var formattedAddress: String {
-        let a = customer.address
-        let cityLine = [a.city, a.state].filter { !$0.isEmpty }.joined(separator: ", ")
-        let cityZip = [cityLine, a.postalCode].filter { !$0.isEmpty }.joined(separator: " ")
-        return [a.street1, a.street2 ?? "", cityZip]
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .joined(separator: "\n")
-    }
 }
 
 #Preview {

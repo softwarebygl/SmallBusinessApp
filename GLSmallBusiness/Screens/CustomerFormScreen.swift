@@ -58,14 +58,16 @@ struct CustomerFormScreen: View {
             Form {
                 if editing == nil {
                     Section {
-                        Button {
-                            showingContactPicker = true
-                        } label: {
-                            Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
+                        HStack {
+                            Button {
+                                showingContactPicker = true
+                            } label: {
+                                Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
+                            }
+                            .buttonStyle(.borderless)
+                            Spacer()
+                            InfoButton(text: "Pull a name, phone, email, and address straight from your phone's contacts.")
                         }
-                    } footer: {
-                        Text("Pull a name, phone, email, and address straight from your phone's contacts.")
-                            .textCase(nil)
                     }
                 }
 

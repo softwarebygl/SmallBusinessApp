@@ -52,6 +52,7 @@ struct CalendarScreen: View {
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }
+        .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) {
             showsMenuButton ? AnyView(PrimaryBackground())
                             : AnyView(GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea())

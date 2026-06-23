@@ -23,13 +23,11 @@ struct EmployeeDetailScreen: View {
     /// One sheet driver for the screen: edit the employee, add/edit an hours entry or a paycheck
     /// (nil = "new"), or view all hours. A single `.sheet(item:)` avoids stacking many sheet modifiers.
     private enum ActiveSheet: Identifiable {
-        case editEmployee
         case logHours(TimeEntry?)
         case recordPaycheck(Paycheck?)
         case allHours
         var id: String {
             switch self {
-            case .editEmployee: "edit"
             case .logHours(let entry): "hours-\(entry?.persistentModelID.hashValue ?? 0)"
             case .recordPaycheck(let check): "check-\(check?.persistentModelID.hashValue ?? 0)"
             case .allHours: "allHours"
@@ -41,14 +39,15 @@ struct EmployeeDetailScreen: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 header
+                contactCard
+                moreInfoRow
                 paydayCard
                 if employee.isOverFortyThisWeek { overtimeFlag }
                 hoursCard
                 paychecksCard
                 ytdCard
-                if !employee.notes.isEmpty { notesCard }
             }
             .padding()
             .frame(maxWidth: 640)
@@ -56,11 +55,10 @@ struct EmployeeDetailScreen: View {
         }
         .containerBackground(for: .navigation) { PrimaryBackground() }
         .navigationTitle(employee.listDisplayName)
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)   // name is the large title; the whole nav chain is large
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button { activeSheet = .editEmployee } label: { Label("Edit employee", systemImage: "pencil") }
                     Button { showingSaveToContacts = true } label: {
                         Label("Save to Contacts", systemImage: "person.crop.circle.badge.plus")
                     }
@@ -72,8 +70,6 @@ struct EmployeeDetailScreen: View {
         }
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
-            case .editEmployee:
-                EmployeeFormScreen(editing: employee).glAppearance(colorScheme)
             case .logHours(let entry):
                 LogHoursSheet(employee: employee, existing: entry).glAppearance(colorScheme)
             case .recordPaycheck(let check):
@@ -92,17 +88,7 @@ struct EmployeeDetailScreen: View {
 
     private var header: some View {
         VStack(spacing: 12) {
-            ZStack {
-                Circle().fill(gold.opacity(0.18))
-                Text(employee.initials)
-                    .font(.system(size: 36, weight: .semibold))
-                    .foregroundStyle(gold)
-            }
-            .frame(width: 96, height: 96)
-
-            Text(employee.fullName.isEmpty ? employee.listDisplayName : employee.fullName)
-                .font(.title2.weight(.semibold))
-                .multilineTextAlignment(.center)
+            MonogramAvatar(initials: employee.initials, size: 110)
 
             Text(paySummary)
                 .font(.subheadline)
@@ -123,6 +109,42 @@ struct EmployeeDetailScreen: View {
             ? "\(employee.hourlyRate.formatted(.currency(code: "USD")))/hr"
             : "\(employee.annualSalary.formatted(.currency(code: "USD")))/yr"
         return "\(rate) · \(employee.payFrequency.label)"
+    }
+
+    private var contactCard: some View {
+        GLCard(title: "Contact") {
+            infoRow("Email", employee.email)
+            infoRow("Phone", employee.phone)
+        }
+    }
+
+    private func infoRow(_ label: LocalizedStringKey, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(label).foregroundStyle(.secondary)
+            Spacer()
+            Text(value.isEmpty ? "—" : value).multilineTextAlignment(.trailing)
+        }
+    }
+
+    private var moreInfoRow: some View {
+        NavigationLink {
+            EmployeeDetailsScreen(employee: employee)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "list.bullet.rectangle")
+                    .frame(width: 24)
+                    .foregroundStyle(gold)
+                Text("More Info")
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glCardBackground()
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Payday due
@@ -220,7 +242,7 @@ struct EmployeeDetailScreen: View {
             Spacer()
             Text("\(entry.hours.formatted(.number)) hr")
                 .foregroundStyle(.secondary)
-            Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
         }
         .font(.subheadline)
         .contentShape(Rectangle())
@@ -254,7 +276,7 @@ struct EmployeeDetailScreen: View {
             Spacer()
             Text(check.grossAmount.formatted(.currency(code: "USD")))
                 .foregroundStyle(.secondary)
-            Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
         }
         .font(.subheadline)
         .contentShape(Rectangle())
@@ -267,12 +289,6 @@ struct EmployeeDetailScreen: View {
             statRow("Gross paid", employee.ytdGross().formatted(.currency(code: "USD")))
             statRow("Hours", employee.ytdHours().formatted(.number))
             statRow("Paychecks", "\(employee.sortedPaychecks.filter { Calendar.current.component(.year, from: $0.payDate) == Calendar.current.component(.year, from: .now) }.count)")
-        }
-    }
-
-    private var notesCard: some View {
-        GLCard(title: "Notes") {
-            Text(employee.notes).font(.subheadline)
         }
     }
 

@@ -302,19 +302,11 @@ private struct CustomerListColumn: View {
     }
 
     private func row(_ customer: Customer) -> some View {
-        HStack(spacing: 12) {
-            CustomerAvatar(customer: customer, size: 44)
-            Text(customer.listDisplayName)
-                .lineLimit(1)
-            Spacer(minLength: 0)
+        PersonRowCard(name: customer.listDisplayName,
+                      showsChevron: false,
+                      isSelected: selection == customer.persistentModelID) {
+            CustomerAvatar(customer: customer, size: 60)
         }
-        .padding(.vertical, GLLayout.rowContentVerticalPadding)
-        .padding(.horizontal, GLLayout.rowContentPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glCardBackground()
-        .glSelectionStroke(selection == customer.persistentModelID)
-        .padding(.horizontal, GLLayout.rowCardInset)
-        .padding(.vertical, 4)
     }
 
     private func delete(at offsets: IndexSet) {
@@ -393,30 +385,16 @@ private struct EmployeeListColumn: View {
     }
 
     private func row(_ employee: Employee) -> some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle().fill(gold.opacity(0.18))
-                Text(employee.initials).font(.subheadline.weight(.semibold)).foregroundStyle(gold)
-            }
-            .frame(width: 44, height: 44)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(employee.listDisplayName).lineLimit(1)
-                Text(paySummary(employee)).font(.caption).foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 8)
-            if employee.accruedGross > 0 {
-                Text(employee.accruedGross.formatted(.currency(code: "USD")))
-                    .font(.subheadline.weight(.medium)).foregroundStyle(gold)
-            }
+        PersonRowCard(
+            name: employee.listDisplayName,
+            subtitle: paySummary(employee),
+            trailing: employee.accruedGross > 0.005 ? employee.accruedGross.formatted(.currency(code: "USD")) : "",
+            trailingTint: gold,
+            showsChevron: false,
+            isSelected: selection == employee.persistentModelID
+        ) {
+            MonogramAvatar(initials: employee.initials)
         }
-        .padding(.vertical, GLLayout.rowContentVerticalPadding)
-        .padding(.horizontal, GLLayout.rowContentPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glCardBackground()
-        .glSelectionStroke(selection == employee.persistentModelID)
-        .padding(.horizontal, GLLayout.rowCardInset)
-        .padding(.vertical, 4)
     }
 
     private func paySummary(_ employee: Employee) -> String {
@@ -500,35 +478,20 @@ private struct SubcontractorListColumn: View {
     }
 
     private func row(_ sub: Subcontractor) -> some View {
+        let owed = sub.outstanding
         let total = sub.totalPaid()
-        return HStack(spacing: 12) {
-            ZStack {
-                Circle().fill(gold.opacity(0.18))
-                Text(sub.initials).font(.subheadline.weight(.semibold)).foregroundStyle(gold)
-            }
-            .frame(width: 44, height: 44)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(sub.listDisplayName).lineLimit(1)
-                if sub.requires1099() {
-                    Text("1099-NEC due").font(.caption.weight(.medium)).foregroundStyle(gold)
-                } else {
-                    Text("This year").font(.caption).foregroundStyle(.secondary)
-                }
-            }
-            Spacer(minLength: 8)
-            if total > 0 {
-                Text(total.formatted(.currency(code: "USD")))
-                    .font(.subheadline.weight(.medium))
-            }
+        let subtitle = owed > 0.005 ? "Owed \(owed.formatted(.currency(code: "USD")))"
+                     : (sub.requires1099() ? "1099-NEC due" : "")
+        return PersonRowCard(
+            name: sub.listDisplayName,
+            subtitle: subtitle,
+            trailing: total > 0.005 ? total.formatted(.currency(code: "USD")) : "",
+            trailingTint: gold,
+            showsChevron: false,
+            isSelected: selection == sub.persistentModelID
+        ) {
+            MonogramAvatar(initials: sub.initials)
         }
-        .padding(.vertical, GLLayout.rowContentVerticalPadding)
-        .padding(.horizontal, GLLayout.rowContentPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glCardBackground()
-        .glSelectionStroke(selection == sub.persistentModelID)
-        .padding(.horizontal, GLLayout.rowCardInset)
-        .padding(.vertical, 4)
     }
 
     private func delete(at offsets: IndexSet) {

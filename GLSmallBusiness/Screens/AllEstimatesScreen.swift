@@ -47,9 +47,10 @@ struct AllEstimatesScreen: View {
         }
         .scrollContentBackground(.hidden)
         .listStyle(.plain)
+        .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) { PrimaryBackground() }
         .navigationTitle("All Estimates")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent (the Menu)
         .navigationDestination(item: $selectedEstimate) { estimate in
             EstimateDetailScreen(estimate: estimate)
         }

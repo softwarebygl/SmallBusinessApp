@@ -75,11 +75,12 @@ struct EstimatesListScreen: View {
         }
         .scrollContentBackground(.hidden)
         .listStyle(.plain)
+        .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) {
             PrimaryBackground()
         }
         .navigationTitle("Estimates")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)
         .navigationDestination(item: $selectedEstimate) { estimate in
             EstimateDetailScreen(estimate: estimate)
         }

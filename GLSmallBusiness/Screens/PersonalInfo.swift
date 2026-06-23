@@ -34,7 +34,7 @@ struct MyPersonalInfoScreen: View {
         }
         .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
         .navigationTitle("My Personal Info")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.large)   // navigational hub — large to match the rest of the chain
         .sheet(isPresented: $showingSignature) {
             if let profile = profiles.first {
                 SignatureEditorSheet(profile: profile).glAppearance(colorScheme)
@@ -52,7 +52,7 @@ struct MyPersonalInfoScreen: View {
 
     private func detail(_ profile: UserProfile) -> some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 ZStack {
                     if let data = profile.photoData, let uiImage = UIImage(data: data) {
                         Image(uiImage: uiImage).resizable().scaledToFill()
@@ -264,10 +264,7 @@ struct MyPersonalInfoFormScreen: View {
                     }
                     .listRowBackground(Color.clear)
                 } header: {
-                    Text("Photo")
-                } footer: {
-                    Text("Optional. A photo of you for your personal profile.")
-                        .textCase(nil)
+                    InfoLabel("Photo", info: "Optional. A photo of you for your personal profile.")
                 }
 
                 Section("Name") {
