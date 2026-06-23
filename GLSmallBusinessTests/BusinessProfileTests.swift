@@ -1,0 +1,96 @@
+//
+//  BusinessProfileTests.swift
+//  GLSmallBusinessTests
+//
+//  Computed helpers on the business profile: the send gate (isComplete), the light/dark logo
+//  fallback, the W-9 legal-name fallback, the compliance-document flags, and the optional-enum
+//  accessors.
+//
+
+import Testing
+import Foundation
+import SwiftUI
+@testable import GLSmallBusiness
+
+@MainActor
+struct BusinessProfileTests {
+
+    @Test func isCompleteRequiresNamePhoneEmail() {
+        let b = BusinessProfile()
+        #expect(!b.isComplete)
+        b.businessName = "Summit Tile"; b.phone = "850-555-0142"; b.email = "office@summit.com"
+        #expect(b.isComplete)
+        b.email = "   "
+        #expect(!b.isComplete)
+        b.email = "office@summit.com"; b.phone = ""
+        #expect(!b.isComplete)
+        b.phone = "850-555-0142"; b.businessName = ""
+        #expect(!b.isComplete)
+    }
+
+    @Test func logoPrefersVariantThenFallsBack() {
+        let b = BusinessProfile()
+        #expect(b.logo(for: .light) == nil)
+        #expect(b.logo(for: .dark) == nil)
+
+        let light = Data([0x1]), dark = Data([0x2])
+        b.logoData = light
+        #expect(b.logo(for: .light) == light)
+        #expect(b.logo(for: .dark) == light)        // only one logo → shows in both
+
+        b.logoDataDark = dark
+        #expect(b.logo(for: .dark) == dark)
+        #expect(b.logo(for: .light) == light)
+
+        b.logoData = nil
+        #expect(b.logo(for: .light) == dark)        // light falls back to the dark variant
+    }
+
+    @Test func w9LegalNameFallsBackToBusinessName() {
+        let b = BusinessProfile()
+        b.businessName = "Summit Tile & Stone"
+        #expect(b.w9LegalName == "Summit Tile & Stone")
+        b.w9Name = "Summit Tile LLC"
+        #expect(b.w9LegalName == "Summit Tile LLC")
+        b.w9Name = "   "
+        #expect(b.w9LegalName == "Summit Tile & Stone")
+    }
+
+    @Test func complianceDocumentFlags() {
+        let b = BusinessProfile()
+        #expect(!b.hasComplianceDocuments)
+        b.wcInsuranceData = Data([0x1])
+        #expect(b.hasWCInsurance)
+        #expect(b.hasComplianceDocuments)
+        b.wcInsuranceData = nil
+        b.licenseDocumentData = Data([0x1])
+        #expect(b.hasLicenseDocument)
+        #expect(b.hasComplianceDocuments)
+    }
+
+    @Test func w9EnumAccessorsRoundTrip() {
+        let b = BusinessProfile()
+        #expect(b.w9TINType == nil)
+        b.w9TINType = .ein
+        #expect(b.w9TINType == .ein)
+        #expect(b.w9TINTypeRaw == "ein")
+        b.w9TINType = nil
+        #expect(b.w9TINTypeRaw == "")
+    }
+
+    @Test func w9ClassificationFormLabels() {
+        // The exact checkbox wording printed on the W-9 for each classification.
+        #expect(W9TaxClassification.individual.formLabel == "Individual/sole proprietor")
+        #expect(W9TaxClassification.cCorporation.formLabel == "C corporation")
+        #expect(W9TaxClassification.sCorporation.formLabel == "S corporation")
+        #expect(W9TaxClassification.partnership.formLabel == "Partnership")
+        #expect(W9TaxClassification.trustEstate.formLabel == "Trust/estate")
+        #expect(W9TaxClassification.llc.formLabel == "Limited liability company")
+        #expect(W9TaxClassification.other.formLabel == "Other")
+    }
+
+    @Test func w9TINTypeIdentity() {
+        #expect(W9TINType.ssn.id == "ssn")
+        #expect(W9TINType.ein.id == "ein")
+    }
+}

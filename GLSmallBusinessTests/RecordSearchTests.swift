@@ -86,4 +86,13 @@ struct RecordSearchTests {
         #expect(co.matchesSearch("CO-0003"))          // number
         #expect(co.matchesSearch("second coat"))      // title
     }
+
+    @Test func estimateMatchesTitleNumberStatus() {
+        let est = TS.estimate(number: "EST-0042")
+        est.jobTitle = "Garage Floor Coating"
+        #expect(est.matchesSearch("EST-0042"))        // number
+        #expect(est.matchesSearch("garage floor"))    // job title
+        #expect(est.matchesSearch("draft"))           // default status label
+        #expect(!est.matchesSearch("zzz"))
+    }
 }
