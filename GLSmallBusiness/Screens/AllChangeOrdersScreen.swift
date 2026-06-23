@@ -14,6 +14,11 @@ struct AllChangeOrdersScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Query(sort: \ChangeOrder.createdAt, order: .reverse) private var changeOrders: [ChangeOrder]
     @State private var selectedChangeOrder: ChangeOrder?
+    @State private var searchText = ""
+
+    private var visibleChangeOrders: [ChangeOrder] {
+        searchText.isEmpty ? changeOrders : changeOrders.filter { $0.matchesSearch(searchText) }
+    }
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -27,7 +32,7 @@ struct AllChangeOrdersScreen: View {
                 }
                 .listRowBackground(Color.clear)
             } else {
-                ForEach(changeOrders) { changeOrder in
+                ForEach(visibleChangeOrders) { changeOrder in
                     Button { selectedChangeOrder = changeOrder } label: { row(changeOrder) }
                         .buttonStyle(.plain)
                         .listRowBackground(Color.clear)
@@ -41,6 +46,10 @@ struct AllChangeOrdersScreen: View {
         .listStyle(.plain)
         .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) { PrimaryBackground() }
+        .searchable(text: $searchText, prompt: "Search change orders")
+        .overlay {
+            if !searchText.isEmpty && visibleChangeOrders.isEmpty { ContentUnavailableView.search(text: searchText) }
+        }
         .navigationTitle("All Change Orders")
         .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent (the Menu)
         .sheet(item: $selectedChangeOrder) { changeOrder in
@@ -89,7 +98,7 @@ struct AllChangeOrdersScreen: View {
     }
 
     private func delete(at offsets: IndexSet) {
-        for changeOrder in offsets.map({ changeOrders[$0] }) {
+        for changeOrder in offsets.map({ visibleChangeOrders[$0] }) {
             modelContext.delete(changeOrder)
         }
         modelContext.saveChanges()

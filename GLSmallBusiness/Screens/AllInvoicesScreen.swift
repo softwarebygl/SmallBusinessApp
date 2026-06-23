@@ -16,8 +16,13 @@ struct AllInvoicesScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Query(sort: \Invoice.createdAt, order: .reverse) private var invoices: [Invoice]
     @State private var selectedInvoice: Invoice?
+    @State private var searchText = ""
 
     private var orphanCount: Int { invoices.filter { $0.customer == nil }.count }
+
+    private var visibleInvoices: [Invoice] {
+        searchText.isEmpty ? invoices : invoices.filter { $0.matchesSearch(searchText) }
+    }
 
     var body: some View {
         List {
@@ -38,7 +43,7 @@ struct AllInvoicesScreen: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
-                ForEach(invoices) { invoice in
+                ForEach(visibleInvoices) { invoice in
                     Button { selectedInvoice = invoice } label: { row(invoice) }
                         .buttonStyle(.plain)
                         .listRowBackground(Color.clear)
@@ -52,6 +57,10 @@ struct AllInvoicesScreen: View {
         .listStyle(.plain)
         .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) { PrimaryBackground() }
+        .searchable(text: $searchText, prompt: "Search invoices")
+        .overlay {
+            if !searchText.isEmpty && visibleInvoices.isEmpty { ContentUnavailableView.search(text: searchText) }
+        }
         .navigationTitle("All Invoices")
         .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent (the Menu)
         .navigationDestination(item: $selectedInvoice) { invoice in
@@ -100,7 +109,7 @@ struct AllInvoicesScreen: View {
     }
 
     private func delete(at offsets: IndexSet) {
-        for invoice in offsets.map({ invoices[$0] }) {
+        for invoice in offsets.map({ visibleInvoices[$0] }) {
             modelContext.delete(invoice)
         }
         modelContext.saveChanges()

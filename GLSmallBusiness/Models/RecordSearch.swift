@@ -72,3 +72,35 @@ extension Subcontractor {
             .contains { $0.localizedCaseInsensitiveContains(q) }
     }
 }
+
+// MARK: - Documents (job title / number / customer / status)
+
+extension Estimate {
+    /// Matches the query against the job title, estimate number, customer, and status.
+    func matchesSearch(_ query: String) -> Bool {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return true }
+        return [jobTitle, number, customerDisplayName, status.label]
+            .contains { $0.localizedCaseInsensitiveContains(q) }
+    }
+}
+
+extension Invoice {
+    /// Matches the query against the job title, invoice number, customer, and status.
+    func matchesSearch(_ query: String) -> Bool {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return true }
+        return [jobTitle, number, customerDisplayName, status.label]
+            .contains { $0.localizedCaseInsensitiveContains(q) }
+    }
+}
+
+extension ChangeOrder {
+    /// Matches the query against the title, change-order number, the parent invoice number, and status.
+    func matchesSearch(_ query: String) -> Bool {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return true }
+        return [title, number, invoice?.number ?? "", status.label]
+            .contains { $0.localizedCaseInsensitiveContains(q) }
+    }
+}

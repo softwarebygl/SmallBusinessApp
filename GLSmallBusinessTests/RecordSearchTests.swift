@@ -68,4 +68,22 @@ struct RecordSearchTests {
         #expect(check.matchesSearch("transfer"))      // method label ("Bank transfer")
         #expect(check.matchesSearch("1824"))          // gross
     }
+
+    // MARK: - Documents
+
+    @Test func invoiceMatchesTitleNumberStatus() {
+        let inv = TS.invoice(number: "INV-0007")
+        inv.jobTitle = "Master Bath Tile"
+        #expect(inv.matchesSearch("INV-0007"))        // number
+        #expect(inv.matchesSearch("master bath"))     // job title
+        #expect(inv.matchesSearch("draft"))           // default status label
+        #expect(!inv.matchesSearch("zzz"))
+    }
+
+    @Test func changeOrderMatchesTitleAndNumber() {
+        let co = TS.changeOrder(TS.invoice(), number: "CO-0003")
+        co.title = "Add second coat"
+        #expect(co.matchesSearch("CO-0003"))          // number
+        #expect(co.matchesSearch("second coat"))      // title
+    }
 }

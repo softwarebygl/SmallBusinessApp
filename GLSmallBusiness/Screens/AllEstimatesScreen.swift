@@ -13,8 +13,13 @@ struct AllEstimatesScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Estimate.createdAt, order: .reverse) private var estimates: [Estimate]
     @State private var selectedEstimate: Estimate?
+    @State private var searchText = ""
 
     private var orphanCount: Int { estimates.filter { $0.customer == nil }.count }
+
+    private var visibleEstimates: [Estimate] {
+        searchText.isEmpty ? estimates : estimates.filter { $0.matchesSearch(searchText) }
+    }
 
     var body: some View {
         List {
@@ -35,7 +40,7 @@ struct AllEstimatesScreen: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
-                ForEach(estimates) { estimate in
+                ForEach(visibleEstimates) { estimate in
                     Button { selectedEstimate = estimate } label: { row(estimate) }
                         .buttonStyle(.plain)
                         .listRowBackground(Color.clear)
@@ -49,6 +54,10 @@ struct AllEstimatesScreen: View {
         .listStyle(.plain)
         .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .containerBackground(for: .navigation) { PrimaryBackground() }
+        .searchable(text: $searchText, prompt: "Search estimates")
+        .overlay {
+            if !searchText.isEmpty && visibleEstimates.isEmpty { ContentUnavailableView.search(text: searchText) }
+        }
         .navigationTitle("All Estimates")
         .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent (the Menu)
         .navigationDestination(item: $selectedEstimate) { estimate in
@@ -97,7 +106,7 @@ struct AllEstimatesScreen: View {
     }
 
     private func delete(at offsets: IndexSet) {
-        for estimate in offsets.map({ estimates[$0] }) {
+        for estimate in offsets.map({ visibleEstimates[$0] }) {
             modelContext.delete(estimate)
         }
         modelContext.saveChanges()
