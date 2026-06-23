@@ -355,9 +355,11 @@ private struct AllHoursSheet: View {
     @State private var from: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
     @State private var to: Date = .now
     @State private var editing: TimeEntry?
+    @State private var searchText = ""
 
     private var filtered: [TimeEntry] {
-        rangeFilter.apply(to: employee.sortedTimeEntries, date: \.date)
+        let byDate = rangeFilter.apply(to: employee.sortedTimeEntries, date: \.date)
+        return searchText.isEmpty ? byDate : byDate.filter { $0.matchesSearch(searchText) }
     }
     private var rangeFilter: DateRangeFilter {
         switch range {
@@ -386,7 +388,8 @@ private struct AllHoursSheet: View {
                 }
                 List {
                     if filtered.isEmpty {
-                        ContentUnavailableView("No hours in this range", systemImage: "clock")
+                        ContentUnavailableView(searchText.isEmpty ? "No hours in this range" : "No matches",
+                                               systemImage: searchText.isEmpty ? "clock" : "magnifyingglass")
                             .listRowBackground(Color.clear)
                     } else {
                         Section {
@@ -402,6 +405,7 @@ private struct AllHoursSheet: View {
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
+                .searchable(text: $searchText, prompt: "Search hours")
             }
             .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
             .navigationTitle("All Hours")
@@ -444,9 +448,11 @@ private struct AllPaychecksSheet: View {
     @State private var from: Date = Calendar.current.date(byAdding: .month, value: -3, to: .now) ?? .now
     @State private var to: Date = .now
     @State private var editing: Paycheck?
+    @State private var searchText = ""
 
     private var filtered: [Paycheck] {
-        rangeFilter.apply(to: employee.sortedPaychecks, date: \.payDate)
+        let byDate = rangeFilter.apply(to: employee.sortedPaychecks, date: \.payDate)
+        return searchText.isEmpty ? byDate : byDate.filter { $0.matchesSearch(searchText) }
     }
     private var rangeFilter: DateRangeFilter {
         switch range {
@@ -475,7 +481,8 @@ private struct AllPaychecksSheet: View {
                 }
                 List {
                     if filtered.isEmpty {
-                        ContentUnavailableView("No paychecks in this range", systemImage: "dollarsign.circle")
+                        ContentUnavailableView(searchText.isEmpty ? "No paychecks in this range" : "No matches",
+                                               systemImage: searchText.isEmpty ? "dollarsign.circle" : "magnifyingglass")
                             .listRowBackground(Color.clear)
                     } else {
                         Section {
@@ -491,6 +498,7 @@ private struct AllPaychecksSheet: View {
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
+                .searchable(text: $searchText, prompt: "Search paychecks")
             }
             .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
             .navigationTitle("All Paychecks")

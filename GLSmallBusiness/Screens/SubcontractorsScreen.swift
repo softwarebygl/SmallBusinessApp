@@ -24,8 +24,13 @@ struct SubcontractorsScreen: View {
     @State private var showingMenu = false
     @State private var path: [Subcontractor] = []
     @State private var exportFiles: [URL] = []
+    @State private var searchText = ""
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
+
+    private var visibleSubs: [Subcontractor] {
+        searchText.isEmpty ? subs : subs.filter { $0.matchesSearch(searchText) }
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -35,7 +40,7 @@ struct SubcontractorsScreen: View {
                 } else {
                     summaryHeader(Subcontractor1099Summary.forYear(subs))
                     Section("Subcontractors") {
-                        ForEach(subs) { sub in
+                        ForEach(visibleSubs) { sub in
                             Button { path.append(sub) } label: { row(sub) }
                                 .buttonStyle(.plain)
                                 .listRowBackground(Color.clear)
@@ -50,6 +55,10 @@ struct SubcontractorsScreen: View {
             .listStyle(.plain)
             .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the script title's descenders
             .containerBackground(for: .navigation) { PrimaryBackground() }
+            .searchable(text: $searchText, prompt: "Search subcontractors")
+            .overlay {
+                if !searchText.isEmpty && visibleSubs.isEmpty { ContentUnavailableView.search(text: searchText) }
+            }
             .navigationTitle("Subcontractors")
             .navigationDestination(for: Subcontractor.self) { SubcontractorDetailScreen(subcontractor: $0) }
             .toolbar { toolbar }
@@ -140,8 +149,8 @@ struct SubcontractorsScreen: View {
 
     private func delete(at offsets: IndexSet) {
         for index in offsets {
-            subs[index].clearSecureTIN()   // don't leave the TIN behind in the Keychain
-            modelContext.delete(subs[index])
+            visibleSubs[index].clearSecureTIN()   // don't leave the TIN behind in the Keychain
+            modelContext.delete(visibleSubs[index])
         }
         modelContext.saveChanges()
     }

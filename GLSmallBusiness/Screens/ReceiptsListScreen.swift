@@ -489,7 +489,8 @@ struct ReceiptsListScreen: View {
     var body: some View {
         ReceiptListView(
             receipts: (customer.receipts ?? []).sorted { $0.date > $1.date },
-            defaultCustomer: customer
+            defaultCustomer: customer,
+            enablesFilters: true   // search + filter, same as the all-receipts list
         )
     }
 }

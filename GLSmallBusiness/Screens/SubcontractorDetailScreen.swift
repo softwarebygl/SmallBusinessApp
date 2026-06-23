@@ -307,9 +307,11 @@ private struct AllActivitySheet: View {
     @State private var from: Date = Calendar.current.date(byAdding: .month, value: -3, to: .now) ?? .now
     @State private var to: Date = .now
     @State private var editing: SubPayment?
+    @State private var searchText = ""
 
     private var filtered: [SubPayment] {
-        rangeFilter.apply(to: subcontractor.sortedPayments, date: \.date)
+        let byDate = rangeFilter.apply(to: subcontractor.sortedPayments, date: \.date)
+        return searchText.isEmpty ? byDate : byDate.filter { $0.matchesSearch(searchText) }
     }
     private var rangeFilter: DateRangeFilter {
         switch range {
@@ -338,7 +340,8 @@ private struct AllActivitySheet: View {
                 }
                 List {
                     if filtered.isEmpty {
-                        ContentUnavailableView("Nothing in this range", systemImage: "tray")
+                        ContentUnavailableView(searchText.isEmpty ? "Nothing in this range" : "No matches",
+                                               systemImage: searchText.isEmpty ? "tray" : "magnifyingglass")
                             .listRowBackground(Color.clear)
                     } else {
                         Section {
@@ -354,6 +357,7 @@ private struct AllActivitySheet: View {
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
+                .searchable(text: $searchText, prompt: "Search activity")
             }
             .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
             .navigationTitle("All Activity")

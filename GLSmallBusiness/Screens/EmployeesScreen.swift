@@ -24,8 +24,13 @@ struct EmployeesScreen: View {
     @State private var showingMenu = false
     @State private var path: [Employee] = []
     @State private var exportFiles: [URL] = []
+    @State private var searchText = ""
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
+
+    private var visibleEmployees: [Employee] {
+        searchText.isEmpty ? employees : employees.filter { $0.matchesSearch(searchText) }
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -35,7 +40,7 @@ struct EmployeesScreen: View {
                 } else {
                     if let summary = PayrollSummary.nextPayday(for: employees) { paydayHeader(summary) }
                     Section("Team") {
-                        ForEach(employees) { employee in
+                        ForEach(visibleEmployees) { employee in
                             Button { path.append(employee) } label: { row(employee) }
                                 .buttonStyle(.plain)
                                 .listRowBackground(Color.clear)
@@ -50,6 +55,10 @@ struct EmployeesScreen: View {
             .listStyle(.plain)
             .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the script title's descenders
             .containerBackground(for: .navigation) { PrimaryBackground() }
+            .searchable(text: $searchText, prompt: "Search employees")
+            .overlay {
+                if !searchText.isEmpty && visibleEmployees.isEmpty { ContentUnavailableView.search(text: searchText) }
+            }
             .navigationTitle("Employees")
             .navigationDestination(for: Employee.self) { EmployeeDetailScreen(employee: $0) }
             .toolbar { toolbar }
@@ -140,7 +149,7 @@ struct EmployeesScreen: View {
     // MARK: - Actions
 
     private func delete(at offsets: IndexSet) {
-        for index in offsets { modelContext.delete(employees[index]) }
+        for index in offsets { modelContext.delete(visibleEmployees[index]) }
         modelContext.saveChanges()
     }
 

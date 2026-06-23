@@ -21,11 +21,17 @@ struct CustomersScreen: View {
     @State private var selectedCustomerID: PersistentIdentifier?  // iPad detail selection
     @State private var isEditing = false                          // iPhone multi-select
     @State private var selection = Set<PersistentIdentifier>()
+    @State private var searchText = ""
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     private var selectedCustomer: Customer? {
         customers.first { $0.persistentModelID == selectedCustomerID }
+    }
+
+    /// The customers shown after applying the search field (delete + rows both use this).
+    private var visibleCustomers: [Customer] {
+        searchText.isEmpty ? customers : customers.filter { $0.matchesSearch(searchText) }
     }
 
     var body: some View {
@@ -46,7 +52,7 @@ struct CustomersScreen: View {
                 if customers.isEmpty {
                     emptyState
                 } else {
-                    ForEach(customers) { customer in
+                    ForEach(visibleCustomers) { customer in
                         Button {
                             if isEditing { toggleSelection(customer) } else { path.append(customer) }
                         } label: {
@@ -62,6 +68,10 @@ struct CustomersScreen: View {
                 }
             }
             .modifier(CustomerListChrome())
+            .searchable(text: $searchText, prompt: "Search customers")
+            .overlay {
+                if !searchText.isEmpty && visibleCustomers.isEmpty { ContentUnavailableView.search(text: searchText) }
+            }
             .navigationDestination(for: Customer.self) { customer in
                 CustomerDetailScreen(customer: customer)
             }
@@ -79,7 +89,7 @@ struct CustomersScreen: View {
                 if customers.isEmpty {
                     emptyState
                 } else {
-                    ForEach(customers) { customer in
+                    ForEach(visibleCustomers) { customer in
                         customerRow(customer, isSelected: selectedCustomerID == customer.persistentModelID, showsChevron: false)
                             .tag(customer.persistentModelID)
                             .listRowBackground(Color.clear)
@@ -90,6 +100,7 @@ struct CustomersScreen: View {
                 }
             }
             .modifier(CustomerListChrome(showsMonogram: false))
+            .searchable(text: $searchText, prompt: "Search customers")
             .toolbar { customerToolbar }
             .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance(colorScheme) }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
@@ -210,7 +221,7 @@ struct CustomersScreen: View {
 
     private func deleteCustomers(at offsets: IndexSet) {
         for index in offsets {
-            modelContext.delete(customers[index])
+            modelContext.delete(visibleCustomers[index])
         }
         // Cascades to the customer's invoices/estimates/receipts; commit now so Stats and CloudKit
         // reflect it immediately instead of waiting on deferred autosave.
