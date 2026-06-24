@@ -113,6 +113,11 @@ final class BusinessProfile {
     var packageMessageIntro: String = ""
     var packageMessageClosing: String = ""
 
+    /// Completion package share (text/email).
+    var completionMessageSubject: String = ""
+    var completionMessageIntro: String = ""
+    var completionMessageClosing: String = ""
+
     /// The owner's work schedule (per-weekday workdays + hours, holidays, vacation, date overrides),
     /// encoded as a Codable `WorkSchedule` blob so it syncs across devices. Nil until first edited —
     /// read it via `workSchedule`, which falls back to a sensible default.

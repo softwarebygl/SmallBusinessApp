@@ -209,15 +209,8 @@ struct JobDetailScreen: View {
         if completionURL != nil { showingCompletionPreview = true }
     }
 
-    private var completionSubject: String {
-        let company = (profiles.first?.businessName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        let base = String(localized: "Completion package — \(job.displayTitle)")
-        return company.isEmpty ? base : "\(base) from \(company)"
-    }
-
-    private var completionMessage: String {
-        String(localized: "Attached is the completion package for \(job.displayTitle): your paid-in-full receipt and warranty. Thank you for your business.")
-    }
+    private var completionSubject: String { CompletionPackageMessage.subject(job: job, business: profiles.first) }
+    private var completionMessage: String { CompletionPackageMessage.body(job: job, business: profiles.first) }
 
     private func moneyRow(_ label: LocalizedStringKey, _ amount: Double) -> some View {
         HStack {

@@ -356,6 +356,9 @@ struct MyCompanyFormScreen: View {
     @State private var packageMessageIntro: String
     @State private var packageMessageClosing: String
     @State private var warrantyText: String
+    @State private var completionMessageSubject: String
+    @State private var completionMessageIntro: String
+    @State private var completionMessageClosing: String
     @State private var logoData: Data?
     @State private var logoDataDark: Data?
     @State private var logoItem: PhotosPickerItem?
@@ -400,6 +403,9 @@ struct MyCompanyFormScreen: View {
         _packageMessageIntro = State(initialValue: profile.packageMessageIntro)
         _packageMessageClosing = State(initialValue: profile.packageMessageClosing)
         _warrantyText = State(initialValue: profile.warrantyText)
+        _completionMessageSubject = State(initialValue: profile.completionMessageSubject)
+        _completionMessageIntro = State(initialValue: profile.completionMessageIntro)
+        _completionMessageClosing = State(initialValue: profile.completionMessageClosing)
         _logoData = State(initialValue: profile.logoData)
         _logoDataDark = State(initialValue: profile.logoDataDark)
         _w9Name = State(initialValue: profile.w9Name)
@@ -559,6 +565,10 @@ struct MyCompanyFormScreen: View {
                                subject: $packageMessageSubject, subjectHint: "Contractor package from your business",
                                intro: $packageMessageIntro, introHint: ContractorPackageMessage.defaultIntro,
                                closing: $packageMessageClosing, closingHint: ContractorPackageMessage.defaultClosing)
+                messageSection("Completion package message", document: "completion package",
+                               subject: $completionMessageSubject, subjectHint: "Completion package from your business",
+                               intro: $completionMessageIntro, introHint: CompletionPackageMessage.defaultIntro,
+                               closing: $completionMessageClosing, closingHint: CompletionPackageMessage.defaultClosing)
                 Section {
                     TextField("Your warranty terms", text: $warrantyText, axis: .vertical)
                         .lineLimit(3...10)
@@ -724,6 +734,9 @@ struct MyCompanyFormScreen: View {
         profile.packageMessageIntro = packageMessageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.packageMessageClosing = packageMessageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.warrantyText = warrantyText.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.completionMessageSubject = completionMessageSubject.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.completionMessageIntro = completionMessageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.completionMessageClosing = completionMessageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.logoData = logoData
         profile.logoDataDark = logoDataDark
         profile.w9Name = w9Name.trimmingCharacters(in: .whitespacesAndNewlines)

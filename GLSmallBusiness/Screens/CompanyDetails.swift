@@ -73,6 +73,14 @@ struct CompanyDetailsScreen: View {
                     messageBlock("Closing", custom: profile.packageMessageClosing, fallback: ContractorPackageMessage.defaultClosing)
                 }
 
+                GLCard(title: "Completion package message") {
+                    messageBlock("Subject", custom: profile.completionMessageSubject, fallback: "Completion package from your business")
+                    Divider()
+                    messageBlock("Intro", custom: profile.completionMessageIntro, fallback: CompletionPackageMessage.defaultIntro)
+                    Divider()
+                    messageBlock("Closing", custom: profile.completionMessageClosing, fallback: CompletionPackageMessage.defaultClosing)
+                }
+
                 GLCard(title: "Tax details (W-9)") {
                     infoRow("Name", profile.w9Name)
                     infoRow("Classification", classificationText)
