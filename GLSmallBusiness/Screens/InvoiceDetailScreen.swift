@@ -508,7 +508,7 @@ struct InvoiceDetailScreen: View {
 
 // MARK: - Record payment
 
-private struct RecordPaymentSheet: View {
+struct RecordPaymentSheet: View /* internal for render-coverage tests */ {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     let invoice: Invoice
@@ -572,7 +572,7 @@ private struct RecordPaymentSheet: View {
 
 // MARK: - Set amount due (milestone request)
 
-private struct SetAmountDueSheet: View {
+struct SetAmountDueSheet: View /* internal for render-coverage tests */ {
     @Environment(\.dismiss) private var dismiss
     let invoice: Invoice
 
@@ -624,7 +624,7 @@ private struct SetAmountDueSheet: View {
 /// Previews the payment receipt (the W-9-style flow: see it, then send) and sends it to the
 /// customer by email/text or shares the PDF. Receipt wording shows the remaining balance as
 /// information, never as an amount due.
-private struct PaymentReceiptSheet: View {
+struct PaymentReceiptSheet: View /* internal for render-coverage tests */ {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @Query private var businessProfiles: [BusinessProfile]

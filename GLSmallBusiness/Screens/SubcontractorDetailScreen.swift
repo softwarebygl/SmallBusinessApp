@@ -292,7 +292,7 @@ struct SubcontractorDetailScreen: View {
 
 // MARK: - All activity sheet (full, date-filterable list)
 
-private struct AllActivitySheet: View {
+struct AllActivitySheet: View /* internal for render-coverage tests */ {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     let subcontractor: Subcontractor
@@ -419,7 +419,7 @@ struct SubcontractorW9DetailScreen: View {
 
 // MARK: - 1099-NEC sheet (generate the real IRS Copy B)
 
-private struct Form1099NECSheet: View {
+struct Form1099NECSheet: View /* internal for render-coverage tests */ {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @Query private var profiles: [BusinessProfile]
@@ -538,7 +538,7 @@ private struct Form1099NECSheet: View {
 
 // MARK: - Ledger entry sheet (record what you owe, or a payment)
 
-private struct RecordSubPaymentSheet: View {
+struct RecordSubPaymentSheet: View /* internal for render-coverage tests */ {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext

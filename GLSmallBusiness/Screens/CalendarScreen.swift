@@ -241,7 +241,7 @@ private struct MonthGrid: View {
 
 // MARK: - Gaps list
 
-private struct GapsList: View {
+struct GapsList: View /* internal for render-coverage tests */ {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     let jobs: [ScheduledJob]
@@ -295,7 +295,7 @@ private struct GapsList: View {
 
 // MARK: - Source picker (accepted estimates + invoices, not already scheduled)
 
-private struct ScheduleSourcePicker: View {
+struct ScheduleSourcePicker: View /* internal for render-coverage tests */ {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @Query(sort: \Estimate.createdAt, order: .reverse) private var estimates: [Estimate]

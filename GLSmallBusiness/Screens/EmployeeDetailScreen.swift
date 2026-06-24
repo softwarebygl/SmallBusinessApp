@@ -342,7 +342,7 @@ struct EmployeeDetailScreen: View {
 
 // MARK: - All hours sheet (full, date-filterable list)
 
-private struct AllHoursSheet: View {
+struct AllHoursSheet: View /* internal for render-coverage tests */ {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     let employee: Employee
@@ -435,7 +435,7 @@ private struct AllHoursSheet: View {
 
 // MARK: - All paychecks sheet (full, date-filterable list)
 
-private struct AllPaychecksSheet: View {
+struct AllPaychecksSheet: View /* internal for render-coverage tests */ {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     let employee: Employee
@@ -527,7 +527,7 @@ private struct AllPaychecksSheet: View {
 
 // MARK: - Log hours sheet
 
-private struct LogHoursSheet: View {
+struct LogHoursSheet: View /* internal for render-coverage tests */ {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -621,7 +621,7 @@ private struct LogHoursSheet: View {
 
 // MARK: - Record paycheck sheet
 
-private struct RecordPaycheckSheet: View {
+struct RecordPaycheckSheet: View /* internal for render-coverage tests */ {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
