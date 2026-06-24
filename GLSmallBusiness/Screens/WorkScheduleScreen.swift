@@ -68,6 +68,51 @@ struct WorkScheduleScreen: View {
             } footer: {
                 Text("Vacation or any stretch you’re unavailable. These days are skipped just like holidays.")
             }
+
+            Section {
+                ForEach($schedule.customDaysOff) { $day in
+                    DatePicker("Date", selection: $day.date, displayedComponents: .date)
+                    TextField("Label (optional)", text: $day.label)
+                    Toggle("Repeats every year", isOn: $day.repeatsYearly)
+                }
+                .onDelete { schedule.customDaysOff.remove(atOffsets: $0) }
+                Button {
+                    schedule.customDaysOff.append(CustomDayOff(date: Calendar.current.startOfDay(for: .now),
+                                                               repeatsYearly: false, label: ""))
+                } label: {
+                    Label("Add a day off", systemImage: "plus")
+                }
+            } header: {
+                Text("Other days off")
+            } footer: {
+                Text("A single day you take off that isn’t on the holiday list.")
+            }
+
+            Section {
+                ForEach(Array(schedule.overrides.enumerated()), id: \.element.id) { index, _ in
+                    DatePicker("Date", selection: $schedule.overrides[index].date, displayedComponents: .date)
+                    Picker("This day", selection: isCustomHours(index)) {
+                        Text("Day off").tag(false)
+                        Text("Custom hours").tag(true)
+                    }
+                    if isCustomHours(index).wrappedValue {
+                        HStack {
+                            DatePicker("Start", selection: overrideTime(index, start: true), displayedComponents: .hourAndMinute)
+                            DatePicker("End", selection: overrideTime(index, start: false), displayedComponents: .hourAndMinute)
+                        }
+                    }
+                }
+                .onDelete { schedule.overrides.remove(atOffsets: $0) }
+                Button {
+                    schedule.overrides.append(DateOverride(date: Calendar.current.startOfDay(for: .now), kind: .blocked))
+                } label: {
+                    Label("Add a date override", systemImage: "plus")
+                }
+            } header: {
+                Text("Specific-date overrides")
+            } footer: {
+                Text("Work or block a single date — e.g. work this Saturday 9–1, or take a specific Tuesday off. Overrides win over everything else.")
+            }
         }
         .glFormBackground()
         .navigationTitle("Work Schedule")
@@ -130,6 +175,39 @@ struct WorkScheduleScreen: View {
                 let minutes = (comps.hour ?? 0) * 60 + (comps.minute ?? 0)
                 if start { schedule.weekdayHours[index].startMinutes = minutes }
                 else { schedule.weekdayHours[index].endMinutes = minutes }
+            }
+        )
+    }
+
+    private func isCustomHours(_ index: Int) -> Binding<Bool> {
+        Binding(
+            get: { if case .customHours = schedule.overrides[index].kind { return true } else { return false } },
+            set: { custom in
+                schedule.overrides[index].kind = custom
+                    ? .customHours(startMinutes: WorkSchedule.defaultStartMinutes, endMinutes: WorkSchedule.defaultEndMinutes)
+                    : .blocked
+            }
+        )
+    }
+
+    private func overrideTime(_ index: Int, start: Bool) -> Binding<Date> {
+        Binding(
+            get: {
+                let minutes: Int
+                if case .customHours(let s, let e) = schedule.overrides[index].kind {
+                    minutes = start ? s : e
+                } else {
+                    minutes = start ? WorkSchedule.defaultStartMinutes : WorkSchedule.defaultEndMinutes
+                }
+                return Calendar.current.startOfDay(for: .now).addingTimeInterval(TimeInterval(minutes * 60))
+            },
+            set: { newDate in
+                guard case .customHours(let s, let e) = schedule.overrides[index].kind else { return }
+                let comps = Calendar.current.dateComponents([.hour, .minute], from: newDate)
+                let minutes = (comps.hour ?? 0) * 60 + (comps.minute ?? 0)
+                schedule.overrides[index].kind = start
+                    ? .customHours(startMinutes: minutes, endMinutes: e)
+                    : .customHours(startMinutes: s, endMinutes: minutes)
             }
         )
     }
