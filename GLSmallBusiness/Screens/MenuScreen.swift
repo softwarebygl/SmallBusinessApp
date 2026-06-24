@@ -355,6 +355,7 @@ struct MyCompanyFormScreen: View {
     @State private var packageMessageSubject: String
     @State private var packageMessageIntro: String
     @State private var packageMessageClosing: String
+    @State private var warrantyText: String
     @State private var logoData: Data?
     @State private var logoDataDark: Data?
     @State private var logoItem: PhotosPickerItem?
@@ -398,6 +399,7 @@ struct MyCompanyFormScreen: View {
         _packageMessageSubject = State(initialValue: profile.packageMessageSubject)
         _packageMessageIntro = State(initialValue: profile.packageMessageIntro)
         _packageMessageClosing = State(initialValue: profile.packageMessageClosing)
+        _warrantyText = State(initialValue: profile.warrantyText)
         _logoData = State(initialValue: profile.logoData)
         _logoDataDark = State(initialValue: profile.logoDataDark)
         _w9Name = State(initialValue: profile.w9Name)
@@ -557,6 +559,15 @@ struct MyCompanyFormScreen: View {
                                subject: $packageMessageSubject, subjectHint: "Contractor package from your business",
                                intro: $packageMessageIntro, introHint: ContractorPackageMessage.defaultIntro,
                                closing: $packageMessageClosing, closingHint: ContractorPackageMessage.defaultClosing)
+                Section {
+                    TextField("Your warranty terms", text: $warrantyText, axis: .vertical)
+                        .lineLimit(3...10)
+                } header: {
+                    Text("Warranty")
+                } footer: {
+                    Text("Free text — attached to each completion package. Coverage starts from the job’s completion date.")
+                        .textCase(nil)
+                }
             }
             .glFormBackground()
             .navigationTitle("My Business Details")
@@ -712,6 +723,7 @@ struct MyCompanyFormScreen: View {
         profile.packageMessageSubject = packageMessageSubject.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.packageMessageIntro = packageMessageIntro.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.packageMessageClosing = packageMessageClosing.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.warrantyText = warrantyText.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.logoData = logoData
         profile.logoDataDark = logoDataDark
         profile.w9Name = w9Name.trimmingCharacters(in: .whitespacesAndNewlines)

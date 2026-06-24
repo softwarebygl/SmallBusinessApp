@@ -80,6 +80,20 @@ struct CompanyDetailsScreen: View {
                     infoRow("Exempt payee code", profile.w9ExemptPayeeCode)
                     infoRow("FATCA code", profile.w9FATCACode)
                 }
+
+                GLCard(title: "Warranty") {
+                    if profile.warrantyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text("Not set. Add your warranty terms in Edit details — they’re attached to each completion package.")
+                            .font(.subheadline).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        Text(profile.warrantyText)
+                            .font(.subheadline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("Coverage starts from each job’s completion date.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
             }
             .padding()
             .frame(maxWidth: 640)

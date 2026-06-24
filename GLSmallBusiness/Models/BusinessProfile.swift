@@ -118,6 +118,10 @@ final class BusinessProfile {
     /// read it via `workSchedule`, which falls back to a sensible default.
     var workScheduleData: Data?
 
+    /// The business's standard warranty terms (free text). Blank until set — there's no canned default
+    /// because warranty terms are legally specific. Snapshotted into each completion package.
+    var warrantyText: String = ""
+
     // MARK: W-9 details (used to generate a W-9 PDF; all optional)
 
     /// Line 1 — name as shown on the income tax return. Falls back to `businessName` when blank.
