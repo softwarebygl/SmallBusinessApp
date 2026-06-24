@@ -61,7 +61,7 @@ struct DemoSeedTests {
         DemoSeed.populate(ctx)
         #expect(try ctx.fetchCount(FetchDescriptor<Customer>()) == 3)
         #expect(try ctx.fetchCount(FetchDescriptor<Estimate>()) == 2)
-        #expect(try ctx.fetchCount(FetchDescriptor<Invoice>()) == 1)
+        #expect(try ctx.fetchCount(FetchDescriptor<Invoice>()) == 2)   // INV-0001 + the completed job's paid INV-0002
         #expect(try ctx.fetchCount(FetchDescriptor<Receipt>()) == 4)
         #expect(try ctx.fetchCount(FetchDescriptor<BusinessProfile>()) == 1)
         #expect(try ctx.fetchCount(FetchDescriptor<Employee>()) == 3)

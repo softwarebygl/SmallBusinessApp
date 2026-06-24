@@ -39,6 +39,7 @@ enum DemoSeed {
         biz.email = "office@summittilestone.com"
         biz.licenseNumber = "CBC1245789"
         biz.address = Address(street1: "1280 Commerce Blvd", city: "Tallahassee", state: "FL", postalCode: "32301")
+        biz.warrantyText = "Summit Tile & Stone warrants all installed tile and stone workmanship for one (1) year from the date of completion — including cracked grout lines and loose or lifting tile due to installation. It does not cover damage from impact, abuse, structural movement, or normal wear."
         biz.w9TINTypeRaw = W9TINType.ein.rawValue
         biz.updateTIN("98-7654321")   // payer EIN, so the demo 1099-NEC can be generated
         #if canImport(UIKit)
@@ -214,6 +215,18 @@ enum DemoSeed {
         context.insert(demoProject)
         job3.project = demoProject
         job4.project = demoProject
+        // A fully-paid invoice billing the completed job4 — so its Billing card reads "Paid in full"
+        // and the Completion package becomes available to generate + share.
+        let job4Invoice = Invoice.make(from: e1, number: "INV-0002", in: context)
+        job4Invoice.createdAt = .now.addingTimeInterval(-12 * 86_400)
+        job4Invoice.status = .sent
+        job4Invoice.job = job4
+        job4.agreedPrice = job4Invoice.total   // contracted == invoiced for a clean paid-in-full
+        let job4Pay = InvoicePayment(amount: job4Invoice.total, date: .now.addingTimeInterval(-10 * 86_400),
+                                     method: .check, note: "Final payment")
+        job4Pay.invoice = job4Invoice
+        context.insert(job4Pay)
+        job4Invoice.amountDueNow = 0
 
         context.saveChanges()
     }
