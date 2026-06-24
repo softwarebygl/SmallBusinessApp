@@ -224,7 +224,7 @@ struct ViewRenderingTests {
 
         // The scheduling "View gaps" sheet + the schedule-a-job sheet from each source.
         let jobs = try ctx.fetch(FetchDescriptor<ScheduledJob>())
-        render(GapsList(jobs: jobs, mask: SchedulingPrefs.defaultWorkdaysMask), f.container)
+        render(GapsList(jobs: jobs, schedule: .standard), f.container)
         render(ScheduleJobSheet(source: .invoice(f.invoice)), f.container)
         render(ScheduleJobSheet(source: .estimate(f.estimate)), f.container)
 

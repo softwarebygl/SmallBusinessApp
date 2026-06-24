@@ -142,6 +142,24 @@ nonisolated extension ScheduledJob {
     func endDay(mask: Int, calendar: Calendar = .current) -> Date {
         occupiedDays(mask: mask, calendar: calendar).last ?? calendar.startOfDay(for: startDate)
     }
+
+    /// The day-starts this job occupies, using the full WorkSchedule (skips weekends, holidays,
+    /// vacations, and blocked overrides). The schedule-aware counterpart of `occupiedDays(mask:)`.
+    func occupiedDays(schedule: WorkSchedule, calendar: Calendar = .current) -> [Date] {
+        var days: [Date] = []
+        var day = calendar.startOfDay(for: startDate)
+        var guardCount = 0
+        while days.count < max(1, durationDays), guardCount < 3650 {
+            if WorkCalendar.isWorkday(day, schedule: schedule, calendar: calendar) { days.append(day) }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+            guardCount += 1
+        }
+        return days
+    }
+
+    func endDay(schedule: WorkSchedule, calendar: Calendar = .current) -> Date {
+        occupiedDays(schedule: schedule, calendar: calendar).last ?? calendar.startOfDay(for: startDate)
+    }
 }
 
 // MARK: - Scheduling engine (pure logic — next available date + gaps)
@@ -205,5 +223,79 @@ nonisolated enum SchedulingEngine {
         }
         // A trailing open run (no job after it within the horizon) is left out by design.
         return gaps
+    }
+
+    // MARK: Schedule-aware (workdays + hours + holidays + vacation + overrides)
+
+    static func occupiedDays(_ jobs: [ScheduledJob], schedule: WorkSchedule,
+                             calendar: Calendar = .current) -> Set<Date> {
+        var set = Set<Date>()
+        for job in jobs { set.formUnion(job.occupiedDays(schedule: schedule, calendar: calendar)) }
+        return set
+    }
+
+    /// The earliest workday on or after `from` that no job occupies — Row 1's "Next available date"
+    /// fallback when there are no bounded gaps.
+    static func nextAvailable(_ jobs: [ScheduledJob], from: Date = .now, schedule: WorkSchedule,
+                              calendar: Calendar = .current) -> Date {
+        let occupied = occupiedDays(jobs, schedule: schedule, calendar: calendar)
+        var day = calendar.startOfDay(for: from)
+        var guardCount = 0
+        while guardCount < 3650 {
+            if WorkCalendar.isWorkday(day, schedule: schedule, calendar: calendar), !occupied.contains(day) {
+                return day
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+            guardCount += 1
+        }
+        return calendar.startOfDay(for: from)
+    }
+
+    /// Bounded open workday stretches between `from` and `from + horizonDays` — each followed by booked
+    /// work (the open-ended tail is availability, not a gap, so it's excluded; that's the "clear date").
+    static func gaps(_ jobs: [ScheduledJob], from: Date = .now, horizonDays: Int = 90,
+                     schedule: WorkSchedule, calendar: Calendar = .current) -> [ScheduleGap] {
+        let occupied = occupiedDays(jobs, schedule: schedule, calendar: calendar)
+        let start = calendar.startOfDay(for: from)
+        guard let limit = calendar.date(byAdding: .day, value: horizonDays, to: start) else { return [] }
+
+        var gaps: [ScheduleGap] = []
+        var runDays: [Date] = []
+        var day = start
+        while day < limit {
+            if WorkCalendar.isWorkday(day, schedule: schedule, calendar: calendar) {
+                if occupied.contains(day) {
+                    if let first = runDays.first, let last = runDays.last {
+                        gaps.append(ScheduleGap(start: first, end: last, workdays: runDays.count))
+                    }
+                    runDays.removeAll()
+                } else {
+                    runDays.append(day)
+                }
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+        }
+        return gaps
+    }
+
+    /// "Next clear date" — the first workday after the LAST booked day (the open-ended runway). When
+    /// nothing is booked on/after `from`, it's just the next available workday from `from`.
+    static func nextClearDate(_ jobs: [ScheduledJob], from: Date = .now, schedule: WorkSchedule,
+                              calendar: Calendar = .current) -> Date {
+        let occupied = occupiedDays(jobs, schedule: schedule, calendar: calendar)
+        let start = calendar.startOfDay(for: from)
+        guard let lastBooked = occupied.filter({ $0 >= start }).max() else {
+            return nextAvailable(jobs, from: from, schedule: schedule, calendar: calendar)
+        }
+        var day = calendar.date(byAdding: .day, value: 1, to: lastBooked) ?? lastBooked
+        var guardCount = 0
+        while guardCount < 3650 {
+            if WorkCalendar.isWorkday(day, schedule: schedule, calendar: calendar), !occupied.contains(day) {
+                return day
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+            guardCount += 1
+        }
+        return calendar.startOfDay(for: lastBooked)
     }
 }

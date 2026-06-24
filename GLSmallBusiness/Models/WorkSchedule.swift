@@ -79,12 +79,20 @@ nonisolated struct WorkSchedule: Codable, Hashable, Sendable {
 
     /// Seed from the legacy device-local workdays bitmask so the existing Settings choice carries over.
     static func fromLegacyMask(_ mask: Int) -> WorkSchedule {
-        var schedule = standard
+        standard.applyingWeekdayMask(mask)
+    }
+
+    /// A copy whose 7 weekday workday flags come from the legacy bitmask, leaving hours / holidays /
+    /// vacations / overrides intact. Lets the existing Settings workdays picker (which still writes the
+    /// @AppStorage mask) drive workdays while holidays etc. come from the stored schedule — the bridge
+    /// until the full work-schedule editor lands.
+    func applyingWeekdayMask(_ mask: Int) -> WorkSchedule {
+        var copy = self
         let resolved = mask == 0 ? SchedulingPrefs.defaultWorkdaysMask : mask
-        for index in 0..<7 {
-            schedule.weekdayHours[index].isWorkday = (resolved & (1 << index)) != 0
+        for index in 0..<min(7, copy.weekdayHours.count) {
+            copy.weekdayHours[index].isWorkday = (resolved & (1 << index)) != 0
         }
-        return schedule
+        return copy
     }
 }
 

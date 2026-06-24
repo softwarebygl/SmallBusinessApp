@@ -53,13 +53,14 @@ struct JobFormScreen: View {
         _postal = State(initialValue: address.postalCode)
     }
 
-    init() {
+    /// From-scratch (Calendar "New job"), optionally pre-filled to a gap the owner tapped.
+    init(prefillStart: Date? = nil, prefillDays: Int? = nil) {
         self.fixedCustomer = nil
         self.editingJob = nil
         _pickedCustomer = State(initialValue: nil)
         _title = State(initialValue: "")
-        _startDate = State(initialValue: Calendar.current.startOfDay(for: .now))
-        _durationDays = State(initialValue: 1)
+        _startDate = State(initialValue: Calendar.current.startOfDay(for: prefillStart ?? .now))
+        _durationDays = State(initialValue: max(1, prefillDays ?? 1))
         _notes = State(initialValue: "")
         _hasPrice = State(initialValue: false)
         _agreedPrice = State(initialValue: 0)
