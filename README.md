@@ -300,10 +300,16 @@ no migration needed until the first post-launch change).
 - **Done — committed (built + verified on iPhone & iPad simulators):** **Calendar tab.** The 4th
   top-level tab: scheduling for the business. A **"Next available date"** banner + **"View gaps"** (open
   workday stretches before booked work, looking 90 days ahead), a **month grid** with booked days marked,
-  and an **Upcoming** agenda. You schedule **only from an accepted estimate or an invoice** (never free-form
-  — the GL way: book from the accepted estimate if you schedule on acceptance, or from the invoice if you
-  wait on a deposit). A **Schedule** action sits on accepted-estimate + invoice detail menus, and a + on the
-  calendar picks a source → `ScheduleJobSheet` (start date + workday length). **Settings → Scheduling**: a
+  and an **Upcoming** agenda, plus an **All Jobs** link. **Jobs are now first-class** (Phase 1): schedule one
+  **from scratch** (the + → **New job** → `JobFormScreen`: pick the customer, service address, an optional
+  agreed price) **or from an accepted estimate or an invoice** (the + → "From an estimate or invoice", or a
+  **Schedule** action on those detail menus → `ScheduleJobSheet`). _(June 2026: free-form jobs supersede the
+  original "never free-form — the GL way" rule; see `Jobs-Projects-Scheduling-SPEC.md`.)_ Jobs also appear as
+  a **row inside each customer** (next to Estimates/Invoices) and in **Menu → Job Records → All Jobs**, with
+  list / detail / edit / delete and a **status** (scheduled / in progress / completed; completing stamps the
+  completion date). `ScheduledJob` gained `customer`, `status`, `completedAt`, `serviceAddress`, `agreedPrice`
+  (additive). New screens: `JobsListScreen`, `JobDetailScreen`, `JobFormScreen`, `AllJobsScreen`; one-time
+  `JobMigration` backfills legacy bookings' customer + address. **Settings → Scheduling**: a
   **customizable workdays** chip selector (default Mon–Fri) + a **"Book one job at a time"** toggle (on by
   default; an overlapping booking just asks, never blocks). The next-available / gaps math runs over the
   chosen workdays. New `ScheduledJob` model (+ `scheduledJobs` inverse on `Estimate` and `Invoice`; additive,

@@ -12,6 +12,17 @@ import CoreText
 import UIKit
 #endif
 
+#if DEBUG
+/// DEBUG-only: removes a SwiftData store and its `-wal` / `-shm` sidecars so a fresh one can be created
+/// after a pre-launch schema change. Never compiled into release builds, so App Store data is untouched.
+fileprivate func wipeSwiftDataStore(at url: URL) {
+    let fileManager = FileManager.default
+    for path in [url.path, url.path + "-wal", url.path + "-shm"] {
+        try? fileManager.removeItem(atPath: path)
+    }
+}
+#endif
+
 @main
 struct GLSmallBusinessApp: App {
     /// Device-local appearance preference (Light / Dark / Auto), set in Settings.
@@ -33,6 +44,20 @@ struct GLSmallBusinessApp: App {
             do {
                 return try ModelContainer(for: schema, migrationPlan: GLMigrationPlan.self, configurations: local)
             } catch {
+                #if DEBUG
+                // DEV ONLY: pre–App-Store the schema still changes often and we stay on V1, so an old
+                // on-disk store from a previous build can't always migrate in place. Rather than force a
+                // manual delete-and-reinstall on every schema change, wipe the local dev store and retry
+                // once. This is compiled out of release builds, so App Store users' iCloud data is never
+                // touched. (At App Store launch: freeze the shipped shape as GLSchemaV1 and use
+                // GLSchemaV2 + a lightweight migration stage for every later change — see GLSchema.swift.)
+                print("⚠️ Local store couldn’t load (\(error)). DEBUG: wiping the dev store and retrying.")
+                wipeSwiftDataStore(at: local.url)
+                if let recovered = try? ModelContainer(for: schema, migrationPlan: GLMigrationPlan.self,
+                                                       configurations: local) {
+                    return recovered
+                }
+                #endif
                 fatalError("Could not create ModelContainer: \(error)")
             }
         }
@@ -44,7 +69,11 @@ struct GLSmallBusinessApp: App {
         #if DEBUG
         if DemoMode.isActive {
             DemoSeed.populate(sharedModelContainer.mainContext)
+        } else {
+            JobMigration.runIfNeeded(sharedModelContainer.mainContext)
         }
+        #else
+        JobMigration.runIfNeeded(sharedModelContainer.mainContext)
         #endif
     }
 

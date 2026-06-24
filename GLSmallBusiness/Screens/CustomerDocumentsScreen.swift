@@ -11,6 +11,7 @@ import SwiftData
 enum CustomerDocumentKind: String, CaseIterable, Identifiable, Hashable {
     case estimates
     case invoices
+    case jobs
     case receipts
 
     var id: String { rawValue }
@@ -19,6 +20,7 @@ enum CustomerDocumentKind: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .estimates: String(localized: "Estimates")
         case .invoices: String(localized: "Invoices")
+        case .jobs: String(localized: "Jobs")
         case .receipts: String(localized: "Receipts")
         }
     }
@@ -27,6 +29,7 @@ enum CustomerDocumentKind: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .estimates: String(localized: "Estimate")
         case .invoices: String(localized: "Invoice")
+        case .jobs: String(localized: "Job")
         case .receipts: String(localized: "Receipt")
         }
     }
@@ -35,6 +38,7 @@ enum CustomerDocumentKind: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .estimates: "doc.text"
         case .invoices: "banknote"
+        case .jobs: "hammer"
         case .receipts: "list.bullet.rectangle"
         }
     }

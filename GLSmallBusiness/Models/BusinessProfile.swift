@@ -113,6 +113,11 @@ final class BusinessProfile {
     var packageMessageIntro: String = ""
     var packageMessageClosing: String = ""
 
+    /// The owner's work schedule (per-weekday workdays + hours, holidays, vacation, date overrides),
+    /// encoded as a Codable `WorkSchedule` blob so it syncs across devices. Nil until first edited —
+    /// read it via `workSchedule`, which falls back to a sensible default.
+    var workScheduleData: Data?
+
     // MARK: W-9 details (used to generate a W-9 PDF; all optional)
 
     /// Line 1 — name as shown on the income tax return. Falls back to `businessName` when blank.
@@ -176,6 +181,19 @@ final class BusinessProfile {
 }
 
 extension BusinessProfile {
+    /// The owner's work schedule, decoded from `workScheduleData`. Falls back to the standard Mon–Fri
+    /// 8–5 + common-holidays schedule when nothing has been saved yet.
+    var workSchedule: WorkSchedule {
+        get {
+            guard let data = workScheduleData,
+                  let decoded = try? JSONDecoder().decode(WorkSchedule.self, from: data) else {
+                return .standard
+            }
+            return decoded
+        }
+        set { workScheduleData = try? JSONEncoder().encode(newValue) }
+    }
+
     /// The owner's name as "First Last", trimmed; empty when no name is set.
     var ownerFullName: String {
         [ownerFirstName, ownerLastName]

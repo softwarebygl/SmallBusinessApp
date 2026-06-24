@@ -5,9 +5,10 @@
 //  Created by Gold Life LLC on 6/21/26.
 //
 //  The Calendar tab: a "Next available date" banner + "View gaps", a month grid with booked days
-//  marked, and an agenda of upcoming jobs. Scheduling starts from an accepted estimate or an invoice
-//  (the + picks the source, then ScheduleJobSheet). iPhone wraps its own NavigationStack; the iPad
-//  split passes `showsMenuButton: false` and lives inside the content column's nav bar.
+//  marked, an agenda of upcoming jobs, and an "All Jobs" link. The + adds a job from scratch
+//  (JobFormScreen) or from an accepted estimate / invoice (ScheduleSourcePicker → ScheduleJobSheet).
+//  iPhone wraps its own NavigationStack; the iPad split passes `showsMenuButton: false` and lives
+//  inside the content column's nav bar.
 //
 
 import SwiftUI
@@ -24,6 +25,7 @@ struct CalendarScreen: View {
     @State private var showingGaps = false
     @State private var pickingSource = false
     @State private var pendingSource: SourceBox?
+    @State private var showingNewJob = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
     private var nextAvailable: Date { SchedulingEngine.nextAvailable(jobs, mask: workdaysMask) }
@@ -47,6 +49,7 @@ struct CalendarScreen: View {
                 banner
                 MonthGrid(occupied: SchedulingEngine.occupiedDays(jobs, mask: workdaysMask), gold: gold)
                 agenda
+                GLHubRow(title: "All Jobs", systemImage: "hammer") { AllJobsScreen() }
             }
             .padding()
             .frame(maxWidth: 640)
@@ -65,11 +68,19 @@ struct CalendarScreen: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button { pickingSource = true } label: { Image(systemName: "plus") }
-                    .accessibilityLabel("Schedule a job")
+                Menu {
+                    Button { showingNewJob = true } label: { Label("New job", systemImage: "hammer") }
+                    Button { pickingSource = true } label: {
+                        Label("From an estimate or invoice", systemImage: "doc.text")
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .accessibilityLabel("Add a job")
             }
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+        .sheet(isPresented: $showingNewJob) { JobFormScreen().glAppearance(colorScheme) }
         .sheet(isPresented: $showingGaps) {
             GapsList(jobs: jobs, mask: workdaysMask).glAppearance(colorScheme)
         }
@@ -111,7 +122,7 @@ struct CalendarScreen: View {
     private var agenda: some View {
         GLCard(title: "Upcoming") {
             if upcoming.isEmpty {
-                Text("No jobs scheduled. Tap + to schedule an accepted estimate or an invoice.")
+                Text("No jobs scheduled yet. Tap + to add one.")
                     .font(.subheadline).foregroundStyle(.secondary)
             } else {
                 ForEach(upcoming) { job in

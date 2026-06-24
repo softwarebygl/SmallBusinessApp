@@ -72,6 +72,16 @@ struct MenuScreen: View {
                         }
                     }
                     NavigationLink {
+                        AllJobsScreen()
+                    } label: {
+                        Label {
+                            Text("All Jobs")
+                        } icon: {
+                            Image(systemName: "hammer")
+                                .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                        }
+                    }
+                    NavigationLink {
                         AllChangeOrdersScreen()
                     } label: {
                         Label {

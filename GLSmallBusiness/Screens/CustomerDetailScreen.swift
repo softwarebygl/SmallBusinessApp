@@ -157,6 +157,8 @@ struct CustomerDetailScreen: View {
                         EstimatesListScreen(customer: customer)
                     case .invoices:
                         InvoicesListScreen(customer: customer)
+                    case .jobs:
+                        JobsListScreen(customer: customer)
                     case .receipts:
                         ReceiptsListScreen(customer: customer)
                     }

@@ -118,8 +118,8 @@ struct ScheduleJobSheet: View {
             notes: notes.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         switch source {
-        case .estimate(let e): job.estimate = e
-        case .invoice(let i): job.invoice = i
+        case .estimate(let e): job.estimate = e; job.customer = e.customer
+        case .invoice(let i): job.invoice = i; job.customer = i.customer
         }
         modelContext.insert(job)
         modelContext.saveChanges()

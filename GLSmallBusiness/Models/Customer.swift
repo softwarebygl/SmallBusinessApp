@@ -49,6 +49,11 @@ final class Customer {
     @Relationship(deleteRule: .nullify, inverse: \SubPayment.customer)
     var subPayments: [SubPayment]?
 
+    /// Jobs scheduled for this customer. Nullify so deleting a customer keeps the booking on the
+    /// calendar via its `customerName` snapshot (matching the estimate/invoice frozen-snapshot convention).
+    @Relationship(deleteRule: .nullify, inverse: \ScheduledJob.customer)
+    var scheduledJobs: [ScheduledJob]?
+
     init(
         firstName: String = "",
         middleName: String = "",

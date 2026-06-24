@@ -181,13 +181,24 @@ enum DemoSeed {
                               detail: "5 hrs — helped on the Reed job", subcontractor: sub2, customer: c1)
         context.insert(owed)
 
-        // Demo calendar bookings — two jobs with open workdays between them so "View gaps" has content.
+        // Demo calendar bookings — a spread that shows every Phase-1 Job path: two scheduled from a
+        // source doc (with open workdays between them so "View gaps" has content), one created from
+        // scratch (verbal price, no source), and one already completed.
         let job1 = ScheduledJob(title: inv.jobTitle.isEmpty ? "Kitchen tile install" : inv.jobTitle,
                                 customerName: inv.customerDisplayName,
-                                startDate: .now.addingTimeInterval(3 * 86_400), durationDays: 3, invoice: inv)
+                                startDate: .now.addingTimeInterval(3 * 86_400), durationDays: 3,
+                                invoice: inv, customer: inv.customer)
         let job2 = ScheduledJob(title: e1.jobTitle, customerName: e1.customerDisplayName,
-                                startDate: .now.addingTimeInterval(18 * 86_400), durationDays: 4, estimate: e1)
-        [job1, job2].forEach(context.insert)
+                                startDate: .now.addingTimeInterval(18 * 86_400), durationDays: 4,
+                                estimate: e1, customer: e1.customer)
+        let job3 = ScheduledJob(title: "Bathroom regrout", customerName: c2.listDisplayName,
+                                startDate: .now.addingTimeInterval(30 * 86_400), durationDays: 1,
+                                customer: c2, serviceAddress: c2.address, agreedPrice: 450)
+        let job4 = ScheduledJob(title: "Backsplash install", customerName: c1.listDisplayName,
+                                startDate: .now.addingTimeInterval(-12 * 86_400), durationDays: 2,
+                                customer: c1, serviceAddress: c1.address, agreedPrice: 1_200, status: .completed)
+        job4.completedAt = .now.addingTimeInterval(-10 * 86_400)
+        [job1, job2, job3, job4].forEach(context.insert)
 
         context.saveChanges()
     }

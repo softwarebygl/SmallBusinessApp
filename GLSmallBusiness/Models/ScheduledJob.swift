@@ -4,10 +4,11 @@
 //
 //  Created by Gold Life LLC on 6/21/26.
 //
-//  Scheduling for the Calendar tab. A ScheduledJob is always created from an accepted estimate or an
-//  invoice (never free-form) — it carries a snapshot of the job title + customer plus a link to its
-//  source. The SchedulingEngine answers the two things the owner asked for: the next available date
-//  and the open gaps between booked work, both computed over the owner's chosen workdays.
+//  A ScheduledJob is the app's first-class Job: the schedulable blueprint of a piece of work. It can be
+//  created from scratch (a verbal price / standing approval) or from an accepted estimate or an invoice,
+//  which it then links back to. It carries a snapshot of the title + customer, an optional Customer
+//  link, a status, and (once finished) a completion date. The SchedulingEngine answers the next
+//  available date and the open gaps between booked work, computed over the owner's chosen workdays.
 //
 
 import Foundation
@@ -32,7 +33,28 @@ nonisolated enum SchedulingPrefs {
     }
 }
 
-// MARK: - ScheduledJob
+// MARK: - Job status
+
+/// The lifecycle of a job. Marking `.completed` stamps `completedAt`, which starts the warranty clock
+/// and (in a later phase) unlocks the completion package. Stored as a raw string for CloudKit-safe
+/// additive migration.
+nonisolated enum JobStatus: String, CaseIterable, Identifiable, Sendable {
+    case scheduled
+    case inProgress
+    case completed
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .scheduled: String(localized: "Scheduled")
+        case .inProgress: String(localized: "In progress")
+        case .completed: String(localized: "Completed")
+        }
+    }
+}
+
+// MARK: - ScheduledJob (the Job)
 
 @Model
 final class ScheduledJob {
@@ -44,13 +66,36 @@ final class ScheduledJob {
     var notes: String = ""
     var createdAt: Date = Date.now
 
-    // Source — exactly one of these is set (an accepted estimate or an invoice). Nullify on delete so
-    // the booking survives on the calendar (with its snapshot) even if the source doc is removed.
+    /// Lifecycle (scheduled / in progress / completed). Read/write via `status`.
+    var statusRaw: String = JobStatus.scheduled.rawValue
+    /// Set when the job is marked complete — the app's canonical completion date (starts the warranty).
+    var completedAt: Date?
+
+    /// Where the work happens. Auto-filled from the customer (or source doc) but editable.
+    var serviceAddress: Address = Address()
+    /// A single agreed amount for from-scratch jobs that have no line-item breakdown. Optional.
+    var agreedPrice: Double?
+
+    /// All-day (project work, day-based via `durationDays`) vs timed (service work, a window on
+    /// `startDate`). Defaults to all-day — every legacy booking is day-based. When timed, `startTime`
+    /// and `durationMinutes` define the window; the scheduling engine reads those instead of `durationDays`.
+    var isAllDay: Bool = true
+    var startTime: Date?
+    var durationMinutes: Int?
+
+    /// The customer this job is for. Optional + nullify on delete so the `customerName` snapshot below
+    /// keeps the booking intact even if the customer is removed (matching the estimate/invoice convention).
+    var customer: Customer?
+
+    // Source — optional. Set when the job was created from an accepted estimate or an invoice (and nil
+    // for a from-scratch job). Nullify on delete so the booking survives even if the source doc is removed.
     var estimate: Estimate?
     var invoice: Invoice?
 
     init(title: String = "", customerName: String = "", startDate: Date = .now,
-         durationDays: Int = 1, notes: String = "", estimate: Estimate? = nil, invoice: Invoice? = nil) {
+         durationDays: Int = 1, notes: String = "", estimate: Estimate? = nil, invoice: Invoice? = nil,
+         customer: Customer? = nil, serviceAddress: Address = Address(), agreedPrice: Double? = nil,
+         status: JobStatus = .scheduled) {
         self.title = title
         self.customerName = customerName
         self.startDate = startDate
@@ -58,6 +103,10 @@ final class ScheduledJob {
         self.notes = notes
         self.estimate = estimate
         self.invoice = invoice
+        self.customer = customer
+        self.serviceAddress = serviceAddress
+        self.agreedPrice = agreedPrice
+        self.statusRaw = status.rawValue
     }
 }
 
@@ -66,6 +115,15 @@ nonisolated extension ScheduledJob {
         let t = title.trimmingCharacters(in: .whitespacesAndNewlines)
         return t.isEmpty ? String(localized: "Job") : t
     }
+
+    /// Typed accessor over the raw status string.
+    var status: JobStatus {
+        get { JobStatus(rawValue: statusRaw) ?? .scheduled }
+        set { statusRaw = newValue.rawValue }
+    }
+
+    /// True once the job is created from (or linked to) an estimate or invoice.
+    var hasSource: Bool { estimate != nil || invoice != nil }
 
     /// The day-starts this job occupies: the first `durationDays` workdays on or after `startDate`.
     func occupiedDays(mask: Int, calendar: Calendar = .current) -> [Date] {
