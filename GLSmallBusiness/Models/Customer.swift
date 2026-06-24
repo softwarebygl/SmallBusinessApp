@@ -54,6 +54,10 @@ final class Customer {
     @Relationship(deleteRule: .nullify, inverse: \ScheduledJob.customer)
     var scheduledJobs: [ScheduledJob]?
 
+    /// Projects grouping this customer's jobs. Nullify so deleting a customer keeps the project record.
+    @Relationship(deleteRule: .nullify, inverse: \Project.customer)
+    var projects: [Project]?
+
     init(
         firstName: String = "",
         middleName: String = "",

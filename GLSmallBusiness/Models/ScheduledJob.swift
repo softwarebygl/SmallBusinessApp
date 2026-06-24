@@ -92,6 +92,14 @@ final class ScheduledJob {
     var estimate: Estimate?
     var invoice: Invoice?
 
+    /// The optional Project this job is grouped under (invisible until used).
+    var project: Project?
+
+    /// Invoices that BILL this job — deposit + draws + final for progress billing. Distinct from the
+    /// `invoice` SOURCE link above. Nullify on delete so removing a job keeps its (financial) invoices.
+    @Relationship(deleteRule: .nullify, inverse: \Invoice.job)
+    var billingInvoices: [Invoice]?
+
     init(title: String = "", customerName: String = "", startDate: Date = .now,
          durationDays: Int = 1, notes: String = "", estimate: Estimate? = nil, invoice: Invoice? = nil,
          customer: Customer? = nil, serviceAddress: Address = Address(), agreedPrice: Double? = nil,
@@ -107,6 +115,32 @@ final class ScheduledJob {
         self.serviceAddress = serviceAddress
         self.agreedPrice = agreedPrice
         self.statusRaw = status.rawValue
+    }
+}
+
+// Progress-billing math (touches Invoice/Estimate models, so main-actor — used from views).
+extension ScheduledJob {
+    /// Non-draft invoices that bill this job (drafts don't count toward billed/collected).
+    var activeBillingInvoices: [Invoice] {
+        (billingInvoices ?? []).filter { $0.status != .draft }
+    }
+    var invoicedTotal: Double { activeBillingInvoices.reduce(0) { $0 + $1.total } }
+    var amountPaid: Double { activeBillingInvoices.reduce(0) { $0 + $1.amountPaid } }
+    var balanceDue: Double { activeBillingInvoices.reduce(0) { $0 + $1.balanceDue } }
+
+    /// What the job is contracted for: the agreed price, else the linked estimate total, else whatever
+    /// has been invoiced (so an un-priced job's "fully billed" reduces to a zero-balance check).
+    var contractedValue: Double {
+        if let price = agreedPrice, price > 0 { return price }
+        if let estimateTotal = estimate?.total, estimateTotal > 0 { return estimateTotal }
+        return invoicedTotal
+    }
+    var remainingToInvoice: Double { max(0, contractedValue - invoicedTotal) }
+
+    /// The completion-package gate: billed to 100% of the contracted value AND every invoice collected.
+    /// A $0 / fully-comped job satisfies the "billed" clause vacuously.
+    var isFullyBilledAndCollected: Bool {
+        (contractedValue <= 0.005 || invoicedTotal >= contractedValue - 0.005) && balanceDue <= 0.005
     }
 }
 

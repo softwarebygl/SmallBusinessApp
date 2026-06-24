@@ -130,6 +130,10 @@ final class Invoice {
     @Relationship(deleteRule: .nullify, inverse: \ScheduledJob.invoice)
     var scheduledJobs: [ScheduledJob]?
 
+    /// The job this invoice BILLS (progress billing). Distinct from `scheduledJobs` (jobs scheduled
+    /// FROM this invoice). Inverse of `ScheduledJob.billingInvoices`.
+    var job: ScheduledJob?
+
     init(
         number: String = "",
         jobTitle: String = "",
