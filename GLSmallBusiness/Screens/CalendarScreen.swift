@@ -33,8 +33,9 @@ struct CalendarScreen: View {
     private var schedule: WorkSchedule {
         effectiveWorkSchedule(profiles.first, legacyMask: workdaysMask)
     }
-    /// Row 1 — the soonest bounded opening between booked jobs (nil when nothing is booked ahead).
-    private var firstGap: ScheduleGap? { SchedulingEngine.gaps(jobs, schedule: schedule).first }
+    /// Row 1 — the soonest bounded opening between booked jobs: a multi-day run or an intra-day window
+    /// (nil when nothing is booked ahead).
+    private var firstOpening: Opening? { SchedulingEngine.openings(jobs, schedule: schedule).first }
     /// Row 2 — the first open workday after your last booked job (the open-ended runway).
     private var clearDate: Date { SchedulingEngine.nextClearDate(jobs, schedule: schedule) }
     private var upcoming: [ScheduledJob] {
@@ -106,15 +107,15 @@ struct CalendarScreen: View {
     private var banner: some View {
         GLCard {
             VStack(alignment: .leading, spacing: 14) {
-                if let gap = firstGap {
+                if let opening = firstOpening {
                     bannerRow(eyebrow: "NEXT AVAILABLE DATE",
-                              date: gap.start,
-                              detail: "Fits \(gap.workdays) \(gap.workdays == 1 ? "workday" : "workdays")")
+                              date: opening.start,
+                              detail: opening.capacityText)
                     Divider()
                 }
                 bannerRow(eyebrow: "NEXT CLEAR DATE",
                           date: clearDate,
-                          detail: firstGap == nil ? nil : "Open-ended — nothing booked after")
+                          detail: firstOpening == nil ? nil : "Open-ended — nothing booked after")
                 NavigationLink {
                     GapsList(jobs: jobs, schedule: schedule)
                 } label: {
@@ -158,9 +159,11 @@ struct CalendarScreen: View {
     private func jobRow(_ job: ScheduledJob) -> some View {
         let start = job.startDate
         let end = job.endDay(schedule: schedule)
-        let range = Calendar.current.isDate(start, inSameDayAs: end)
-            ? start.formatted(date: .abbreviated, time: .omitted)
-            : "\(start.formatted(date: .abbreviated, time: .omitted)) – \(end.formatted(date: .abbreviated, time: .omitted))"
+        let range = !job.isAllDay && !job.timeText.isEmpty
+            ? "\(start.formatted(date: .abbreviated, time: .omitted)) · \(job.timeText)"
+            : (Calendar.current.isDate(start, inSameDayAs: end)
+               ? start.formatted(date: .abbreviated, time: .omitted)
+               : "\(start.formatted(date: .abbreviated, time: .omitted)) – \(end.formatted(date: .abbreviated, time: .omitted))")
         return VStack(alignment: .leading, spacing: 2) {
             Text(job.displayTitle).font(.subheadline.weight(.medium))
             HStack {
@@ -282,32 +285,34 @@ struct GapsList: View /* internal for render-coverage tests */ {
     let schedule: WorkSchedule
     @State private var prefill: GapPrefill?
 
-    private var gaps: [ScheduleGap] { SchedulingEngine.gaps(jobs, schedule: schedule) }
+    private var openings: [Opening] { SchedulingEngine.openings(jobs, schedule: schedule) }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 12) {
-                if gaps.isEmpty {
+                if openings.isEmpty {
                     ContentUnavailableView("No gaps in the next 90 days",
                                            systemImage: "calendar",
-                                           description: Text("Open stretches before your booked jobs will show up here."))
+                                           description: Text("Openings before your booked jobs will show up here."))
                         .padding(.top, 40)
                 } else {
                     Text("Tap an opening to schedule a job in it.")
                         .font(.footnote).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    ForEach(gaps) { gap in
+                    ForEach(openings) { opening in
                         Button {
-                            prefill = GapPrefill(start: gap.start, days: gap.workdays)
+                            prefill = GapPrefill(opening: opening)
                         } label: {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(rangeText(gap)).font(.subheadline.weight(.medium))
-                                    Text("\(gap.workdays) open \(gap.workdays == 1 ? "workday" : "workdays")")
+                                    Text(rangeText(opening)).font(.subheadline.weight(.medium))
+                                    Text(opening.window != nil
+                                         ? opening.capacityText
+                                         : "\(opening.workdays) open \(opening.workdays == 1 ? "workday" : "workdays")")
                                         .font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer()
-                                Image(systemName: "plus.circle.fill")
+                                Image(systemName: opening.window != nil ? "clock.badge.checkmark" : "plus.circle.fill")
                                     .foregroundStyle(GLColor.gold.render(in: colorScheme))
                             }
                             .padding()
@@ -326,15 +331,22 @@ struct GapsList: View /* internal for render-coverage tests */ {
         .navigationTitle("Open Gaps")
         .toolbarTitleDisplayMode(.inline)
         .sheet(item: $prefill) { prefill in
-            JobFormScreen(prefillStart: prefill.start, prefillDays: prefill.days).glAppearance(colorScheme)
+            JobFormScreen(prefillStart: prefill.start, prefillDays: prefill.days, prefillWindow: prefill.window)
+                .glAppearance(colorScheme)
         }
     }
 
-    private func rangeText(_ gap: ScheduleGap) -> String {
-        if Calendar.current.isDate(gap.start, inSameDayAs: gap.end) {
-            return gap.start.formatted(date: .abbreviated, time: .omitted)
+    private func rangeText(_ opening: Opening) -> String {
+        if let window = opening.window {
+            let day = window.start.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+            let from = window.start.formatted(date: .omitted, time: .shortened)
+            let to = window.end.formatted(date: .omitted, time: .shortened)
+            return "\(day) · \(from) – \(to)"
         }
-        return "\(gap.start.formatted(date: .abbreviated, time: .omitted)) – \(gap.end.formatted(date: .abbreviated, time: .omitted))"
+        if Calendar.current.isDate(opening.start, inSameDayAs: opening.end) {
+            return opening.start.formatted(date: .abbreviated, time: .omitted)
+        }
+        return "\(opening.start.formatted(date: .abbreviated, time: .omitted)) – \(opening.end.formatted(date: .abbreviated, time: .omitted))"
     }
 }
 
@@ -342,6 +354,13 @@ private struct GapPrefill: Identifiable {
     let id = UUID()
     let start: Date
     let days: Int
+    let window: DateInterval?
+
+    init(opening: Opening) {
+        start = opening.start
+        days = opening.workdays
+        window = opening.window
+    }
 }
 
 // MARK: - Source picker (accepted estimates + invoices, not already scheduled)

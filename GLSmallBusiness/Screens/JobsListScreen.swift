@@ -101,6 +101,9 @@ struct JobRow: View {
     }
 
     private var dateRange: String {
+        if !job.isAllDay, !job.timeText.isEmpty {
+            return "\(job.startDate.formatted(date: .abbreviated, time: .omitted)) · \(job.timeText)"
+        }
         let start = job.startDate
         let end = job.endDay(mask: mask)
         return Calendar.current.isDate(start, inSameDayAs: end)

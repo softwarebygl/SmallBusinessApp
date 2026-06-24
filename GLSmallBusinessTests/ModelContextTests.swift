@@ -69,7 +69,7 @@ struct DemoSeedTests {
         #expect(try ctx.fetchCount(FetchDescriptor<Paycheck>()) == 1)
         #expect(try ctx.fetchCount(FetchDescriptor<Subcontractor>()) == 2)
         #expect(try ctx.fetchCount(FetchDescriptor<SubPayment>()) == 4)   // 3 paid + 1 owed
-        #expect(try ctx.fetchCount(FetchDescriptor<ScheduledJob>()) == 4)   // 2 source-scheduled + from-scratch + completed
+        #expect(try ctx.fetchCount(FetchDescriptor<ScheduledJob>()) == 5)   // 2 source + from-scratch + completed + timed
 
         // Guarded on an empty store, so a second call must not duplicate.
         DemoSeed.populate(ctx)

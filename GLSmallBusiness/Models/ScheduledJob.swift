@@ -125,6 +125,13 @@ nonisolated extension ScheduledJob {
     /// True once the job is created from (or linked to) an estimate or invoice.
     var hasSource: Bool { estimate != nil || invoice != nil }
 
+    /// For a timed job, "1:00 – 4:00 PM"; empty for an all-day job.
+    var timeText: String {
+        guard !isAllDay, let start = startTime, let minutes = durationMinutes, minutes > 0 else { return "" }
+        let end = start.addingTimeInterval(TimeInterval(minutes * 60))
+        return "\(start.formatted(date: .omitted, time: .shortened)) – \(end.formatted(date: .omitted, time: .shortened))"
+    }
+
     /// The day-starts this job occupies: the first `durationDays` workdays on or after `startDate`.
     func occupiedDays(mask: Int, calendar: Calendar = .current) -> [Date] {
         var days: [Date] = []
@@ -160,6 +167,19 @@ nonisolated extension ScheduledJob {
     func endDay(schedule: WorkSchedule, calendar: Calendar = .current) -> Date {
         occupiedDays(schedule: schedule, calendar: calendar).last ?? calendar.startOfDay(for: startDate)
     }
+
+    /// The time interval(s) this job blocks. An all-day job blocks the full working window of each
+    /// workday it owns; a timed job blocks only `[startTime, startTime + durationMinutes]` on its day —
+    /// so timed jobs can share a day. Used by the interval engine to find intra-day openings.
+    func occupiedIntervals(schedule: WorkSchedule, calendar: Calendar = .current) -> [DateInterval] {
+        if isAllDay {
+            return occupiedDays(schedule: schedule, calendar: calendar).compactMap {
+                WorkCalendar.workingHours($0, schedule: schedule, calendar: calendar).first
+            }
+        }
+        guard let start = startTime, let minutes = durationMinutes, minutes > 0 else { return [] }
+        return [DateInterval(start: start, duration: TimeInterval(minutes * 60))]
+    }
 }
 
 // MARK: - Scheduling engine (pure logic — next available date + gaps)
@@ -170,6 +190,40 @@ nonisolated struct ScheduleGap: Identifiable, Equatable {
     let end: Date
     let workdays: Int
     var id: Date { start }
+}
+
+/// An opening in the schedule: either a run of fully-free workdays (good for an all-day/multi-day job)
+/// or a single-day time window (good for a short timed job, e.g. between two cleanings).
+nonisolated struct Opening: Identifiable, Equatable {
+    enum Span: Equatable {
+        case fullDays(Int)
+        case window(DateInterval)
+    }
+    let start: Date
+    let end: Date
+    let span: Span
+    var id: Date { start }
+
+    /// Workday capacity for a full-day run; 1 for an intra-day window.
+    var workdays: Int { if case .fullDays(let n) = span { return n } else { return 1 } }
+    var window: DateInterval? { if case .window(let interval) = span { return interval } else { return nil } }
+}
+
+nonisolated extension Opening {
+    /// The capacity shown next to the date: "Fits 3 workdays" or "4 hr free".
+    var capacityText: String {
+        if let window {
+            return "\(Opening.durationLabel(minutes: Int(window.duration / 60))) free"
+        }
+        return "Fits \(workdays) \(workdays == 1 ? "workday" : "workdays")"
+    }
+
+    static func durationLabel(minutes: Int) -> String {
+        let hours = minutes / 60, mins = minutes % 60
+        if hours > 0 && mins > 0 { return "\(hours) hr \(mins) min" }
+        if hours > 0 { return "\(hours) hr" }
+        return "\(mins) min"
+    }
 }
 
 nonisolated enum SchedulingEngine {
@@ -297,5 +351,61 @@ nonisolated enum SchedulingEngine {
             guardCount += 1
         }
         return calendar.startOfDay(for: lastBooked)
+    }
+
+    // MARK: Interval openings (timed-aware — intra-day windows + multi-day runs)
+
+    /// Bounded openings between booked work within the horizon: runs of fully-free workdays AND the
+    /// free windows left on partially-booked days (between timed jobs). The open-ended tail after the
+    /// last booked day is excluded — that's the "Next clear date". Windows shorter than `minMinutes`
+    /// are dropped.
+    static func openings(_ jobs: [ScheduledJob], from: Date = .now, horizonDays: Int = 90,
+                         schedule: WorkSchedule, minMinutes: Int = 30,
+                         calendar: Calendar = .current) -> [Opening] {
+        let occupied = jobs.flatMap { $0.occupiedIntervals(schedule: schedule, calendar: calendar) }
+        let start = calendar.startOfDay(for: from)
+        guard let limit = calendar.date(byAdding: .day, value: horizonDays, to: start) else { return [] }
+
+        var openings: [Opening] = []
+        var fullRun: [Date] = []
+        let minSeconds = TimeInterval(minMinutes * 60)
+        var day = start
+        while day < limit {
+            if let work = WorkCalendar.workingHours(day, schedule: schedule, calendar: calendar).first {
+                let blocks = occupied.compactMap { work.intersection(with: $0) }.filter { $0.duration > 0 }
+                if blocks.isEmpty {
+                    fullRun.append(day)                       // a fully-free workday
+                } else {
+                    flush(&fullRun, into: &openings)          // a booked day closes any free run before it
+                    for window in subtract(work, blocks) where window.duration >= minSeconds {
+                        openings.append(Opening(start: window.start, end: window.end, span: .window(window)))
+                    }
+                }
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+        }
+        // A trailing all-free run is the open-ended tail, not a bounded gap — drop it.
+        return openings
+    }
+
+    private static func flush(_ run: inout [Date], into openings: inout [Opening]) {
+        if let first = run.first, let last = run.last {
+            openings.append(Opening(start: first, end: last, span: .fullDays(run.count)))
+        }
+        run.removeAll()
+    }
+
+    /// `base` minus the `blocks` that overlap it — the free sub-intervals, in order.
+    static func subtract(_ base: DateInterval, _ blocks: [DateInterval]) -> [DateInterval] {
+        var free: [DateInterval] = []
+        var cursor = base.start
+        for block in blocks.sorted(by: { $0.start < $1.start }) {
+            let blockStart = max(block.start, base.start)
+            let blockEnd = min(block.end, base.end)
+            if blockStart > cursor { free.append(DateInterval(start: cursor, end: blockStart)) }
+            cursor = max(cursor, blockEnd)
+        }
+        if cursor < base.end { free.append(DateInterval(start: cursor, end: base.end)) }
+        return free
     }
 }

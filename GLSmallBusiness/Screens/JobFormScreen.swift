@@ -28,7 +28,14 @@ struct JobFormScreen: View {
     @State private var title: String
     @State private var startDate: Date
     @State private var durationDays: Int
+    @State private var isAllDay: Bool
+    @State private var startTime: Date
+    @State private var durationMinutes: Int
     @State private var notes: String
+
+    private static var defaultStartTime: Date {
+        Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now
+    }
     @State private var hasPrice: Bool
     @State private var agreedPrice: Double
     @State private var street1: String
@@ -43,6 +50,9 @@ struct JobFormScreen: View {
         _title = State(initialValue: "")
         _startDate = State(initialValue: Calendar.current.startOfDay(for: .now))
         _durationDays = State(initialValue: 1)
+        _isAllDay = State(initialValue: true)
+        _startTime = State(initialValue: Self.defaultStartTime)
+        _durationMinutes = State(initialValue: 120)
         _notes = State(initialValue: "")
         _hasPrice = State(initialValue: false)
         _agreedPrice = State(initialValue: 0)
@@ -53,14 +63,18 @@ struct JobFormScreen: View {
         _postal = State(initialValue: address.postalCode)
     }
 
-    /// From-scratch (Calendar "New job"), optionally pre-filled to a gap the owner tapped.
-    init(prefillStart: Date? = nil, prefillDays: Int? = nil) {
+    /// From-scratch (Calendar "New job"), optionally pre-filled to a gap the owner tapped — a multi-day
+    /// run (`prefillDays`) or an intra-day window (`prefillWindow`, which makes it a timed job).
+    init(prefillStart: Date? = nil, prefillDays: Int? = nil, prefillWindow: DateInterval? = nil) {
         self.fixedCustomer = nil
         self.editingJob = nil
         _pickedCustomer = State(initialValue: nil)
         _title = State(initialValue: "")
-        _startDate = State(initialValue: Calendar.current.startOfDay(for: prefillStart ?? .now))
+        _startDate = State(initialValue: Calendar.current.startOfDay(for: prefillWindow?.start ?? prefillStart ?? .now))
         _durationDays = State(initialValue: max(1, prefillDays ?? 1))
+        _isAllDay = State(initialValue: prefillWindow == nil)
+        _startTime = State(initialValue: prefillWindow?.start ?? Self.defaultStartTime)
+        _durationMinutes = State(initialValue: prefillWindow.map { max(30, Int($0.duration / 60)) } ?? 120)
         _notes = State(initialValue: "")
         _hasPrice = State(initialValue: false)
         _agreedPrice = State(initialValue: 0)
@@ -77,6 +91,9 @@ struct JobFormScreen: View {
         _title = State(initialValue: job.title)
         _startDate = State(initialValue: job.startDate)
         _durationDays = State(initialValue: job.durationDays)
+        _isAllDay = State(initialValue: job.isAllDay)
+        _startTime = State(initialValue: job.startTime ?? Self.defaultStartTime)
+        _durationMinutes = State(initialValue: job.durationMinutes ?? 120)
         _notes = State(initialValue: job.notes)
         _hasPrice = State(initialValue: job.agreedPrice != nil)
         _agreedPrice = State(initialValue: job.agreedPrice ?? 0)
@@ -121,15 +138,22 @@ struct JobFormScreen: View {
                     Text("Service address")
                 }
                 Section {
-                    DatePicker("Start date", selection: $startDate, displayedComponents: .date)
-                    Stepper(value: $durationDays, in: 1...60) {
-                        Text("Length: \(durationDays) \(durationDays == 1 ? "workday" : "workdays")")
+                    Toggle("All-day", isOn: $isAllDay)
+                    DatePicker("Date", selection: $startDate, displayedComponents: .date)
+                    if isAllDay {
+                        Stepper(value: $durationDays, in: 1...60) {
+                            Text("Length: \(durationDays) \(durationDays == 1 ? "workday" : "workdays")")
+                        }
+                    } else {
+                        DatePicker("Start time", selection: $startTime, displayedComponents: .hourAndMinute)
+                        Stepper(value: $durationMinutes, in: 30...600, step: 30) {
+                            Text("Length: \(durationLabel)")
+                        }
                     }
                 } header: {
                     Text("Schedule")
                 } footer: {
-                    Text("Ends \(endDateText). Weekends and off-days are skipped per your workdays setting.")
-                        .textCase(nil)
+                    Text(scheduleFooter).textCase(nil)
                 }
                 Section("Price") {
                     Toggle("Set an agreed price", isOn: $hasPrice)
@@ -175,6 +199,19 @@ struct JobFormScreen: View {
 
     private var currencyCode: String { Locale.current.currency?.identifier ?? "USD" }
 
+    private var durationLabel: String {
+        let hours = durationMinutes / 60, minutes = durationMinutes % 60
+        if hours > 0 && minutes > 0 { return "\(hours) hr \(minutes) min" }
+        if hours > 0 { return "\(hours) hr" }
+        return "\(minutes) min"
+    }
+
+    private var scheduleFooter: String {
+        isAllDay
+            ? "Ends \(endDateText). Weekends and off-days are skipped per your work schedule."
+            : "A timed job can share a day with other jobs."
+    }
+
     private var endDateText: String {
         ScheduledJob(startDate: startDate, durationDays: durationDays)
             .endDay(mask: SchedulingPrefs.defaultWorkdaysMask)
@@ -196,7 +233,18 @@ struct JobFormScreen: View {
 
         job.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
         job.startDate = Calendar.current.startOfDay(for: startDate)
-        job.durationDays = max(1, durationDays)
+        job.isAllDay = isAllDay
+        if isAllDay {
+            job.durationDays = max(1, durationDays)
+            job.startTime = nil
+            job.durationMinutes = nil
+        } else {
+            job.durationDays = 1
+            let comps = Calendar.current.dateComponents([.hour, .minute], from: startTime)
+            job.startTime = Calendar.current.date(bySettingHour: comps.hour ?? 9, minute: comps.minute ?? 0,
+                                                  second: 0, of: job.startDate)
+            job.durationMinutes = max(30, durationMinutes)
+        }
         job.notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         job.agreedPrice = hasPrice ? agreedPrice : nil
         job.serviceAddress = Address(

@@ -198,7 +198,15 @@ enum DemoSeed {
                                 startDate: .now.addingTimeInterval(-12 * 86_400), durationDays: 2,
                                 customer: c1, serviceAddress: c1.address, agreedPrice: 1_200, status: .completed)
         job4.completedAt = .now.addingTimeInterval(-10 * 86_400)
-        [job1, job2, job3, job4].forEach(context.insert)
+        // A timed job (a 2-hour cleaning) — shares its day, shows a time, and creates intra-day gaps.
+        let job5 = ScheduledJob(title: "Recurring cleaning", customerName: c1.listDisplayName,
+                                startDate: .now.addingTimeInterval(2 * 86_400),
+                                customer: c1, serviceAddress: c1.address, agreedPrice: 120)
+        job5.isAllDay = false
+        job5.startTime = Calendar.current.date(bySettingHour: 13, minute: 0, second: 0,
+                                               of: .now.addingTimeInterval(2 * 86_400))
+        job5.durationMinutes = 120
+        [job1, job2, job3, job4, job5].forEach(context.insert)
 
         context.saveChanges()
     }

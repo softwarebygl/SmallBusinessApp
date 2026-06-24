@@ -95,8 +95,13 @@ struct JobDetailScreen: View {
                     JobStatusBadge(status: job.status)
                 }
                 if !job.customerName.isEmpty { infoRow("Customer", job.customerName) }
-                infoRow("Dates", dateRange)
-                infoRow("Length", "\(job.durationDays) \(job.durationDays == 1 ? "workday" : "workdays")")
+                if job.isAllDay {
+                    infoRow("Dates", dateRange)
+                    infoRow("Length", "\(job.durationDays) \(job.durationDays == 1 ? "workday" : "workdays")")
+                } else {
+                    infoRow("Date", job.startDate.formatted(date: .abbreviated, time: .omitted))
+                    if !job.timeText.isEmpty { infoRow("Time", job.timeText) }
+                }
                 if let completed = job.completedAt {
                     infoRow("Completed", completed.formatted(date: .abbreviated, time: .omitted))
                 }
