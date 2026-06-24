@@ -62,7 +62,6 @@ extension View {
 struct SettingsScreen: View {
     @AppStorage(AppColorScheme.storageKey) private var appColorSchemeRaw = AppColorScheme.system.rawValue
     @AppStorage(AppBranding.useCompanyLogoKey) private var useCompanyLogo = true
-    @AppStorage(SchedulingPrefs.workdaysMaskKey) private var workdaysMask = SchedulingPrefs.defaultWorkdaysMask
     @AppStorage(SchedulingPrefs.oneJobAtATimeKey) private var oneJobAtATime = true
 
     @State private var managingSubscription = false
@@ -105,9 +104,13 @@ struct SettingsScreen: View {
             }
 
             Section {
-                WorkdayPicker(mask: $workdaysMask)
+                NavigationLink {
+                    WorkScheduleScreen()
+                } label: {
+                    Label("Work schedule", systemImage: "calendar.badge.clock")
+                }
             } header: {
-                InfoLabel("Workdays", info: "Drive your next available date and the gaps between jobs.")
+                InfoLabel("Workdays", info: "Set your workdays and hours, the holidays you take off, and any time off — these drive your next available date and the gaps between jobs.")
             }
 
             Section {
@@ -174,40 +177,6 @@ struct SettingsScreen: View {
         } message: {
             Text(subscriptionAlert ?? "")
         }
-    }
-}
-
-/// A compact Mon–Sun chip selector for the scheduling workdays mask (bit `weekday-1`).
-private struct WorkdayPicker: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @Binding var mask: Int
-    private var gold: Color { GLColor.gold.render(in: colorScheme) }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Workdays").font(.subheadline)
-            HStack(spacing: 6) {
-                let symbols = Calendar.current.veryShortWeekdaySymbols   // [Sun … Sat], index 0 = Sunday
-                ForEach(0..<7, id: \.self) { i in
-                    let on = mask & (1 << i) != 0
-                    Button {
-                        let toggled = mask ^ (1 << i)
-                        mask = toggled == 0 ? (1 << i) : toggled   // never allow zero workdays
-                    } label: {
-                        Text(symbols[i])
-                            .font(.subheadline.weight(.semibold))
-                            .frame(width: 34, height: 34)
-                            .background(Circle().fill(on ? gold : Color.secondary.opacity(0.15)))
-                            .foregroundStyle(on ? .white : .secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Calendar.current.weekdaySymbols[i])
-                    .accessibilityValue(on ? "Workday" : "Off")
-                }
-            }
-        }
-        .padding(.vertical, 4)
-        .listRowBackground(Color.clear)
     }
 }
 

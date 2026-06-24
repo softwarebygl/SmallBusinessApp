@@ -31,7 +31,7 @@ struct CalendarScreen: View {
     /// Workdays still come from the existing @AppStorage mask; holidays / vacation / overrides come from
     /// the stored work schedule (defaults to common-holidays-on until the editor lands in Slice C).
     private var schedule: WorkSchedule {
-        (profiles.first?.workSchedule ?? .standard).applyingWeekdayMask(workdaysMask)
+        effectiveWorkSchedule(profiles.first, legacyMask: workdaysMask)
     }
     /// Row 1 — the soonest bounded opening between booked jobs (nil when nothing is booked ahead).
     private var firstGap: ScheduleGap? { SchedulingEngine.gaps(jobs, schedule: schedule).first }

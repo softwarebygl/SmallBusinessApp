@@ -39,8 +39,11 @@ struct ScheduleJobSheet: View {
     @AppStorage(SchedulingPrefs.workdaysMaskKey) private var workdaysMask = SchedulingPrefs.defaultWorkdaysMask
     @AppStorage(SchedulingPrefs.oneJobAtATimeKey) private var oneJobAtATime = true
     @Query private var allJobs: [ScheduledJob]
+    @Query private var profiles: [BusinessProfile]
 
     let source: ScheduleJobSource
+
+    private var schedule: WorkSchedule { effectiveWorkSchedule(profiles.first, legacyMask: workdaysMask) }
 
     @State private var startDate: Date = .now
     @State private var durationDays: Int = 1
@@ -90,7 +93,7 @@ struct ScheduleJobSheet: View {
 
     private var endDateText: String {
         let job = ScheduledJob(startDate: startDate, durationDays: durationDays)
-        return job.endDay(mask: workdaysMask).formatted(date: .abbreviated, time: .omitted)
+        return job.endDay(schedule: schedule).formatted(date: .abbreviated, time: .omitted)
     }
 
     private func attemptSave() {
@@ -104,8 +107,8 @@ struct ScheduleJobSheet: View {
     /// True if the proposed job's workdays intersect any existing booking's workdays.
     private func overlapsExisting() -> Bool {
         let proposed = Set(ScheduledJob(startDate: startDate, durationDays: durationDays)
-            .occupiedDays(mask: workdaysMask))
-        let booked = SchedulingEngine.occupiedDays(allJobs, mask: workdaysMask)
+            .occupiedDays(schedule: schedule))
+        let booked = SchedulingEngine.occupiedDays(allJobs, schedule: schedule)
         return !proposed.isDisjoint(with: booked)
     }
 

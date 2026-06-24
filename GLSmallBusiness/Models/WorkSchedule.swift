@@ -96,6 +96,17 @@ nonisolated struct WorkSchedule: Codable, Hashable, Sendable {
     }
 }
 
+// MARK: - Effective schedule (bridge)
+
+/// The schedule the engine should use: the owner's saved schedule once they've edited it, otherwise the
+/// standard schedule with weekdays taken from the legacy @AppStorage mask (so an existing workdays
+/// choice keeps working until the Work Schedule editor is opened and saved).
+@MainActor
+func effectiveWorkSchedule(_ profile: BusinessProfile?, legacyMask mask: Int) -> WorkSchedule {
+    if let profile, profile.workScheduleData != nil { return profile.workSchedule }
+    return WorkSchedule.standard.applyingWeekdayMask(mask)
+}
+
 // MARK: - Availability (pure)
 
 nonisolated enum WorkCalendar {

@@ -227,6 +227,7 @@ struct ViewRenderingTests {
         render(GapsList(jobs: jobs, schedule: .standard), f.container)
         render(ScheduleJobSheet(source: .invoice(f.invoice)), f.container)
         render(ScheduleJobSheet(source: .estimate(f.estimate)), f.container)
+        render(WorkScheduleScreen(), f.container)
 
         // Render every subcontractor + customer (1099-due vs not, COI present vs not — the
         // conditional branches in those hubs that a single instance doesn't reach).
