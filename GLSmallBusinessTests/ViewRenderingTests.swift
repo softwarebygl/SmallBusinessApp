@@ -228,6 +228,11 @@ struct ViewRenderingTests {
         render(ScheduleJobSheet(source: .invoice(f.invoice)), f.container)
         render(ScheduleJobSheet(source: .estimate(f.estimate)), f.container)
         render(WorkScheduleScreen(), f.container)
+        // Job detail (incl. the billing card) + creating an invoice that bills a job.
+        let billingJob = ScheduledJob(customer: f.customer, agreedPrice: 1200)
+        render(JobDetailScreen(job: billingJob), f.container)
+        render(InvoiceFormScreen(customer: f.customer, job: billingJob), f.container)
+        for job in jobs { render(JobDetailScreen(job: job), f.container) }
 
         // Render every subcontractor + customer (1099-due vs not, COI present vs not — the
         // conditional branches in those hubs that a single instance doesn't reach).

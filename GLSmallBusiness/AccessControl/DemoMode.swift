@@ -207,6 +207,7 @@ enum DemoSeed {
                                                of: .now.addingTimeInterval(2 * 86_400))
         job5.durationMinutes = 120
         [job1, job2, job3, job4, job5].forEach(context.insert)
+        inv.job = job1   // demo: link the invoice as job1's billing invoice (shows progress billing on the job)
 
         context.saveChanges()
     }

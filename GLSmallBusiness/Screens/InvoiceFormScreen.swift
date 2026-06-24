@@ -78,6 +78,8 @@ struct InvoiceFormScreen: View {
     private let editingInvoice: Invoice?
     private let customer: Customer?
     private let createdAt: Date
+    /// When creating an invoice for a specific job (progress billing), the invoice is linked to it on save.
+    private let linkedJob: ScheduledJob?
 
     @State private var jobTitle: String
     @State private var status: InvoiceStatus
@@ -99,6 +101,7 @@ struct InvoiceFormScreen: View {
     init(customer: Customer) {
         self.customer = customer
         self.editingInvoice = nil
+        self.linkedJob = nil
         let now = Date.now
         self.createdAt = now
         _jobTitle = State(initialValue: "")
@@ -119,9 +122,36 @@ struct InvoiceFormScreen: View {
         _groups = State(initialValue: [InvoiceGroupDraft()])
     }
 
+    /// Create a new invoice that BILLS a specific job (progress billing) — prefills the title + service
+    /// address from the job and links `invoice.job` on save.
+    init(customer: Customer, job: ScheduledJob) {
+        self.customer = customer
+        self.editingInvoice = nil
+        self.linkedJob = job
+        let now = Date.now
+        self.createdAt = now
+        _jobTitle = State(initialValue: job.displayTitle)
+        _status = State(initialValue: .draft)
+        _paymentTerms = State(initialValue: .net30)
+        _dueDate = State(initialValue: PaymentTerms.net30.dueDate(from: now) ?? now)
+        _taxRatePercent = State(initialValue: 0)
+        _discountType = State(initialValue: .none)
+        _discountValue = State(initialValue: 0)
+        _customerNotes = State(initialValue: "")
+        _terms = State(initialValue: "")
+        _serviceStreet = State(initialValue: job.serviceAddress.street1)
+        _serviceCity = State(initialValue: job.serviceAddress.city)
+        _serviceState = State(initialValue: job.serviceAddress.state)
+        _servicePostal = State(initialValue: job.serviceAddress.postalCode)
+        _amountDueNow = State(initialValue: 0)
+        _amountDueDetail = State(initialValue: "")
+        _groups = State(initialValue: [InvoiceGroupDraft()])
+    }
+
     init(editing invoice: Invoice) {
         self.customer = invoice.customer
         self.editingInvoice = invoice
+        self.linkedJob = nil
         self.createdAt = invoice.createdAt
         _jobTitle = State(initialValue: invoice.jobTitle)
         _status = State(initialValue: invoice.status)
@@ -457,6 +487,7 @@ struct InvoiceFormScreen: View {
         } else {
             invoice = Invoice(customer: customer)
             invoice.number = Invoice.nextNumber(after: allInvoices)
+            invoice.job = linkedJob   // progress-billing link (nil for a standalone invoice)
             modelContext.insert(invoice)
         }
 

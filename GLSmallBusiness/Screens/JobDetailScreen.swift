@@ -20,6 +20,8 @@ struct JobDetailScreen: View {
 
     @State private var showingEdit = false
     @State private var showingDelete = false
+    @State private var showingNewInvoice = false
+    @State private var selectedInvoice: Invoice?
 
     private var stillExists: Bool {
         allJobs.contains { $0.persistentModelID == job.persistentModelID }
@@ -32,7 +34,7 @@ struct JobDetailScreen: View {
             VStack(spacing: 20) {
                 headerCard
                 if !job.serviceAddress.isEmpty { serviceAddressCard }
-                if job.agreedPrice != nil { priceCard }
+                if showsBilling { billingCard }
                 if job.hasSource { sourceCard }
                 if !job.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { notesCard }
             }
@@ -73,6 +75,14 @@ struct JobDetailScreen: View {
         }
         .sheet(isPresented: $showingEdit) {
             JobFormScreen(editing: job).glAppearance(colorScheme)
+        }
+        .sheet(isPresented: $showingNewInvoice) {
+            if let customer = job.customer {
+                InvoiceFormScreen(customer: customer, job: job).glAppearance(colorScheme)
+            }
+        }
+        .navigationDestination(item: $selectedInvoice) { invoice in
+            InvoiceDetailScreen(invoice: invoice)
         }
         .confirmationDialog("Delete this job?", isPresented: $showingDelete, titleVisibility: .visible) {
             Button("Delete job", role: .destructive) {
@@ -116,9 +126,68 @@ struct JobDetailScreen: View {
         }
     }
 
-    private var priceCard: some View {
-        GLCard {
-            infoRow("Agreed price", (job.agreedPrice ?? 0).formatted(.currency(code: currencyCode)))
+    private var showsBilling: Bool {
+        job.customer != nil || job.agreedPrice != nil || !(job.billingInvoices ?? []).isEmpty
+    }
+
+    private var billingInvoices: [Invoice] {
+        (job.billingInvoices ?? []).sorted { $0.createdAt < $1.createdAt }
+    }
+
+    private var billingCard: some View {
+        GLCard(title: "Billing") {
+            VStack(alignment: .leading, spacing: 10) {
+                moneyRow("Contracted", job.contractedValue)
+                if job.invoicedTotal > 0.005 { moneyRow("Invoiced", job.invoicedTotal) }
+                if job.amountPaid > 0.005 { moneyRow("Collected", job.amountPaid) }
+                if job.remainingToInvoice > 0.005 { moneyRow("Left to invoice", job.remainingToInvoice) }
+                if job.balanceDue > 0.005 { moneyRow("Balance due", job.balanceDue) }
+                if job.isFullyBilledAndCollected && job.contractedValue > 0.005 {
+                    Label("Paid in full", systemImage: "checkmark.seal.fill")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(.green)
+                }
+
+                if !billingInvoices.isEmpty {
+                    Divider()
+                    ForEach(billingInvoices) { invoice in
+                        Button { selectedInvoice = invoice } label: { invoiceRow(invoice) }
+                            .buttonStyle(.plain)
+                    }
+                }
+
+                Divider()
+                Button { showingNewInvoice = true } label: {
+                    Label("New invoice", systemImage: "plus")
+                }
+                .disabled(job.customer == nil)
+                if job.customer == nil {
+                    Text("Link a customer to bill this job.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private func moneyRow(_ label: LocalizedStringKey, _ amount: Double) -> some View {
+        HStack {
+            Text(label).foregroundStyle(.secondary)
+            Spacer()
+            Text(amount.formatted(.currency(code: currencyCode)))
+        }
+    }
+
+    private func invoiceRow(_ invoice: Invoice) -> some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(invoice.number.isEmpty ? String(localized: "Invoice") : invoice.number)
+                    .font(.subheadline)
+                Text(invoice.createdAt.formatted(date: .abbreviated, time: .omitted))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text(invoice.total.formatted(.currency(code: currencyCode))).font(.subheadline)
+            InvoiceStatusBadge(invoice: invoice)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
         }
     }
 
