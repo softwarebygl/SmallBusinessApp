@@ -15,6 +15,7 @@ struct MenuScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Query private var projects: [Project]
     @State private var showingSettings = false
 
     /// `mailto:` link that opens the user's mail app, pre-addressed to support with a subject filled in.
@@ -79,6 +80,18 @@ struct MenuScreen: View {
                         } icon: {
                             Image(systemName: "hammer")
                                 .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                        }
+                    }
+                    if !projects.isEmpty {
+                        NavigationLink {
+                            AllProjectsScreen()
+                        } label: {
+                            Label {
+                                Text("All Projects")
+                            } icon: {
+                                Image(systemName: "folder")
+                                    .foregroundStyle(GLColor.gold.render(in: colorScheme))
+                            }
                         }
                     }
                     NavigationLink {

@@ -22,6 +22,7 @@ struct JobDetailScreen: View {
     @State private var showingDelete = false
     @State private var showingNewInvoice = false
     @State private var selectedInvoice: Invoice?
+    @State private var showingAddToProject = false
 
     private var stillExists: Bool {
         allJobs.contains { $0.persistentModelID == job.persistentModelID }
@@ -35,6 +36,7 @@ struct JobDetailScreen: View {
                 headerCard
                 if !job.serviceAddress.isEmpty { serviceAddressCard }
                 if showsBilling { billingCard }
+                if let project = job.project { projectCard(project) }
                 if job.hasSource { sourceCard }
                 if !job.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { notesCard }
             }
@@ -62,6 +64,10 @@ struct JobDetailScreen: View {
                             }
                         }
                     } label: { Label("Status", systemImage: "flag") }
+                    Button { showingAddToProject = true } label: {
+                        Label(job.project == nil ? "Add to project" : "Change project",
+                              systemImage: "folder.badge.plus")
+                    }
                     Section {
                         Button(role: .destructive) { showingDelete = true } label: {
                             Label("Delete job", systemImage: "trash")
@@ -80,6 +86,9 @@ struct JobDetailScreen: View {
             if let customer = job.customer {
                 InvoiceFormScreen(customer: customer, job: job).glAppearance(colorScheme)
             }
+        }
+        .sheet(isPresented: $showingAddToProject) {
+            AddToProjectSheet(job: job).glAppearance(colorScheme)
         }
         .navigationDestination(item: $selectedInvoice) { invoice in
             InvoiceDetailScreen(invoice: invoice)
@@ -205,6 +214,20 @@ struct JobDetailScreen: View {
                 }
                 .buttonStyle(.plain)
             }
+        }
+    }
+
+    private func projectCard(_ project: Project) -> some View {
+        GLCard(title: "Project") {
+            NavigationLink { ProjectDetailScreen(project: project) } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "folder").frame(width: 24).foregroundStyle(gold)
+                    Text(project.displayName)
+                    Spacer()
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
         }
     }
 

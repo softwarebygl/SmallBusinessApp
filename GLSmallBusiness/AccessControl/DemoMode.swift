@@ -208,6 +208,11 @@ enum DemoSeed {
         job5.durationMinutes = 120
         [job1, job2, job3, job4, job5].forEach(context.insert)
         inv.job = job1   // demo: link the invoice as job1's billing invoice (shows progress billing on the job)
+        // A demo Project grouping two jobs, so All Projects + the project roll-up have content.
+        let demoProject = Project(name: "Reed kitchen remodel")
+        context.insert(demoProject)
+        job3.project = demoProject
+        job4.project = demoProject
 
         context.saveChanges()
     }

@@ -233,6 +233,10 @@ struct ViewRenderingTests {
         render(JobDetailScreen(job: billingJob), f.container)
         render(InvoiceFormScreen(customer: f.customer, job: billingJob), f.container)
         for job in jobs { render(JobDetailScreen(job: job), f.container) }
+        // Projects: the grouping sheet, the detail roll-up, and the global list.
+        render(AddToProjectSheet(job: billingJob), f.container)
+        render(ProjectDetailScreen(project: Project(name: "Remodel", customer: f.customer)), f.container)
+        render(AllProjectsScreen(), f.container)
 
         // Render every subcontractor + customer (1099-due vs not, COI present vs not — the
         // conditional branches in those hubs that a single instance doesn't reach).
