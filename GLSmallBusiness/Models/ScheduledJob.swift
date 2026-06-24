@@ -54,6 +54,28 @@ nonisolated enum JobStatus: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+// MARK: - Recurrence
+
+/// How a recurring job repeats. An empty frequency (nil) means a one-off job.
+nonisolated enum RecurrenceFrequency: String, CaseIterable, Identifiable, Sendable {
+    case weekly
+    case biweekly
+    case monthly
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .weekly: String(localized: "Weekly")
+        case .biweekly: String(localized: "Every 2 weeks")
+        case .monthly: String(localized: "Monthly")
+        }
+    }
+
+    /// Weeks between occurrences for the weekday-based frequencies.
+    var weekInterval: Int { self == .biweekly ? 2 : 1 }
+}
+
 // MARK: - ScheduledJob (the Job)
 
 @Model
@@ -82,6 +104,14 @@ final class ScheduledJob {
     var isAllDay: Bool = true
     var startTime: Date?
     var durationMinutes: Int?
+
+    // Recurrence — an empty frequency means a one-off job. For weekly/biweekly, `recurrenceWeekdayMask`
+    // picks the weekday(s) (bit `weekday-1`; 0 = use the start weekday). The series ends never (count 0,
+    // no end date), on `recurrenceEndDate`, or after `recurrenceCount` visits.
+    var recurrenceFrequencyRaw: String = ""
+    var recurrenceWeekdayMask: Int = 0
+    var recurrenceEndDate: Date?
+    var recurrenceCount: Int = 0
 
     /// The customer this job is for. Optional + nullify on delete so the `customerName` snapshot below
     /// keeps the booking intact even if the customer is removed (matching the estimate/invoice convention).
@@ -164,6 +194,111 @@ nonisolated extension ScheduledJob {
         guard !isAllDay, let start = startTime, let minutes = durationMinutes, minutes > 0 else { return "" }
         let end = start.addingTimeInterval(TimeInterval(minutes * 60))
         return "\(start.formatted(date: .omitted, time: .shortened)) – \(end.formatted(date: .omitted, time: .shortened))"
+    }
+
+    var recurrenceFrequency: RecurrenceFrequency? {
+        get { RecurrenceFrequency(rawValue: recurrenceFrequencyRaw) }
+        set { recurrenceFrequencyRaw = newValue?.rawValue ?? "" }
+    }
+    var isRecurring: Bool { recurrenceFrequency != nil }
+
+    /// The occurrence START dates of this job within `range`, capped by the series' end date / count.
+    /// A one-off job returns just its start day (when it falls in range).
+    func occurrenceStartDates(in range: DateInterval, calendar: Calendar = .current) -> [Date] {
+        let start = calendar.startOfDay(for: startDate)
+        guard let frequency = recurrenceFrequency else {
+            return range.contains(start) ? [start] : []
+        }
+        let hardEnd = recurrenceEndDate.map { calendar.startOfDay(for: $0) }
+        let limit = recurrenceCount > 0 ? recurrenceCount : Int.max
+        var result: [Date] = []
+        var produced = 0
+
+        // Returns false to stop the whole walk (count reached, or past the end date / range horizon).
+        func consider(_ day: Date) -> Bool {
+            if produced >= limit { return false }
+            if let hardEnd, day > hardEnd { return false }
+            if day > range.end { return false }
+            if day >= start {
+                produced += 1
+                if range.contains(day) { result.append(day) }
+            }
+            return true
+        }
+
+        switch frequency {
+        case .weekly, .biweekly:
+            let weekdays = recurrenceWeekdays(start: start, calendar: calendar)
+            var weekStart = calendar.dateInterval(of: .weekOfYear, for: start)?.start ?? start
+            var guardCount = 0
+            outer: while guardCount < 540 {
+                let days = weekdays
+                    .compactMap { dateInWeek(weekStart, weekday: $0, calendar: calendar) }
+                    .map { calendar.startOfDay(for: $0) }
+                    .sorted()
+                for day in days {
+                    if !consider(day) { break outer }
+                }
+                guard let next = calendar.date(byAdding: .weekOfYear, value: frequency.weekInterval, to: weekStart)
+                else { break }
+                weekStart = next
+                guardCount += 1
+            }
+        case .monthly:
+            var cursor = start
+            var guardCount = 0
+            while guardCount < 480 {
+                if !consider(cursor) { break }
+                guard let next = calendar.date(byAdding: .month, value: 1, to: cursor) else { break }
+                cursor = calendar.startOfDay(for: next)
+                guardCount += 1
+            }
+        }
+        return result.sorted()
+    }
+
+    private func recurrenceWeekdays(start: Date, calendar: Calendar) -> [Int] {
+        if recurrenceWeekdayMask != 0 {
+            return (1...7).filter { recurrenceWeekdayMask & (1 << ($0 - 1)) != 0 }
+        }
+        return [calendar.component(.weekday, from: start)]
+    }
+
+    private func dateInWeek(_ weekStart: Date, weekday: Int, calendar: Calendar) -> Date? {
+        let offset = (weekday - calendar.firstWeekday + 7) % 7
+        return calendar.date(byAdding: .day, value: offset, to: weekStart)
+    }
+
+    /// True for an open-ended series (repeats with no end date and no visit count).
+    var isOpenEndedRecurrence: Bool { isRecurring && recurrenceCount == 0 && recurrenceEndDate == nil }
+
+    /// A short human description of the recurrence, e.g. "Weekly · for 8 visits"; empty for a one-off.
+    var recurrenceSummary: String {
+        guard let frequency = recurrenceFrequency else { return "" }
+        var parts = [frequency.label]
+        if recurrenceCount > 0 {
+            parts.append(String(localized: "for \(recurrenceCount) visits"))
+        } else if let end = recurrenceEndDate {
+            parts.append(String(localized: "until \(end.formatted(date: .abbreviated, time: .omitted))"))
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    /// A throwaway one-off copy of this job placed on `date` — used to materialize recurrence
+    /// occurrences for the calendar/engine (occupancy + gaps). Not inserted into any context.
+    func occurrenceCopy(on date: Date, calendar: Calendar = .current) -> ScheduledJob {
+        let copy = ScheduledJob(title: title, customerName: customerName,
+                                startDate: calendar.startOfDay(for: date),
+                                durationDays: durationDays, notes: notes)
+        copy.isAllDay = isAllDay
+        copy.durationMinutes = durationMinutes
+        copy.serviceAddress = serviceAddress
+        if !isAllDay, let start = startTime {
+            let comps = calendar.dateComponents([.hour, .minute], from: start)
+            copy.startTime = calendar.date(bySettingHour: comps.hour ?? 9, minute: comps.minute ?? 0,
+                                           second: 0, of: copy.startDate)
+        }
+        return copy   // recurrence stays empty → a concrete one-off occurrence
     }
 
     /// The day-starts this job occupies: the first `durationDays` workdays on or after `startDate`.
@@ -441,5 +576,15 @@ nonisolated enum SchedulingEngine {
         }
         if cursor < base.end { free.append(DateInterval(start: cursor, end: base.end)) }
         return free
+    }
+
+    /// Materialize recurring jobs into per-occurrence copies within `range`; one-off jobs pass through.
+    /// Feed the result to occupiedDays / openings / nextClearDate so recurrence counts toward availability.
+    static func expand(_ jobs: [ScheduledJob], in range: DateInterval, calendar: Calendar = .current) -> [ScheduledJob] {
+        jobs.flatMap { job -> [ScheduledJob] in
+            guard job.isRecurring else { return [job] }
+            return job.occurrenceStartDates(in: range, calendar: calendar)
+                .map { job.occurrenceCopy(on: $0, calendar: calendar) }
+        }
     }
 }

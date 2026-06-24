@@ -121,6 +121,7 @@ struct JobDetailScreen: View {
                     infoRow("Date", job.startDate.formatted(date: .abbreviated, time: .omitted))
                     if !job.timeText.isEmpty { infoRow("Time", job.timeText) }
                 }
+                if job.isRecurring { infoRow("Repeats", job.recurrenceSummary) }
                 if let completed = job.completedAt {
                     infoRow("Completed", completed.formatted(date: .abbreviated, time: .omitted))
                 }

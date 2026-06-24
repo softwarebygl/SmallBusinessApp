@@ -33,14 +33,27 @@ struct CalendarScreen: View {
     private var schedule: WorkSchedule {
         effectiveWorkSchedule(profiles.first, legacyMask: workdaysMask)
     }
-    /// Row 1 — the soonest bounded opening between booked jobs: a multi-day run or an intra-day window
-    /// (nil when nothing is booked ahead).
-    private var firstOpening: Opening? { SchedulingEngine.openings(jobs, schedule: schedule).first }
+    /// Horizon over which recurring jobs are materialized into occurrences for the grid / agenda /
+    /// availability (a month back, a year forward).
+    private var horizon: DateInterval {
+        let start = Calendar.current.date(byAdding: .day, value: -31, to: Calendar.current.startOfDay(for: .now)) ?? .now
+        let end = Calendar.current.date(byAdding: .day, value: 366, to: start) ?? .now
+        return DateInterval(start: start, end: end)
+    }
+    /// What the calendar actually shows — recurring series expanded into concrete occurrences.
+    private var expandedJobs: [ScheduledJob] { SchedulingEngine.expand(jobs, in: horizon) }
+    private var hasOpenEndedRecurrence: Bool { jobs.contains { $0.isOpenEndedRecurrence } }
+
+    /// Row 1 — the soonest bounded opening between booked jobs (nil when nothing is booked ahead).
+    private var firstOpening: Opening? { SchedulingEngine.openings(expandedJobs, schedule: schedule).first }
     /// Row 2 — the first open workday after your last booked job (the open-ended runway).
-    private var clearDate: Date { SchedulingEngine.nextClearDate(jobs, schedule: schedule) }
+    private var clearDate: Date { SchedulingEngine.nextClearDate(expandedJobs, schedule: schedule) }
     private var upcoming: [ScheduledJob] {
         let today = Calendar.current.startOfDay(for: .now)
-        return jobs.filter { $0.endDay(schedule: schedule) >= today }
+        return Array(expandedJobs
+            .filter { $0.endDay(schedule: schedule) >= today }
+            .sorted { $0.startDate < $1.startDate }
+            .prefix(12))
     }
 
     var body: some View {
@@ -56,7 +69,7 @@ struct CalendarScreen: View {
         ScrollView {
             VStack(spacing: 18) {
                 banner
-                MonthGrid(occupied: SchedulingEngine.occupiedDays(jobs, schedule: schedule), gold: gold)
+                MonthGrid(occupied: SchedulingEngine.occupiedDays(expandedJobs, schedule: schedule), gold: gold)
                 agenda
                 GLHubRow(title: "All Jobs", systemImage: "hammer") { AllJobsScreen() }
             }
@@ -109,15 +122,19 @@ struct CalendarScreen: View {
             VStack(alignment: .leading, spacing: 14) {
                 if let opening = firstOpening {
                     bannerRow(eyebrow: "NEXT AVAILABLE DATE",
-                              date: opening.start,
+                              value: opening.start.formatted(.dateTime.weekday(.wide).month().day()),
                               detail: opening.capacityText)
                     Divider()
                 }
                 bannerRow(eyebrow: "NEXT CLEAR DATE",
-                          date: clearDate,
-                          detail: firstOpening == nil ? nil : "Open-ended — nothing booked after")
+                          value: hasOpenEndedRecurrence
+                            ? String(localized: "Ongoing — recurring work")
+                            : clearDate.formatted(.dateTime.weekday(.wide).month().day()),
+                          detail: hasOpenEndedRecurrence
+                            ? "You have a recurring series with no end date"
+                            : (firstOpening == nil ? nil : "Open-ended — nothing booked after"))
                 NavigationLink {
-                    GapsList(jobs: jobs, schedule: schedule)
+                    GapsList(jobs: expandedJobs, schedule: schedule)
                 } label: {
                     Label("View gaps", systemImage: "rectangle.split.2x1")
                         .font(.subheadline.weight(.semibold)).foregroundStyle(gold)
@@ -127,11 +144,11 @@ struct CalendarScreen: View {
         }
     }
 
-    private func bannerRow(eyebrow: LocalizedStringKey, date: Date, detail: String?) -> some View {
+    private func bannerRow(eyebrow: LocalizedStringKey, value: String, detail: String?) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(eyebrow)
                 .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
-            Text(date.formatted(.dateTime.weekday(.wide).month().day()))
+            Text(value)
                 .font(.title3.weight(.semibold)).foregroundStyle(gold)
             if let detail {
                 Text(detail).font(.caption).foregroundStyle(.secondary)

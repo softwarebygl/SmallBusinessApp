@@ -206,6 +206,7 @@ enum DemoSeed {
         job5.startTime = Calendar.current.date(bySettingHour: 13, minute: 0, second: 0,
                                                of: .now.addingTimeInterval(2 * 86_400))
         job5.durationMinutes = 120
+        job5.recurrenceFrequencyRaw = RecurrenceFrequency.weekly.rawValue   // a standing weekly cleaning
         [job1, job2, job3, job4, job5].forEach(context.insert)
         inv.job = job1   // demo: link the invoice as job1's billing invoice (shows progress billing on the job)
         // A demo Project grouping two jobs, so All Projects + the project roll-up have content.

@@ -42,6 +42,13 @@ struct JobFormScreen: View {
     @State private var city: String
     @State private var state: String
     @State private var postal: String
+    @State private var recurrence: RecurrenceFrequency?
+    @State private var recurWeekdayMask: Int = 0
+    @State private var recurEndKind: RecurEnd = .never
+    @State private var recurEndDate: Date = Calendar.current.date(byAdding: .month, value: 3, to: .now) ?? .now
+    @State private var recurCount: Int = 12
+
+    private enum RecurEnd: Hashable { case never, onDate, afterN }
 
     init(customer: Customer) {
         self.fixedCustomer = customer
@@ -102,6 +109,13 @@ struct JobFormScreen: View {
         _city = State(initialValue: address.city)
         _state = State(initialValue: address.state)
         _postal = State(initialValue: address.postalCode)
+        _recurrence = State(initialValue: job.recurrenceFrequency)
+        _recurWeekdayMask = State(initialValue: job.recurrenceWeekdayMask)
+        _recurEndKind = State(initialValue: job.recurrenceEndDate != nil ? .onDate
+                                          : (job.recurrenceCount > 0 ? .afterN : .never))
+        _recurEndDate = State(initialValue: job.recurrenceEndDate
+                                          ?? (Calendar.current.date(byAdding: .month, value: 3, to: .now) ?? .now))
+        _recurCount = State(initialValue: job.recurrenceCount > 0 ? job.recurrenceCount : 12)
     }
 
     private var isFromScratch: Bool { fixedCustomer == nil && editingJob == nil }
@@ -155,6 +169,36 @@ struct JobFormScreen: View {
                 } footer: {
                     Text(scheduleFooter).textCase(nil)
                 }
+                Section {
+                    Picker("Repeats", selection: $recurrence) {
+                        Text("Does not repeat").tag(RecurrenceFrequency?.none)
+                        ForEach(RecurrenceFrequency.allCases) { frequency in
+                            Text(frequency.label).tag(RecurrenceFrequency?.some(frequency))
+                        }
+                    }
+                    if let recurrence, recurrence != .monthly {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("On these days").font(.caption).foregroundStyle(.secondary)
+                            weekdaySelector
+                        }
+                    }
+                    if recurrence != nil {
+                        Picker("Ends", selection: $recurEndKind) {
+                            Text("Never").tag(RecurEnd.never)
+                            Text("On date").tag(RecurEnd.onDate)
+                            Text("After N visits").tag(RecurEnd.afterN)
+                        }
+                        if recurEndKind == .onDate {
+                            DatePicker("End date", selection: $recurEndDate, displayedComponents: .date)
+                        } else if recurEndKind == .afterN {
+                            Stepper(value: $recurCount, in: 1...365) {
+                                Text("After \(recurCount) \(recurCount == 1 ? "visit" : "visits")")
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Repeats")
+                }
                 Section("Price") {
                     Toggle("Set an agreed price", isOn: $hasPrice)
                     if hasPrice {
@@ -206,6 +250,25 @@ struct JobFormScreen: View {
         return "\(minutes) min"
     }
 
+    private var weekdaySelector: some View {
+        let symbols = Calendar.current.veryShortWeekdaySymbols   // [Sun … Sat], index 0 = Sunday
+        return HStack(spacing: 6) {
+            ForEach(0..<7, id: \.self) { index in
+                let on = recurWeekdayMask & (1 << index) != 0
+                Button {
+                    recurWeekdayMask ^= (1 << index)
+                } label: {
+                    Text(symbols[index]).font(.caption.weight(.semibold))
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(on ? GLColor.gold.render(in: colorScheme) : Color.secondary.opacity(0.15)))
+                        .foregroundStyle(on ? .white : .secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Calendar.current.weekdaySymbols[index])
+            }
+        }
+    }
+
     private var scheduleFooter: String {
         isAllDay
             ? "Ends \(endDateText). Weekends and off-days are skipped per your work schedule."
@@ -253,6 +316,16 @@ struct JobFormScreen: View {
             state: state.trimmingCharacters(in: .whitespacesAndNewlines),
             postalCode: postal.trimmingCharacters(in: .whitespacesAndNewlines)
         )
+        job.recurrenceFrequency = recurrence
+        if recurrence != nil {
+            job.recurrenceWeekdayMask = recurWeekdayMask
+            job.recurrenceEndDate = recurEndKind == .onDate ? Calendar.current.startOfDay(for: recurEndDate) : nil
+            job.recurrenceCount = recurEndKind == .afterN ? max(1, recurCount) : 0
+        } else {
+            job.recurrenceWeekdayMask = 0
+            job.recurrenceEndDate = nil
+            job.recurrenceCount = 0
+        }
 
         modelContext.saveChanges()
         dismiss()
