@@ -19,6 +19,10 @@ struct JobFormScreen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query private var allCustomers: [Customer]
+    @Query private var allJobs: [ScheduledJob]
+    @Query private var profiles: [BusinessProfile]
+    @AppStorage(SchedulingPrefs.workdaysMaskKey) private var workdaysMask = SchedulingPrefs.defaultWorkdaysMask
+    @AppStorage(SchedulingPrefs.oneJobAtATimeKey) private var oneJobAtATime = true
 
     /// The customer for a NEW job opened from a customer. `nil` for a from-scratch Calendar job or an edit.
     private let fixedCustomer: Customer?
@@ -49,6 +53,9 @@ struct JobFormScreen: View {
     @State private var recurCount: Int = 12
 
     private enum RecurEnd: Hashable { case never, onDate, afterN }
+
+    @State private var overlapConfirm = false
+    @State private var isSaving = false
 
     init(customer: Customer) {
         self.fixedCustomer = customer
@@ -221,7 +228,8 @@ struct JobFormScreen: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: !canSave, action: save)
+                    Button(editingJob == nil ? "Add" : "Save") { attemptSave() }
+                        .disabled(!canSave)
                 }
             }
             .onChange(of: pickedCustomer) { _, newValue in
@@ -231,6 +239,13 @@ struct JobFormScreen: View {
                 city = newValue.address.city
                 state = newValue.address.state
                 postal = newValue.address.postalCode
+            }
+            .confirmationDialog("This overlaps a job you’ve already booked.",
+                                isPresented: $overlapConfirm, titleVisibility: .visible) {
+                Button("Schedule anyway") { save() }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("“Book one job at a time” is on. All-day jobs warn on the same day; timed jobs warn when the times overlap.")
             }
         }
     }
@@ -281,7 +296,53 @@ struct JobFormScreen: View {
             .formatted(date: .abbreviated, time: .omitted)
     }
 
+    private func attemptSave() {
+        if oneJobAtATime, overlapsExisting() {
+            overlapConfirm = true
+        } else {
+            save()
+        }
+    }
+
+    /// A throwaway job carrying the current schedule fields — used only to test for overlap.
+    private func proposedJob() -> ScheduledJob {
+        let day = Calendar.current.startOfDay(for: startDate)
+        let job = ScheduledJob(startDate: day, durationDays: max(1, durationDays))
+        job.isAllDay = isAllDay
+        if !isAllDay {
+            let comps = Calendar.current.dateComponents([.hour, .minute], from: startTime)
+            job.startTime = Calendar.current.date(bySettingHour: comps.hour ?? 9, minute: comps.minute ?? 0,
+                                                  second: 0, of: day)
+            job.durationMinutes = max(30, durationMinutes)
+            job.durationDays = 1
+        }
+        job.recurrenceFrequency = recurrence
+        if recurrence != nil {
+            job.recurrenceWeekdayMask = recurWeekdayMask
+            job.recurrenceEndDate = recurEndKind == .onDate ? Calendar.current.startOfDay(for: recurEndDate) : nil
+            job.recurrenceCount = recurEndKind == .afterN ? max(1, recurCount) : 0
+        }
+        return job
+    }
+
+    /// All-day jobs collide on a shared workday; timed jobs collide only when their time windows
+    /// actually intersect — computed over the same interval engine the calendar uses.
+    private func overlapsExisting() -> Bool {
+        let schedule = effectiveWorkSchedule(profiles.first, legacyMask: workdaysMask)
+        let start = Calendar.current.startOfDay(for: startDate)
+        let range = DateInterval(start: start, end: Calendar.current.date(byAdding: .day, value: 90, to: start) ?? start)
+        let proposed = SchedulingEngine.expand([proposedJob()], in: range)
+            .flatMap { $0.occupiedIntervals(schedule: schedule) }
+        guard !proposed.isEmpty else { return false }
+        let others = allJobs.filter { $0.persistentModelID != editingJob?.persistentModelID }
+        let existing = SchedulingEngine.expand(others, in: range)
+            .flatMap { $0.occupiedIntervals(schedule: schedule) }
+        return proposed.contains { proposal in existing.contains { $0.intersects(proposal) } }
+    }
+
     private func save() {
+        guard !isSaving else { return }
+        isSaving = true
         let job: ScheduledJob
         if let editingJob {
             job = editingJob
