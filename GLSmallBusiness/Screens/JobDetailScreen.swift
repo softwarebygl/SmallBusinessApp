@@ -16,6 +16,7 @@ struct JobDetailScreen: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SchedulingPrefs.workdaysMaskKey) private var workdaysMask = SchedulingPrefs.defaultWorkdaysMask
     @Query private var allJobs: [ScheduledJob]
+    @Query private var profiles: [BusinessProfile]
     let job: ScheduledJob
 
     @State private var showingEdit = false
@@ -23,6 +24,8 @@ struct JobDetailScreen: View {
     @State private var showingNewInvoice = false
     @State private var selectedInvoice: Invoice?
     @State private var showingAddToProject = false
+    @State private var completionURL: URL?
+    @State private var showingCompletionPreview = false
 
     private var stillExists: Bool {
         allJobs.contains { $0.persistentModelID == job.persistentModelID }
@@ -89,6 +92,13 @@ struct JobDetailScreen: View {
         }
         .sheet(isPresented: $showingAddToProject) {
             AddToProjectSheet(job: job).glAppearance(colorScheme)
+        }
+        .sheet(isPresented: $showingCompletionPreview) {
+            if let url = completionURL {
+                DocumentPreviewSheet(url: url, title: "Completion Package",
+                                     subject: completionSubject, message: completionMessage)
+                    .glAppearance(colorScheme)
+            }
         }
         .navigationDestination(item: $selectedInvoice) { invoice in
             InvoiceDetailScreen(invoice: invoice)
@@ -174,8 +184,39 @@ struct JobDetailScreen: View {
                     Text("Link a customer to bill this job.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
+
+                if job.status == .completed && !job.isRecurring {
+                    Divider()
+                    if job.isFullyBilledAndCollected {
+                        Button { makeCompletionPackage() } label: {
+                            Label("Completion package", systemImage: "checkmark.seal")
+                        }
+                    } else {
+                        Text(job.remainingToInvoice > 0.005
+                             ? "Invoice the remaining \(money(job.remainingToInvoice)) to issue the completion package."
+                             : "Record the outstanding \(money(job.balanceDue)) to issue the completion package.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
             }
         }
+    }
+
+    private func money(_ value: Double) -> String { value.formatted(.currency(code: currencyCode)) }
+
+    private func makeCompletionPackage() {
+        completionURL = CompletionPackagePDF.render(job: job, business: profiles.first)
+        if completionURL != nil { showingCompletionPreview = true }
+    }
+
+    private var completionSubject: String {
+        let company = (profiles.first?.businessName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let base = String(localized: "Completion package — \(job.displayTitle)")
+        return company.isEmpty ? base : "\(base) from \(company)"
+    }
+
+    private var completionMessage: String {
+        String(localized: "Attached is the completion package for \(job.displayTitle): your paid-in-full receipt and warranty. Thank you for your business.")
     }
 
     private func moneyRow(_ label: LocalizedStringKey, _ amount: Double) -> some View {
