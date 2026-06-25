@@ -120,8 +120,8 @@ struct CompanyDetailsScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .sheet(isPresented: $showingEdit) {
-            MyCompanyFormScreen(profile: profile).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingEdit) {
+            MyCompanyFormScreen(profile: profile)
         }
     }
 

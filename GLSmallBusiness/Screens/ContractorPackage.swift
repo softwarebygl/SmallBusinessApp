@@ -127,8 +127,11 @@ struct ContractorPackageSheet: View {
             .sheet(isPresented: $showingDocuments, onDismiss: refreshAvailability) {
                 ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
             }
-            .sheet(isPresented: $showingW9Edit, onDismiss: refreshAvailability) {
-                MyCompanyFormScreen(profile: profile).glAppearance(colorScheme)
+            .navigationDestination(isPresented: $showingW9Edit) {
+                MyCompanyFormScreen(profile: profile)
+            }
+            .onChange(of: showingW9Edit) { _, isPresented in
+                if !isPresented { refreshAvailability() }
             }
             .sheet(isPresented: $showingSignatureEditor) {
                 if let signatureTarget {

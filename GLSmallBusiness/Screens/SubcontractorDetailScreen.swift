@@ -494,8 +494,11 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
             .sheet(isPresented: $showingEditSub, onDismiss: regenerate) {
                 SubcontractorFormScreen(editing: subcontractor).glAppearance(colorScheme)
             }
-            .sheet(isPresented: $showingEditBusiness, onDismiss: regenerate) {
-                if let business { MyCompanyFormScreen(profile: business).glAppearance(colorScheme) }
+            .navigationDestination(isPresented: $showingEditBusiness) {
+                if let business { MyCompanyFormScreen(profile: business) }
+            }
+            .onChange(of: showingEditBusiness) { _, isPresented in
+                if !isPresented { regenerate() }
             }
         }
     }

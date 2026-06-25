@@ -317,7 +317,7 @@ struct MyCompanyDetailScreen: View {
     }
 }
 
-// MARK: - My Company edit form (sheet with Cancel/Save, same pattern as the Customer/Estimate forms)
+// MARK: - My Company edit form (pushed via navigation, Save-only, same pattern as the Customer/Estimate forms)
 
 private struct LogoCrop: Identifiable {
     let id = UUID()
@@ -431,203 +431,198 @@ struct MyCompanyFormScreen: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    HStack(alignment: .top, spacing: 24) {
-                        Spacer(minLength: 0)
-                        logoWell(title: "Light", scheme: .light, data: $logoData, item: $logoItem)
-                        logoWell(title: "Dark", scheme: .dark, data: $logoDataDark, item: $logoItemDark)
-                        Spacer(minLength: 0)
-                    }
-                    .listRowBackground(Color.clear)
-                } header: {
-                    InfoLabel("Logo", info: "Optional. Appears on your estimates and invoices, and customizes the app.")
+        Form {
+            Section {
+                HStack(alignment: .top, spacing: 24) {
+                    Spacer(minLength: 0)
+                    logoWell(title: "Light", scheme: .light, data: $logoData, item: $logoItem)
+                    logoWell(title: "Dark", scheme: .dark, data: $logoDataDark, item: $logoItemDark)
+                    Spacer(minLength: 0)
                 }
+                .listRowBackground(Color.clear)
+            } header: {
+                InfoLabel("Logo", info: "Optional. Appears on your estimates and invoices, and customizes the app.")
+            }
 
-                Section("Business") {
-                    HStack {
-                        TextField("Business name", text: $businessName)
-                            .textContentType(.organizationName)
-                        requiredMark
-                    }
-                    TextField("License number", text: $licenseNumber)
-                        .idCodeStyle()
+            Section("Business") {
+                HStack {
+                    TextField("Business name", text: $businessName)
+                        .textContentType(.organizationName)
+                    requiredMark
                 }
+                TextField("License number", text: $licenseNumber)
+                    .idCodeStyle()
+            }
 
-                Section("Contact") {
-                    TextField("Owner first name", text: $ownerFirstName)
-                        .textContentType(.givenName)
-                    TextField("Owner last name", text: $ownerLastName)
-                        .textContentType(.familyName)
-                    HStack {
-                        TextField("Email", text: $email)
-                            .textContentType(.emailAddress)
-                            #if !os(macOS)
-                            .keyboardType(.emailAddress)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            #endif
-                        requiredMark
-                    }
-                    HStack {
-                        TextField("Phone", text: $phone)
-                            .textContentType(.telephoneNumber)
-                            #if !os(macOS)
-                            .keyboardType(.phonePad)
-                            #endif
-                        requiredMark
-                    }
-                }
-
-                Section("Address") {
-                    AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)
-                    TextField("Street", text: $street1)
-                        .textContentType(.streetAddressLine1)
-                    TextField("City", text: $city)
-                        .textContentType(.addressCity)
-                    TextField("State", text: $state)
-                        .textContentType(.addressState)
-                        .textInputAutocapitalization(.characters)
-                    TextField("Postal code", text: $postalCode)
-                        .textContentType(.postalCode)
+            Section("Contact") {
+                TextField("Owner first name", text: $ownerFirstName)
+                    .textContentType(.givenName)
+                TextField("Owner last name", text: $ownerLastName)
+                    .textContentType(.familyName)
+                HStack {
+                    TextField("Email", text: $email)
+                        .textContentType(.emailAddress)
                         #if !os(macOS)
-                        .keyboardType(.numberPad)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        #endif
+                    requiredMark
+                }
+                HStack {
+                    TextField("Phone", text: $phone)
+                        .textContentType(.telephoneNumber)
+                        #if !os(macOS)
+                        .keyboardType(.phonePad)
+                        #endif
+                    requiredMark
+                }
+            }
+
+            Section("Address") {
+                AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)
+                TextField("Street", text: $street1)
+                    .textContentType(.streetAddressLine1)
+                TextField("City", text: $city)
+                    .textContentType(.addressCity)
+                TextField("State", text: $state)
+                    .textContentType(.addressState)
+                    .textInputAutocapitalization(.characters)
+                TextField("Postal code", text: $postalCode)
+                    .textContentType(.postalCode)
+                    #if !os(macOS)
+                    .keyboardType(.numberPad)
+                    #endif
+            }
+
+            Section {
+                TextField("Name (as on tax return)", text: $w9Name)
+                    .textContentType(.name)
+                Picker("Tax classification", selection: $w9Classification) {
+                    Text("Select…").tag(W9TaxClassification?.none)
+                    ForEach(W9TaxClassification.allCases) { option in
+                        Text(option.label).tag(W9TaxClassification?.some(option))
+                    }
+                }
+                if w9Classification == .llc {
+                    TextField("LLC tax classification (C, S, or P)", text: $w9LLCClassification)
+                        #if !os(macOS)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
                         #endif
                 }
-
-                Section {
-                    TextField("Name (as on tax return)", text: $w9Name)
-                        .textContentType(.name)
-                    Picker("Tax classification", selection: $w9Classification) {
-                        Text("Select…").tag(W9TaxClassification?.none)
-                        ForEach(W9TaxClassification.allCases) { option in
-                            Text(option.label).tag(W9TaxClassification?.some(option))
-                        }
-                    }
-                    if w9Classification == .llc {
-                        TextField("LLC tax classification (C, S, or P)", text: $w9LLCClassification)
-                            #if !os(macOS)
-                            .textInputAutocapitalization(.characters)
-                            .autocorrectionDisabled()
-                            #endif
-                    }
-                    if w9Classification == .other {
-                        TextField("Describe classification", text: $w9OtherClassification)
-                    }
-                    Picker("Taxpayer ID type", selection: $w9TINType) {
-                        Text("Select…").tag(W9TINType?.none)
-                        ForEach(W9TINType.allCases) { option in
-                            Text(option.label).tag(W9TINType?.some(option))
-                        }
-                    }
-                    .onChange(of: w9TINType) { _, _ in
-                        // The SSN and EIN formats differ, so switching type clears the old number.
-                        w9TIN = ""
-                    }
-                    LabeledContent(w9TINType?.label ?? String(localized: "Tax ID")) {
-                        TINField(kind: w9TINType, text: $w9TIN)
-                    }
-                } header: {
-                    InfoLabel("Tax details (for W-9)", info: "Optional. Used to generate a W-9. Your Tax ID is stored securely in your Keychain, not the synced database. Sign and date the form by hand after you print or send it.")
+                if w9Classification == .other {
+                    TextField("Describe classification", text: $w9OtherClassification)
                 }
-
-                Section {
-                    TextField("Exempt payee code", text: $w9ExemptPayeeCode)
-                        .idCodeStyle()
-                    TextField("FATCA exemption code", text: $w9FATCACode)
-                        .idCodeStyle()
-                } header: {
-                    InfoLabel("Exemption codes", info: "Optional W-9 exemption codes. Most small businesses leave these blank.")
+                Picker("Taxpayer ID type", selection: $w9TINType) {
+                    Text("Select…").tag(W9TINType?.none)
+                    ForEach(W9TINType.allCases) { option in
+                        Text(option.label).tag(W9TINType?.some(option))
+                    }
                 }
-
-                messageSection("Estimate message", document: "estimate",
-                               subject: $estimateMessageSubject, subjectHint: "Estimate # from your business",
-                               intro: $messageIntro, introHint: EstimateMessage.defaultIntro,
-                               closing: $messageClosing, closingHint: EstimateMessage.defaultClosing)
-
-                messageSection("Invoice message", document: "invoice",
-                               subject: $invoiceMessageSubject, subjectHint: "Invoice # from your business",
-                               intro: $invoiceMessageIntro, introHint: InvoiceMessage.defaultIntro,
-                               closing: $invoiceMessageClosing, closingHint: InvoiceMessage.defaultClosing)
-
-                messageSection("Receipt message", document: "payment receipt",
-                               subject: $receiptMessageSubject, subjectHint: "Receipt for invoice # from your business",
-                               intro: $receiptMessageIntro, introHint: "Thank you for your payment. Your receipt is attached.",
-                               closing: $receiptMessageClosing, closingHint: PaymentReceiptMessage.defaultClosing)
-
-                messageSection("Change order message", document: "change order",
-                               subject: $changeOrderMessageSubject, subjectHint: "Change order # from your business",
-                               intro: $changeOrderMessageIntro, introHint: ChangeOrderMessage.defaultIntro,
-                               closing: $changeOrderMessageClosing, closingHint: ChangeOrderMessage.defaultClosing)
-
-                messageSection("Contractor package message", document: "contractor package",
-                               subject: $packageMessageSubject, subjectHint: "Contractor package from your business",
-                               intro: $packageMessageIntro, introHint: ContractorPackageMessage.defaultIntro,
-                               closing: $packageMessageClosing, closingHint: ContractorPackageMessage.defaultClosing)
-                messageSection("Completion package message", document: "completion package",
-                               subject: $completionMessageSubject, subjectHint: "Completion package from your business",
-                               intro: $completionMessageIntro, introHint: CompletionPackageMessage.defaultIntro,
-                               closing: $completionMessageClosing, closingHint: CompletionPackageMessage.defaultClosing)
-                Section {
-                    TextField("Your warranty terms", text: $warrantyText, axis: .vertical)
-                        .lineLimit(3...10)
-                } header: {
-                    Text("Warranty")
-                } footer: {
-                    Text("Free text — attached to each completion package. Coverage starts from the job’s completion date.")
-                        .textCase(nil)
+                .onChange(of: w9TINType) { _, _ in
+                    // The SSN and EIN formats differ, so switching type clears the old number.
+                    w9TIN = ""
                 }
+                LabeledContent(w9TINType?.label ?? String(localized: "Tax ID")) {
+                    TINField(kind: w9TINType, text: $w9TIN)
+                }
+            } header: {
+                InfoLabel("Tax details (for W-9)", info: "Optional. Used to generate a W-9. Your Tax ID is stored securely in your Keychain, not the synced database. Sign and date the form by hand after you print or send it.")
             }
-            .glFormBackground()
-            .navigationTitle("My Business Details")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(!canSave)
-                }
+
+            Section {
+                TextField("Exempt payee code", text: $w9ExemptPayeeCode)
+                    .idCodeStyle()
+                TextField("FATCA exemption code", text: $w9FATCACode)
+                    .idCodeStyle()
+            } header: {
+                InfoLabel("Exemption codes", info: "Optional W-9 exemption codes. Most small businesses leave these blank.")
             }
-            .task(id: logoItem) {
-                guard let logoItem else { return }
-                guard let data = try? await logoItem.loadTransferable(type: Data.self),
-                      let uiImage = UIImage(data: data) else {
-                    self.logoItem = nil
-                    photoLoadFailed = true
-                    return
-                }
-                logoToCrop = LogoCrop(image: uiImage, isDark: false)
+
+            messageSection("Estimate message", document: "estimate",
+                           subject: $estimateMessageSubject, subjectHint: "Estimate # from your business",
+                           intro: $messageIntro, introHint: EstimateMessage.defaultIntro,
+                           closing: $messageClosing, closingHint: EstimateMessage.defaultClosing)
+
+            messageSection("Invoice message", document: "invoice",
+                           subject: $invoiceMessageSubject, subjectHint: "Invoice # from your business",
+                           intro: $invoiceMessageIntro, introHint: InvoiceMessage.defaultIntro,
+                           closing: $invoiceMessageClosing, closingHint: InvoiceMessage.defaultClosing)
+
+            messageSection("Receipt message", document: "payment receipt",
+                           subject: $receiptMessageSubject, subjectHint: "Receipt for invoice # from your business",
+                           intro: $receiptMessageIntro, introHint: "Thank you for your payment. Your receipt is attached.",
+                           closing: $receiptMessageClosing, closingHint: PaymentReceiptMessage.defaultClosing)
+
+            messageSection("Change order message", document: "change order",
+                           subject: $changeOrderMessageSubject, subjectHint: "Change order # from your business",
+                           intro: $changeOrderMessageIntro, introHint: ChangeOrderMessage.defaultIntro,
+                           closing: $changeOrderMessageClosing, closingHint: ChangeOrderMessage.defaultClosing)
+
+            messageSection("Contractor package message", document: "contractor package",
+                           subject: $packageMessageSubject, subjectHint: "Contractor package from your business",
+                           intro: $packageMessageIntro, introHint: ContractorPackageMessage.defaultIntro,
+                           closing: $packageMessageClosing, closingHint: ContractorPackageMessage.defaultClosing)
+            messageSection("Completion package message", document: "completion package",
+                           subject: $completionMessageSubject, subjectHint: "Completion package from your business",
+                           intro: $completionMessageIntro, introHint: CompletionPackageMessage.defaultIntro,
+                           closing: $completionMessageClosing, closingHint: CompletionPackageMessage.defaultClosing)
+            Section {
+                TextField("Your warranty terms", text: $warrantyText, axis: .vertical)
+                    .lineLimit(3...10)
+            } header: {
+                Text("Warranty")
+            } footer: {
+                Text("Free text — attached to each completion package. Coverage starts from the job’s completion date.")
+                    .textCase(nil)
+            }
+        }
+        .glFormBackground()
+        .navigationTitle("My Business Details")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save", action: save).disabled(!canSave)
+            }
+        }
+        .task(id: logoItem) {
+            guard let logoItem else { return }
+            guard let data = try? await logoItem.loadTransferable(type: Data.self),
+                  let uiImage = UIImage(data: data) else {
                 self.logoItem = nil
+                photoLoadFailed = true
+                return
             }
-            .task(id: logoItemDark) {
-                guard let logoItemDark else { return }
-                guard let data = try? await logoItemDark.loadTransferable(type: Data.self),
-                      let uiImage = UIImage(data: data) else {
-                    self.logoItemDark = nil
-                    photoLoadFailed = true
-                    return
-                }
-                logoToCrop = LogoCrop(image: uiImage, isDark: true)
+            logoToCrop = LogoCrop(image: uiImage, isDark: false)
+            self.logoItem = nil
+        }
+        .task(id: logoItemDark) {
+            guard let logoItemDark else { return }
+            guard let data = try? await logoItemDark.loadTransferable(type: Data.self),
+                  let uiImage = UIImage(data: data) else {
                 self.logoItemDark = nil
+                photoLoadFailed = true
+                return
             }
-            .photoLoadFailureAlert($photoLoadFailed)
-            .fullScreenCover(item: $logoToCrop) { crop in
-                ImageCropView(image: crop.image, guide: .roundedRect,
-                              windowBackground: GLColor.backgroundPrimary.render(in: crop.isDark ? .dark : .light)) {
-                    logoToCrop = nil
-                } onCrop: { cropped in
-                    let data = cropped.pngData()
-                    if crop.isDark { logoDataDark = data } else { logoData = data }
-                    logoToCrop = nil
-                }
+            logoToCrop = LogoCrop(image: uiImage, isDark: true)
+            self.logoItemDark = nil
+        }
+        .photoLoadFailureAlert($photoLoadFailed)
+        .fullScreenCover(item: $logoToCrop) { crop in
+            ImageCropView(image: crop.image, guide: .roundedRect,
+                          windowBackground: GLColor.backgroundPrimary.render(in: crop.isDark ? .dark : .light)) {
+                logoToCrop = nil
+            } onCrop: { cropped in
+                let data = cropped.pngData()
+                if crop.isDark { logoDataDark = data } else { logoData = data }
+                logoToCrop = nil
             }
-            .alert("Couldn’t save your Tax ID", isPresented: $tinSaveFailed) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Your other details were saved, but your Tax ID wasn’t. Make sure your device is unlocked, then tap Save again.")
-            }
+        }
+        .alert("Couldn’t save your Tax ID", isPresented: $tinSaveFailed) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Your other details were saved, but your Tax ID wasn’t. Make sure your device is unlocked, then tap Save again.")
         }
     }
 

@@ -344,8 +344,8 @@ struct W9DocumentSheet: View {
                 }
                 regenerate()
             }
-            .sheet(isPresented: $showingEdit) {
-                MyCompanyFormScreen(profile: profile).glAppearance(colorScheme)
+            .navigationDestination(isPresented: $showingEdit) {
+                MyCompanyFormScreen(profile: profile)
             }
             .sheet(isPresented: $showingSignatureEditor) {
                 if let signatureTarget {
