@@ -23,7 +23,12 @@ enum JobMigration {
         let defaults = UserDefaults.standard
         guard !defaults.bool(forKey: didRunKey) else { return }
         defaults.set(true, forKey: didRunKey)
+        backfill(context)
+    }
 
+    /// The actual enrichment — separated from the run-once flag so it's directly testable.
+    @MainActor
+    static func backfill(_ context: ModelContext) {
         let jobs = (try? context.fetch(FetchDescriptor<ScheduledJob>())) ?? []
         guard !jobs.isEmpty else { return }
 

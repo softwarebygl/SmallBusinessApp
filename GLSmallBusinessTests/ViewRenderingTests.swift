@@ -235,8 +235,43 @@ struct ViewRenderingTests {
         for job in jobs { render(JobDetailScreen(job: job), f.container) }
         // Projects: the grouping sheet, the detail roll-up, and the global list.
         render(AddToProjectSheet(job: billingJob), f.container)
-        render(ProjectDetailScreen(project: Project(name: "Remodel", customer: f.customer)), f.container)
         render(AllProjectsScreen(), f.container)
+
+        // The Calendar itself (phone + iPad-column layouts) — banner, grid, agenda over the demo data.
+        render(CalendarScreen(), f.container)
+        render(CalendarScreen(showsMenuButton: false), f.container)
+
+        // Job lists.
+        render(JobsListScreen(customer: f.customer), f.container)
+        render(AllJobsScreen(), f.container)
+
+        // Every JobFormScreen entry point + the all-day / timed / recurrence branches of its body.
+        render(JobFormScreen(customer: f.customer), f.container)                       // fixed customer, all-day
+        render(JobFormScreen(), f.container)                                           // from-scratch + customer picker
+        render(JobFormScreen(prefillStart: .now, prefillDays: 3), f.container)         // all-day prefill
+        render(JobFormScreen(prefillStart: .now,
+                             prefillWindow: DateInterval(start: .now, duration: 3600)), f.container)   // timed prefill
+        let timedRecurring = ScheduledJob(customer: f.customer)
+        timedRecurring.isAllDay = false
+        timedRecurring.startTime = .now
+        timedRecurring.durationMinutes = 90
+        timedRecurring.recurrenceFrequencyRaw = RecurrenceFrequency.weekly.rawValue
+        timedRecurring.recurrenceWeekdayMask = (1 << 1) | (1 << 3)
+        timedRecurring.recurrenceEndDate = Date.now.addingTimeInterval(60 * 86_400)
+        render(JobFormScreen(editing: timedRecurring), f.container)                    // timed + recurrence + weekday chips
+
+        // A project with jobs, and the work-schedule editor with its custom-day / override rows populated.
+        let populatedProject = Project(name: "Kitchen remodel", customer: f.customer)
+        populatedProject.jobs = [billingJob, timedRecurring]
+        render(ProjectDetailScreen(project: populatedProject), f.container)
+        var schedule = WorkSchedule.standard
+        schedule.vacations = [DateRangeRule(start: .now, end: .now.addingTimeInterval(3 * 86_400))]
+        schedule.customDaysOff = [CustomDayOff(date: .now, repeatsYearly: true, label: "Inventory day")]
+        schedule.overrides = [DateOverride(date: .now, kind: .blocked),
+                              DateOverride(date: .now.addingTimeInterval(86_400),
+                                           kind: .customHours(startMinutes: 540, endMinutes: 780))]
+        f.profile.workSchedule = schedule
+        render(WorkScheduleScreen(), f.container)
 
         // Render every subcontractor + customer (1099-due vs not, COI present vs not — the
         // conditional branches in those hubs that a single instance doesn't reach).
