@@ -15,16 +15,51 @@ import SwiftData
 
 extension DemoMode {
     /// Screenshot target from `-demoScreen <name>`:
-    /// customers | employees | subcontractors | invoice | estimate | company
+    /// customers | employees | subcontractors | invoice | estimate | company | stats | receipts | 1099
     static var screen: String? {
         let args = ProcessInfo.processInfo.arguments
         guard let i = args.firstIndex(of: "-demoScreen"), i + 1 < args.count else { return nil }
         return args[i + 1]
     }
 
-    /// True when the target is a single document to present full-screen.
-    static var wantsDocument: Bool {
-        screen == "invoice" || screen == "estimate" || screen == "company" || screen == "1099"
+    /// Screens shown *pushed inside the real shell* — so the screenshot keeps the surrounding
+    /// chrome (tab bar on iPhone, the 3-column split on iPad), exactly as a user navigates to them.
+    /// Returns the screen name when it's one of these, else nil.
+    static var pushableDocument: String? {
+        guard let s = screen, ["estimate", "invoice", "stats", "receipts"].contains(s) else { return nil }
+        return s
+    }
+
+    /// Screens still presented bare/full-screen because they own their navigation (the company
+    /// settings form) or are a rendered document (the 1099-NEC PDF).
+    static var wantsBypassDocument: Bool {
+        screen == "company" || screen == "1099"
+    }
+}
+
+/// A demo "document" screen built to be *pushed onto an existing navigation stack*, so it keeps the
+/// surrounding shell (tab bar / split view). It carries no NavigationStack of its own. DEBUG-only.
+struct DemoPushedScreen: View {
+    @Query(sort: \Estimate.createdAt) private var estimates: [Estimate]
+    @Query(sort: \Invoice.createdAt) private var invoices: [Invoice]
+
+    var body: some View {
+        switch DemoMode.screen {
+        case "estimate":
+            if let estimate = estimates.first(where: { $0.number == "EST-0001" }) ?? estimates.first {
+                EstimateDetailScreen(estimate: estimate)
+            } else { ProgressView() }
+        case "invoice":
+            if let invoice = invoices.first(where: { $0.number == "INV-0001" }) ?? invoices.first {
+                InvoiceDetailScreen(invoice: invoice)
+            } else { ProgressView() }
+        case "stats":
+            StatsScreen()
+        case "receipts":
+            AllReceiptsScreen()
+        default:
+            EmptyView()
+        }
     }
 }
 
@@ -55,6 +90,10 @@ struct DemoDocumentScreenshot: View {
             } else {
                 ProgressView()
             }
+        } else if DemoMode.screen == "stats" {
+            NavigationStack { StatsScreen() }
+        } else if DemoMode.screen == "receipts" {
+            NavigationStack { AllReceiptsScreen() }
         } else {
             NavigationStack {
                 if DemoMode.screen == "estimate" {

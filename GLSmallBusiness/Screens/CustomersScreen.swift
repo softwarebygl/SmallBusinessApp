@@ -22,6 +22,10 @@ struct CustomersScreen: View {
     @State private var isEditing = false                          // iPhone multi-select
     @State private var selection = Set<PersistentIdentifier>()
     @State private var searchText = ""
+    #if DEBUG
+    @State private var showingDemoPush = false   // screenshot demo: auto-push a document into this tab
+    @State private var didDemoPush = false
+    #endif
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -78,6 +82,15 @@ struct CustomersScreen: View {
             .toolbar { customerStackToolbar }
             .navigationDestination(isPresented: $showingAddSheet) { CustomerFormScreen() }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+            #if DEBUG
+            .navigationDestination(isPresented: $showingDemoPush) { DemoPushedScreen() }
+            .onAppear {
+                if DemoMode.pushableDocument != nil && !didDemoPush {
+                    didDemoPush = true
+                    showingDemoPush = true
+                }
+            }
+            #endif
         }
     }
 

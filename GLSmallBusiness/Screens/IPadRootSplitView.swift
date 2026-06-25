@@ -29,7 +29,7 @@ struct RootView: View {
 
     var body: some View {
         #if DEBUG
-        if DemoMode.wantsDocument {
+        if DemoMode.wantsBypassDocument {
             DemoDocumentScreenshot()
         } else {
             shell
@@ -248,6 +248,23 @@ struct IPadRootSplitView: View {
     @ViewBuilder
     private var detail: some View {
         NavigationStack {
+            #if DEBUG
+            if DemoMode.pushableDocument != nil {
+                // Screenshot demo: show the requested document in the detail column, so it appears
+                // inside the real 3-column split (sidebar + list + document) — not bare full-screen.
+                DemoPushedScreen()
+            } else {
+                detailContent
+            }
+            #else
+            detailContent
+            #endif
+        }
+    }
+
+    @ViewBuilder
+    private var detailContent: some View {
+        Group {
             switch section {
             case .customers:
                 if let selectedCustomer {
