@@ -144,8 +144,8 @@ struct PersonalDetailsScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .sheet(isPresented: $showingEdit) {
-            MyPersonalInfoFormScreen(profile: profile).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingEdit) {
+            MyPersonalInfoFormScreen(profile: profile)
         }
     }
 
@@ -186,107 +186,104 @@ struct MyPersonalInfoFormScreen: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Spacer(minLength: 0)
-                        VStack(spacing: 8) {
-                            PhotosPicker(selection: $photoItem, matching: .images) {
-                                ZStack {
-                                    GLColor.backgroundPrimary.render(in: colorScheme)
-                                    if let photoData, let uiImage = UIImage(data: photoData) {
-                                        Image(uiImage: uiImage).resizable().scaledToFill()
-                                    } else {
-                                        VStack(spacing: 6) {
-                                            Image(systemName: "person.crop.circle.badge.plus")
-                                                .font(.system(size: 26))
-                                                .foregroundStyle(gold)
-                                            Text("Add photo")
-                                                .font(.caption)
-                                                .foregroundStyle(gold.opacity(0.85))
-                                        }
+        Form {
+            Section {
+                HStack {
+                    Spacer(minLength: 0)
+                    VStack(spacing: 8) {
+                        PhotosPicker(selection: $photoItem, matching: .images) {
+                            ZStack {
+                                GLColor.backgroundPrimary.render(in: colorScheme)
+                                if let photoData, let uiImage = UIImage(data: photoData) {
+                                    Image(uiImage: uiImage).resizable().scaledToFill()
+                                } else {
+                                    VStack(spacing: 6) {
+                                        Image(systemName: "person.crop.circle.badge.plus")
+                                            .font(.system(size: 26))
+                                            .foregroundStyle(gold)
+                                        Text("Add photo")
+                                            .font(.caption)
+                                            .foregroundStyle(gold.opacity(0.85))
                                     }
                                 }
-                                .frame(width: 120, height: 120)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(gold.opacity(0.4), lineWidth: 1))
-                                .overlay(alignment: .bottomTrailing) {
-                                    Image(systemName: "camera.fill")
-                                        .font(.caption2)
-                                        .foregroundStyle(.white)
-                                        .padding(6)
-                                        .background(Circle().fill(gold))
-                                        .padding(5)
-                                }
                             }
-                            .buttonStyle(.plain)
-
-                            if photoData != nil {
-                                Button(role: .destructive) {
-                                    photoData = nil
-                                    photoItem = nil
-                                } label: {
-                                    Text("Remove").font(.caption)
-                                }
-                                .buttonStyle(.plain)
-                                .foregroundStyle(.red)
+                            .frame(width: 120, height: 120)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(gold.opacity(0.4), lineWidth: 1))
+                            .overlay(alignment: .bottomTrailing) {
+                                Image(systemName: "camera.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(.white)
+                                    .padding(6)
+                                    .background(Circle().fill(gold))
+                                    .padding(5)
                             }
                         }
-                        Spacer(minLength: 0)
-                    }
-                    .listRowBackground(Color.clear)
-                } header: {
-                    InfoLabel("Photo", info: "Optional. A photo of you for your personal profile.")
-                }
+                        .buttonStyle(.plain)
 
-                Section("Name") {
-                    TextField("First name", text: $firstName)
-                        .textContentType(.givenName)
-                    TextField("Last name", text: $lastName)
-                        .textContentType(.familyName)
+                        if photoData != nil {
+                            Button(role: .destructive) {
+                                photoData = nil
+                                photoItem = nil
+                            } label: {
+                                Text("Remove").font(.caption)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.red)
+                        }
+                    }
+                    Spacer(minLength: 0)
                 }
-                Section("Contact") {
-                    TextField("Email", text: $email)
-                        .textContentType(.emailAddress)
-                        #if !os(macOS)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        #endif
-                    TextField("Phone", text: $phone)
-                        .textContentType(.telephoneNumber)
-                        #if !os(macOS)
-                        .keyboardType(.phonePad)
-                        #endif
-                }
+                .listRowBackground(Color.clear)
+            } header: {
+                InfoLabel("Photo", info: "Optional. A photo of you for your personal profile.")
             }
-            .glFormBackground()
-            .navigationTitle("My Personal Info")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Save", action: save) }
+
+            Section("Name") {
+                TextField("First name", text: $firstName)
+                    .textContentType(.givenName)
+                TextField("Last name", text: $lastName)
+                    .textContentType(.familyName)
             }
-            .task(id: photoItem) {
-                guard let photoItem else { return }
-                guard let data = try? await photoItem.loadTransferable(type: Data.self),
-                      let uiImage = UIImage(data: data) else {
-                    self.photoItem = nil
-                    photoLoadFailed = true
-                    return
-                }
-                photoToCrop = PendingPhoto(image: uiImage)
+            Section("Contact") {
+                TextField("Email", text: $email)
+                    .textContentType(.emailAddress)
+                    #if !os(macOS)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
+                TextField("Phone", text: $phone)
+                    .textContentType(.telephoneNumber)
+                    #if !os(macOS)
+                    .keyboardType(.phonePad)
+                    #endif
+            }
+        }
+        .glFormBackground()
+        .navigationTitle("My Personal Info")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) { Button("Save", action: save) }
+        }
+        .task(id: photoItem) {
+            guard let photoItem else { return }
+            guard let data = try? await photoItem.loadTransferable(type: Data.self),
+                  let uiImage = UIImage(data: data) else {
                 self.photoItem = nil
+                photoLoadFailed = true
+                return
             }
-            .photoLoadFailureAlert($photoLoadFailed)
-            .fullScreenCover(item: $photoToCrop) { pending in
-                ImageCropView(image: pending.image, guide: .circle) {
-                    photoToCrop = nil
-                } onCrop: { cropped in
-                    photoData = cropped.pngData()
-                    photoToCrop = nil
-                }
+            photoToCrop = PendingPhoto(image: uiImage)
+            self.photoItem = nil
+        }
+        .photoLoadFailureAlert($photoLoadFailed)
+        .fullScreenCover(item: $photoToCrop) { pending in
+            ImageCropView(image: pending.image, guide: .circle) {
+                photoToCrop = nil
+            } onCrop: { cropped in
+                photoData = cropped.pngData()
+                photoToCrop = nil
             }
         }
     }
