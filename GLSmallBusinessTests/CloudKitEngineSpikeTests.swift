@@ -73,4 +73,40 @@ struct CloudKitEngineSpikeTests {
         #expect(rows.contains { ($0.value(forKey: "firstName") as? String) == "Spike" },
                 "Core Data opened the store but didn't read SwiftData's Customer")
     }
+
+    /// The harder route-R1 question: in the real app the two engines hold the store open AT THE SAME TIME
+    /// (NSPCKC syncing in the background, SwiftData serving the UI). This opens both stacks concurrently on
+    /// one file and checks a write through one is visible to the other — proving they can coexist live.
+    @Test func enginesCoexistConcurrentlyOnOneStore() throws {
+        let url = URL.temporaryDirectory.appending(path: "coexist-\(UUID().uuidString).store")
+        defer {
+            for suffix in ["", "-wal", "-shm"] {
+                try? FileManager.default.removeItem(atPath: url.path + suffix)
+            }
+        }
+
+        let sdSchema = Schema(versionedSchema: GLSchemaV1.self)
+        let sd = try ModelContainer(for: sdSchema,
+                                    configurations: ModelConfiguration(schema: sdSchema, url: url, cloudKitDatabase: .none))
+
+        // Core Data opens the SAME file while SwiftData still holds it open.
+        let model = try #require(NSManagedObjectModel.makeManagedObjectModel(for: GLSchemaV1.models))
+        let coreData = NSPersistentContainer(name: "GLCoexist", managedObjectModel: model)
+        let description = NSPersistentStoreDescription(url: url)
+        description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+        coreData.persistentStoreDescriptions = [description]
+        var loadError: Error?
+        coreData.loadPersistentStores { _, error in loadError = error }
+        #expect(loadError == nil, "Core Data couldn't open a store SwiftData has open: \(String(describing: loadError))")
+
+        // SwiftData writes; the Core Data side then sees it (WAL is shared, so a fresh fetch reads it).
+        let customer = Customer(firstName: "Coexist", lastName: "Live")
+        sd.mainContext.insert(customer)
+        try sd.mainContext.save()
+
+        coreData.viewContext.reset()
+        let rows = try coreData.viewContext.fetch(NSFetchRequest<NSManagedObject>(entityName: "Customer"))
+        #expect(rows.contains { ($0.value(forKey: "firstName") as? String) == "Coexist" },
+                "Concurrent engines didn't see each other's writes on the shared store")
+    }
 }
