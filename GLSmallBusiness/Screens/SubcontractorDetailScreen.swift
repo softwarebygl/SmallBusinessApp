@@ -5,7 +5,7 @@
 //  Created by Gold Life LLC on 6/21/26.
 //
 //  One subcontractor: the year-to-date 1099 status up top, then the payment history. Payments are
-//  added/edited through the sheet at the bottom. Mirrors EmployeeDetailScreen's scaffold.
+//  added/edited through the pushed screens defined at the bottom. Mirrors EmployeeDetailScreen's scaffold.
 //
 
 import SwiftUI
@@ -30,7 +30,7 @@ struct SubcontractorDetailScreen: View {
     @State private var imageToCrop: CroppableImage?
     @State private var photoLoadFailed = false
 
-    private enum ActiveSheet: Identifiable {
+    private enum ActiveSheet: Identifiable, Hashable {
         case payment(SubPayment?)
         case form1099
         case allActivity
@@ -83,14 +83,14 @@ struct SubcontractorDetailScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .sheet(item: $activeSheet) { sheet in
+        .navigationDestination(item: $activeSheet) { sheet in
             switch sheet {
             case .payment(let payment):
-                RecordSubPaymentSheet(subcontractor: subcontractor, existing: payment).glAppearance(colorScheme)
+                RecordSubPaymentSheet(subcontractor: subcontractor, existing: payment)
             case .form1099:
-                Form1099NECSheet(subcontractor: subcontractor).glAppearance(colorScheme)
+                Form1099NECSheet(subcontractor: subcontractor)
             case .allActivity:
-                AllActivitySheet(subcontractor: subcontractor).glAppearance(colorScheme)
+                AllActivitySheet(subcontractor: subcontractor)
             }
         }
         .sheet(isPresented: $showingSaveToContacts) {
@@ -323,49 +323,46 @@ struct AllActivitySheet: View /* internal for render-coverage tests */ {
     private var paidTotal: Double { filtered.filter(\.isPaid).reduce(0) { $0 + $1.amount } }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                Picker("Range", selection: $range) {
-                    ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
+        VStack(spacing: 0) {
+            Picker("Range", selection: $range) {
+                ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .padding()
+            if range == .custom {
+                VStack(spacing: 6) {
+                    DatePicker("From", selection: $from, displayedComponents: .date)
+                    DatePicker("To", selection: $to, displayedComponents: .date)
                 }
-                .pickerStyle(.segmented)
-                .padding()
-                if range == .custom {
-                    VStack(spacing: 6) {
-                        DatePicker("From", selection: $from, displayedComponents: .date)
-                        DatePicker("To", selection: $to, displayedComponents: .date)
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
-                }
-                List {
-                    if filtered.isEmpty {
-                        ContentUnavailableView(searchText.isEmpty ? "Nothing in this range" : "No matches",
-                                               systemImage: searchText.isEmpty ? "tray" : "magnifyingglass")
-                            .listRowBackground(Color.clear)
-                    } else {
-                        Section {
-                            ForEach(filtered) { entry in
-                                Button { editing = entry } label: { row(entry) }
-                                    .buttonStyle(.plain)
-                                    .listRowBackground(Color.clear)
-                            }
-                        } footer: {
-                            Text("\(paidTotal.formatted(.currency(code: "USD"))) paid · \(filtered.count) \(filtered.count == 1 ? "entry" : "entries")")
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+            }
+            List {
+                if filtered.isEmpty {
+                    ContentUnavailableView(searchText.isEmpty ? "Nothing in this range" : "No matches",
+                                           systemImage: searchText.isEmpty ? "tray" : "magnifyingglass")
+                        .listRowBackground(Color.clear)
+                } else {
+                    Section {
+                        ForEach(filtered) { entry in
+                            Button { editing = entry } label: { row(entry) }
+                                .buttonStyle(.plain)
+                                .listRowBackground(Color.clear)
                         }
+                    } footer: {
+                        Text("\(paidTotal.formatted(.currency(code: "USD"))) paid · \(filtered.count) \(filtered.count == 1 ? "entry" : "entries")")
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .searchable(text: $searchText, prompt: "Search activity")
             }
-            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle("All Activity")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } } }
-            .sheet(item: $editing) { entry in
-                RecordSubPaymentSheet(subcontractor: subcontractor, existing: entry).glAppearance(colorScheme)
-            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .searchable(text: $searchText, prompt: "Search activity")
+        }
+        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+        .navigationTitle("All Activity")
+        .toolbarTitleDisplayMode(.inline)
+        .navigationDestination(item: $editing) { entry in
+            RecordSubPaymentSheet(subcontractor: subcontractor, existing: entry)
         }
     }
 
@@ -449,57 +446,57 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
     private var canGenerate: Bool { missing.isEmpty }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if let previewImage {
-                        Image(uiImage: previewImage)
-                            .resizable().scaledToFit()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(.black.opacity(0.1)))
-                            .shadow(radius: 4, y: 2)
-                        Text("Copy B — give this to \(subcontractor.payeeName). Keep a copy for your records. File Copy A with the IRS yourself (e-file) or hand your accountant the Year-End Report.")
-                            .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    } else if canGenerate {
-                        // Everything's filled in but the form didn't build — a generation failure, not
-                        // missing data. Offer a retry instead of an empty "add details" checklist.
-                        DocumentGenerationError { regenerate() }
-                    } else {
-                        missingCard
-                    }
-                }
-                .padding()
-                .frame(maxWidth: 640)
-                .frame(maxWidth: .infinity)
-            }
-            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle("1099-NEC")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
-                if let pdfURL {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        ShareLink(item: pdfURL,
-                                  subject: Text("Form 1099-NEC — \(year)"),
-                                  message: Text("Attached is your \(year) Form 1099-NEC.")) {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        .tint(gold)
-                    }
+        ScrollView {
+            VStack(spacing: 20) {
+                if let previewImage {
+                    Image(uiImage: previewImage)
+                        .resizable().scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.black.opacity(0.1)))
+                        .shadow(radius: 4, y: 2)
+                    Text("Copy B — give this to \(subcontractor.payeeName). Keep a copy for your records. File Copy A with the IRS yourself (e-file) or hand your accountant the Year-End Report.")
+                        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                } else if canGenerate {
+                    // Everything's filled in but the form didn't build — a generation failure, not
+                    // missing data. Offer a retry instead of an empty "add details" checklist.
+                    DocumentGenerationError { regenerate() }
+                } else {
+                    missingCard
                 }
             }
-            .onAppear { regenerate() }
-            .sheet(isPresented: $showingEditSub, onDismiss: regenerate) {
-                SubcontractorFormScreen(editing: subcontractor).glAppearance(colorScheme)
+            .padding()
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
+        }
+        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+        .navigationTitle("1099-NEC")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            if let pdfURL {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: pdfURL,
+                              subject: Text("Form 1099-NEC — \(year)"),
+                              message: Text("Attached is your \(year) Form 1099-NEC.")) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .tint(gold)
+                }
             }
-            .navigationDestination(isPresented: $showingEditBusiness) {
-                if let business { MyCompanyFormScreen(profile: business) }
-            }
-            .onChange(of: showingEditBusiness) { _, isPresented in
-                if !isPresented { regenerate() }
-            }
+        }
+        .onAppear { regenerate() }
+        .navigationDestination(isPresented: $showingEditSub) {
+            SubcontractorFormScreen(editing: subcontractor)
+        }
+        .onChange(of: showingEditSub) { _, isPresented in
+            if !isPresented { regenerate() }
+        }
+        .navigationDestination(isPresented: $showingEditBusiness) {
+            if let business { MyCompanyFormScreen(profile: business) }
+        }
+        .onChange(of: showingEditBusiness) { _, isPresented in
+            if !isPresented { regenerate() }
         }
     }
 
@@ -582,66 +579,63 @@ struct RecordSubPaymentSheet: View /* internal for render-coverage tests */ {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    if hasRate {
-                        LabeledContent("Hours") {
-                            AutoClearNumberField(placeholder: "0", value: $hours, style: .number)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-                    LabeledContent("Amount") {
-                        AutoClearNumberField(placeholder: "$0.00", value: $amount, style: .currency)
+        Form {
+            Section {
+                if hasRate {
+                    LabeledContent("Hours") {
+                        AutoClearNumberField(placeholder: "0", value: $hours, style: .number)
                             .multilineTextAlignment(.trailing)
                     }
-                    DatePicker("Work date", selection: $date, displayedComponents: .date)
-                } footer: {
-                    if hasRate {
-                        Text("Enter hours and it fills the amount at \(rate.formatted(.currency(code: "USD")))/hr — or just type an amount.")
-                            .textCase(nil)
-                    }
                 }
-                Section("For") {
-                    TextField("What was this for? (optional)", text: $detail, axis: .vertical)
-                        .lineLimit(1...4)
-                    Picker("Job / customer", selection: $customerID) {
-                        Text("None").tag(PersistentIdentifier?.none)
-                        ForEach(customers) { customer in
-                            Text(customer.listDisplayName).tag(PersistentIdentifier?.some(customer.persistentModelID))
-                        }
-                    }
+                LabeledContent("Amount") {
+                    AutoClearNumberField(placeholder: "$0.00", value: $amount, style: .currency)
+                        .multilineTextAlignment(.trailing)
                 }
-                Section {
-                    Toggle("Paid", isOn: $isPaid)
-                    if isPaid {
-                        DatePicker("Paid on", selection: $paidDate, displayedComponents: .date)
-                        Picker("Method", selection: $method) {
-                            ForEach(PaymentMethod.allCases) { Text($0.label).tag($0) }
-                        }
-                    }
-                } footer: {
-                    Text(isPaid ? "Counts toward this year's total and the 1099-NEC."
-                                : "Leave off to track it as owed. It won't count toward the 1099 until you mark it paid.")
+                DatePicker("Work date", selection: $date, displayedComponents: .date)
+            } footer: {
+                if hasRate {
+                    Text("Enter hours and it fills the amount at \(rate.formatted(.currency(code: "USD")))/hr — or just type an amount.")
                         .textCase(nil)
                 }
-                if existing != nil {
-                    Section {
-                        Button(role: .destructive) { delete() } label: { Text("Delete entry") }
+            }
+            Section("For") {
+                TextField("What was this for? (optional)", text: $detail, axis: .vertical)
+                    .lineLimit(1...4)
+                Picker("Job / customer", selection: $customerID) {
+                    Text("None").tag(PersistentIdentifier?.none)
+                    ForEach(customers) { customer in
+                        Text(customer.listDisplayName).tag(PersistentIdentifier?.some(customer.persistentModelID))
                     }
                 }
             }
-            .glFormBackground()
-            .navigationTitle(existing == nil ? "Record Amount" : "Edit Entry")
-            .toolbarTitleDisplayMode(.inline)
-            .onChange(of: hours) { _, newHours in
-                if hasRate { amount = newHours * rate }   // hours drive the amount when a rate is set
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: amount <= 0, action: save)
+            Section {
+                Toggle("Paid", isOn: $isPaid)
+                if isPaid {
+                    DatePicker("Paid on", selection: $paidDate, displayedComponents: .date)
+                    Picker("Method", selection: $method) {
+                        ForEach(PaymentMethod.allCases) { Text($0.label).tag($0) }
+                    }
                 }
+            } footer: {
+                Text(isPaid ? "Counts toward this year's total and the 1099-NEC."
+                            : "Leave off to track it as owed. It won't count toward the 1099 until you mark it paid.")
+                    .textCase(nil)
+            }
+            if existing != nil {
+                Section {
+                    Button(role: .destructive) { delete() } label: { Text("Delete entry") }
+                }
+            }
+        }
+        .glFormBackground()
+        .navigationTitle(existing == nil ? "Record Amount" : "Edit Entry")
+        .toolbarTitleDisplayMode(.inline)
+        .onChange(of: hours) { _, newHours in
+            if hasRate { amount = newHours * rate }   // hours drive the amount when a rate is set
+        }
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                SaveOnceButton(disabled: amount <= 0, action: save)
             }
         }
     }

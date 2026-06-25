@@ -5,7 +5,7 @@
 //  Created by Gold Life LLC on 6/21/26.
 //
 //  One employee: the payday-due summary up top, then daily hours, recorded paychecks, and the
-//  year-to-date totals. Hours and paychecks are added/edited through the two sheets at the bottom
+//  year-to-date totals. Hours and paychecks are added/edited through the pushed screens at the bottom
 //  of this file. Mirrors CustomerDetailScreen's scaffold (ScrollView + GLCards + monogram backdrop).
 //
 
@@ -31,9 +31,9 @@ struct EmployeeDetailScreen: View {
     @State private var imageToCrop: CroppableImage?
     @State private var photoLoadFailed = false
 
-    /// One sheet driver for the screen: edit the employee, add/edit an hours entry or a paycheck
-    /// (nil = "new"), or view all hours. A single `.sheet(item:)` avoids stacking many sheet modifiers.
-    private enum ActiveSheet: Identifiable {
+    /// One navigation driver for the screen: add/edit an hours entry or a paycheck (nil = "new"), or
+    /// view all hours/paychecks. A single `.navigationDestination(item:)` pushes each onto the stack.
+    private enum ActiveSheet: Identifiable, Hashable {
         case logHours(TimeEntry?)
         case recordPaycheck(Paycheck?)
         case allHours
@@ -88,16 +88,16 @@ struct EmployeeDetailScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .sheet(item: $activeSheet) { sheet in
+        .navigationDestination(item: $activeSheet) { sheet in
             switch sheet {
             case .logHours(let entry):
-                LogHoursSheet(employee: employee, existing: entry).glAppearance(colorScheme)
+                LogHoursSheet(employee: employee, existing: entry)
             case .recordPaycheck(let check):
-                RecordPaycheckSheet(employee: employee, existing: check).glAppearance(colorScheme)
+                RecordPaycheckSheet(employee: employee, existing: check)
             case .allHours:
-                AllHoursSheet(employee: employee).glAppearance(colorScheme)
+                AllHoursSheet(employee: employee)
             case .allPaychecks:
-                AllPaychecksSheet(employee: employee).glAppearance(colorScheme)
+                AllPaychecksSheet(employee: employee)
             }
         }
         .sheet(isPresented: $showingSaveToContacts) {
@@ -371,49 +371,46 @@ struct AllHoursSheet: View /* internal for render-coverage tests */ {
     private var totalHours: Double { filtered.reduce(0) { $0 + $1.hours } }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                Picker("Range", selection: $range) {
-                    ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
+        VStack(spacing: 0) {
+            Picker("Range", selection: $range) {
+                ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .padding()
+            if range == .custom {
+                VStack(spacing: 6) {
+                    DatePicker("From", selection: $from, displayedComponents: .date)
+                    DatePicker("To", selection: $to, displayedComponents: .date)
                 }
-                .pickerStyle(.segmented)
-                .padding()
-                if range == .custom {
-                    VStack(spacing: 6) {
-                        DatePicker("From", selection: $from, displayedComponents: .date)
-                        DatePicker("To", selection: $to, displayedComponents: .date)
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
-                }
-                List {
-                    if filtered.isEmpty {
-                        ContentUnavailableView(searchText.isEmpty ? "No hours in this range" : "No matches",
-                                               systemImage: searchText.isEmpty ? "clock" : "magnifyingglass")
-                            .listRowBackground(Color.clear)
-                    } else {
-                        Section {
-                            ForEach(filtered) { entry in
-                                Button { editing = entry } label: { row(entry) }
-                                    .buttonStyle(.plain)
-                                    .listRowBackground(Color.clear)
-                            }
-                        } footer: {
-                            Text("\(totalHours.formatted(.number)) hours · \(filtered.count) \(filtered.count == 1 ? "entry" : "entries")")
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+            }
+            List {
+                if filtered.isEmpty {
+                    ContentUnavailableView(searchText.isEmpty ? "No hours in this range" : "No matches",
+                                           systemImage: searchText.isEmpty ? "clock" : "magnifyingglass")
+                        .listRowBackground(Color.clear)
+                } else {
+                    Section {
+                        ForEach(filtered) { entry in
+                            Button { editing = entry } label: { row(entry) }
+                                .buttonStyle(.plain)
+                                .listRowBackground(Color.clear)
                         }
+                    } footer: {
+                        Text("\(totalHours.formatted(.number)) hours · \(filtered.count) \(filtered.count == 1 ? "entry" : "entries")")
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .searchable(text: $searchText, prompt: "Search hours")
             }
-            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle("All Hours")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } } }
-            .sheet(item: $editing) { entry in
-                LogHoursSheet(employee: employee, existing: entry).glAppearance(colorScheme)
-            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .searchable(text: $searchText, prompt: "Search hours")
+        }
+        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+        .navigationTitle("All Hours")
+        .toolbarTitleDisplayMode(.inline)
+        .navigationDestination(item: $editing) { entry in
+            LogHoursSheet(employee: employee, existing: entry)
         }
     }
 
@@ -464,49 +461,46 @@ struct AllPaychecksSheet: View /* internal for render-coverage tests */ {
     private var totalGross: Double { filtered.reduce(0) { $0 + $1.grossAmount } }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                Picker("Range", selection: $range) {
-                    ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
+        VStack(spacing: 0) {
+            Picker("Range", selection: $range) {
+                ForEach(Range.allCases) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .padding()
+            if range == .custom {
+                VStack(spacing: 6) {
+                    DatePicker("From", selection: $from, displayedComponents: .date)
+                    DatePicker("To", selection: $to, displayedComponents: .date)
                 }
-                .pickerStyle(.segmented)
-                .padding()
-                if range == .custom {
-                    VStack(spacing: 6) {
-                        DatePicker("From", selection: $from, displayedComponents: .date)
-                        DatePicker("To", selection: $to, displayedComponents: .date)
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
-                }
-                List {
-                    if filtered.isEmpty {
-                        ContentUnavailableView(searchText.isEmpty ? "No paychecks in this range" : "No matches",
-                                               systemImage: searchText.isEmpty ? "dollarsign.circle" : "magnifyingglass")
-                            .listRowBackground(Color.clear)
-                    } else {
-                        Section {
-                            ForEach(filtered) { check in
-                                Button { editing = check } label: { row(check) }
-                                    .buttonStyle(.plain)
-                                    .listRowBackground(Color.clear)
-                            }
-                        } footer: {
-                            Text("\(totalGross.formatted(.currency(code: "USD"))) gross · \(filtered.count) \(filtered.count == 1 ? "paycheck" : "paychecks")")
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+            }
+            List {
+                if filtered.isEmpty {
+                    ContentUnavailableView(searchText.isEmpty ? "No paychecks in this range" : "No matches",
+                                           systemImage: searchText.isEmpty ? "dollarsign.circle" : "magnifyingglass")
+                        .listRowBackground(Color.clear)
+                } else {
+                    Section {
+                        ForEach(filtered) { check in
+                            Button { editing = check } label: { row(check) }
+                                .buttonStyle(.plain)
+                                .listRowBackground(Color.clear)
                         }
+                    } footer: {
+                        Text("\(totalGross.formatted(.currency(code: "USD"))) gross · \(filtered.count) \(filtered.count == 1 ? "paycheck" : "paychecks")")
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .searchable(text: $searchText, prompt: "Search paychecks")
             }
-            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle("All Paychecks")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } } }
-            .sheet(item: $editing) { check in
-                RecordPaycheckSheet(employee: employee, existing: check).glAppearance(colorScheme)
-            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .searchable(text: $searchText, prompt: "Search paychecks")
+        }
+        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+        .navigationTitle("All Paychecks")
+        .toolbarTitleDisplayMode(.inline)
+        .navigationDestination(item: $editing) { check in
+            RecordPaycheckSheet(employee: employee, existing: check)
         }
     }
 
@@ -552,40 +546,37 @@ struct LogHoursSheet: View /* internal for render-coverage tests */ {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                    LabeledContent("Hours") {
-                        AutoClearNumberField(placeholder: "0", value: $hours, style: .number)
-                            .multilineTextAlignment(.trailing)
-                    }
+        Form {
+            Section {
+                DatePicker("Date", selection: $date, displayedComponents: .date)
+                LabeledContent("Hours") {
+                    AutoClearNumberField(placeholder: "0", value: $hours, style: .number)
+                        .multilineTextAlignment(.trailing)
                 }
-                Section("Job (optional)") {
-                    Picker("Customer", selection: $customerID) {
-                        Text("None").tag(PersistentIdentifier?.none)
-                        ForEach(customers) { customer in
-                            Text(customer.listDisplayName).tag(PersistentIdentifier?.some(customer.persistentModelID))
-                        }
-                    }
-                }
-                Section("Note") {
-                    TextField("Note (optional)", text: $note, axis: .vertical).lineLimit(1...4)
-                }
-                if existing != nil {
-                    Section {
-                        Button(role: .destructive) { delete() } label: { Text("Delete entry") }
+            }
+            Section("Job (optional)") {
+                Picker("Customer", selection: $customerID) {
+                    Text("None").tag(PersistentIdentifier?.none)
+                    ForEach(customers) { customer in
+                        Text(customer.listDisplayName).tag(PersistentIdentifier?.some(customer.persistentModelID))
                     }
                 }
             }
-            .glFormBackground()
-            .navigationTitle(existing == nil ? "Log Hours" : "Edit Hours")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: hours <= 0, action: save)
+            Section("Note") {
+                TextField("Note (optional)", text: $note, axis: .vertical).lineLimit(1...4)
+            }
+            if existing != nil {
+                Section {
+                    Button(role: .destructive) { delete() } label: { Text("Delete entry") }
                 }
+            }
+        }
+        .glFormBackground()
+        .navigationTitle(existing == nil ? "Log Hours" : "Edit Hours")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                SaveOnceButton(disabled: hours <= 0, action: save)
             }
         }
     }
@@ -657,52 +648,49 @@ struct RecordPaycheckSheet: View /* internal for render-coverage tests */ {
     private var periodValid: Bool { PayPeriod.isValid(start: payPeriodStart, end: payPeriodEnd) }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    DatePicker("From", selection: $payPeriodStart, displayedComponents: .date)
-                    DatePicker("To", selection: $payPeriodEnd, displayedComponents: .date)
-                    DatePicker("Paid on", selection: $payDate, displayedComponents: .date)
-                } header: {
-                    Text("Pay period")
-                } footer: {
-                    if !periodValid {
-                        Text("The “To” date must be on or after the “From” date.")
-                            .foregroundStyle(.red)
-                    }
-                }
-                Section("Amount") {
-                    LabeledContent("Gross") {
-                        AutoClearNumberField(placeholder: "$0.00", value: $grossAmount, style: .currency)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    if employee.payType == .hourly {
-                        LabeledContent("Hours") {
-                            AutoClearNumberField(placeholder: "0", value: $hoursPaid, style: .number)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-                    Picker("Method", selection: $method) {
-                        ForEach(PaymentMethod.allCases) { Text($0.label).tag($0) }
-                    }
-                }
-                Section("Note") {
-                    TextField("Note (optional)", text: $note, axis: .vertical).lineLimit(1...4)
-                }
-                if existing != nil {
-                    Section {
-                        Button(role: .destructive) { delete() } label: { Text("Delete paycheck") }
-                    }
+        Form {
+            Section {
+                DatePicker("From", selection: $payPeriodStart, displayedComponents: .date)
+                DatePicker("To", selection: $payPeriodEnd, displayedComponents: .date)
+                DatePicker("Paid on", selection: $payDate, displayedComponents: .date)
+            } header: {
+                Text("Pay period")
+            } footer: {
+                if !periodValid {
+                    Text("The “To” date must be on or after the “From” date.")
+                        .foregroundStyle(.red)
                 }
             }
-            .glFormBackground()
-            .navigationTitle(existing == nil ? "Record Paycheck" : "Edit Paycheck")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: grossAmount <= 0 || !periodValid, action: save)
+            Section("Amount") {
+                LabeledContent("Gross") {
+                    AutoClearNumberField(placeholder: "$0.00", value: $grossAmount, style: .currency)
+                        .multilineTextAlignment(.trailing)
                 }
+                if employee.payType == .hourly {
+                    LabeledContent("Hours") {
+                        AutoClearNumberField(placeholder: "0", value: $hoursPaid, style: .number)
+                            .multilineTextAlignment(.trailing)
+                    }
+                }
+                Picker("Method", selection: $method) {
+                    ForEach(PaymentMethod.allCases) { Text($0.label).tag($0) }
+                }
+            }
+            Section("Note") {
+                TextField("Note (optional)", text: $note, axis: .vertical).lineLimit(1...4)
+            }
+            if existing != nil {
+                Section {
+                    Button(role: .destructive) { delete() } label: { Text("Delete paycheck") }
+                }
+            }
+        }
+        .glFormBackground()
+        .navigationTitle(existing == nil ? "Record Paycheck" : "Edit Paycheck")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                SaveOnceButton(disabled: grossAmount <= 0 || !periodValid, action: save)
             }
         }
     }
