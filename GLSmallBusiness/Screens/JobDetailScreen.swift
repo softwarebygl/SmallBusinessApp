@@ -82,8 +82,8 @@ struct JobDetailScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .sheet(isPresented: $showingEdit) {
-            JobFormScreen(editing: job).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingEdit) {
+            JobFormScreen(editing: job)
         }
         .sheet(isPresented: $showingNewInvoice) {
             if let customer = job.customer {

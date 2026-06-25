@@ -134,119 +134,116 @@ struct JobFormScreen: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                if isFromScratch {
-                    Section("Customer") {
-                        Picker("Customer", selection: $pickedCustomer) {
-                            Text("Select a customer").tag(Customer?.none)
-                            ForEach(sortedCustomers) { customer in
-                                Text(customer.listDisplayName).tag(Customer?.some(customer))
-                            }
+        Form {
+            if isFromScratch {
+                Section("Customer") {
+                    Picker("Customer", selection: $pickedCustomer) {
+                        Text("Select a customer").tag(Customer?.none)
+                        ForEach(sortedCustomers) { customer in
+                            Text(customer.listDisplayName).tag(Customer?.some(customer))
                         }
                     }
-                }
-                Section("Job") {
-                    TextField("What is the job?", text: $title)
-                }
-                Section {
-                    AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postal)
-                    TextField("Street", text: $street1)
-                    TextField("City", text: $city)
-                    TextField("State", text: $state)
-                    TextField("ZIP", text: $postal).keyboardType(.numbersAndPunctuation)
-                } header: {
-                    Text("Service address")
-                }
-                Section {
-                    Toggle("All-day", isOn: $isAllDay)
-                    DatePicker("Date", selection: $startDate, displayedComponents: .date)
-                    if isAllDay {
-                        Stepper(value: $durationDays, in: 1...60) {
-                            Text("Length: \(durationDays) \(durationDays == 1 ? "workday" : "workdays")")
-                        }
-                    } else {
-                        DatePicker("Start time", selection: $startTime, displayedComponents: .hourAndMinute)
-                        Stepper(value: $durationMinutes, in: 30...600, step: 30) {
-                            Text("Length: \(durationLabel)")
-                        }
-                    }
-                } header: {
-                    Text("Schedule")
-                } footer: {
-                    Text(scheduleFooter).textCase(nil)
-                }
-                Section {
-                    Picker("Repeats", selection: $recurrence) {
-                        Text("Does not repeat").tag(RecurrenceFrequency?.none)
-                        ForEach(RecurrenceFrequency.allCases) { frequency in
-                            Text(frequency.label).tag(RecurrenceFrequency?.some(frequency))
-                        }
-                    }
-                    if let recurrence, recurrence != .monthly {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("On these days").font(.caption).foregroundStyle(.secondary)
-                            weekdaySelector
-                        }
-                    }
-                    if recurrence != nil {
-                        Picker("Ends", selection: $recurEndKind) {
-                            Text("Never").tag(RecurEnd.never)
-                            Text("On date").tag(RecurEnd.onDate)
-                            Text("After N visits").tag(RecurEnd.afterN)
-                        }
-                        if recurEndKind == .onDate {
-                            DatePicker("End date", selection: $recurEndDate, displayedComponents: .date)
-                        } else if recurEndKind == .afterN {
-                            Stepper(value: $recurCount, in: 1...365) {
-                                Text("After \(recurCount) \(recurCount == 1 ? "visit" : "visits")")
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Repeats")
-                }
-                Section("Price") {
-                    Toggle("Set an agreed price", isOn: $hasPrice)
-                    if hasPrice {
-                        HStack {
-                            Text("Amount")
-                            Spacer()
-                            TextField("0", value: $agreedPrice, format: .currency(code: currencyCode))
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-                }
-                Section("Notes") {
-                    TextField("Notes (optional)", text: $notes, axis: .vertical).lineLimit(2...5)
                 }
             }
-            .glFormBackground()
-            .navigationTitle(editingJob == nil ? "New Job" : "Edit Job")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(editingJob == nil ? "Add" : "Save") { attemptSave() }
-                        .disabled(!canSave)
+            Section("Job") {
+                TextField("What is the job?", text: $title)
+            }
+            Section {
+                AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postal)
+                TextField("Street", text: $street1)
+                TextField("City", text: $city)
+                TextField("State", text: $state)
+                TextField("ZIP", text: $postal).keyboardType(.numbersAndPunctuation)
+            } header: {
+                Text("Service address")
+            }
+            Section {
+                Toggle("All-day", isOn: $isAllDay)
+                DatePicker("Date", selection: $startDate, displayedComponents: .date)
+                if isAllDay {
+                    Stepper(value: $durationDays, in: 1...60) {
+                        Text("Length: \(durationDays) \(durationDays == 1 ? "workday" : "workdays")")
+                    }
+                } else {
+                    DatePicker("Start time", selection: $startTime, displayedComponents: .hourAndMinute)
+                    Stepper(value: $durationMinutes, in: 30...600, step: 30) {
+                        Text("Length: \(durationLabel)")
+                    }
+                }
+            } header: {
+                Text("Schedule")
+            } footer: {
+                Text(scheduleFooter).textCase(nil)
+            }
+            Section {
+                Picker("Repeats", selection: $recurrence) {
+                    Text("Does not repeat").tag(RecurrenceFrequency?.none)
+                    ForEach(RecurrenceFrequency.allCases) { frequency in
+                        Text(frequency.label).tag(RecurrenceFrequency?.some(frequency))
+                    }
+                }
+                if let recurrence, recurrence != .monthly {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("On these days").font(.caption).foregroundStyle(.secondary)
+                        weekdaySelector
+                    }
+                }
+                if recurrence != nil {
+                    Picker("Ends", selection: $recurEndKind) {
+                        Text("Never").tag(RecurEnd.never)
+                        Text("On date").tag(RecurEnd.onDate)
+                        Text("After N visits").tag(RecurEnd.afterN)
+                    }
+                    if recurEndKind == .onDate {
+                        DatePicker("End date", selection: $recurEndDate, displayedComponents: .date)
+                    } else if recurEndKind == .afterN {
+                        Stepper(value: $recurCount, in: 1...365) {
+                            Text("After \(recurCount) \(recurCount == 1 ? "visit" : "visits")")
+                        }
+                    }
+                }
+            } header: {
+                Text("Repeats")
+            }
+            Section("Price") {
+                Toggle("Set an agreed price", isOn: $hasPrice)
+                if hasPrice {
+                    HStack {
+                        Text("Amount")
+                        Spacer()
+                        TextField("0", value: $agreedPrice, format: .currency(code: currencyCode))
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                    }
                 }
             }
-            .onChange(of: pickedCustomer) { _, newValue in
-                // Auto-fill the service address from the chosen customer, only if untouched.
-                guard let newValue, street1.isEmpty, city.isEmpty, state.isEmpty, postal.isEmpty else { return }
-                street1 = newValue.address.street1
-                city = newValue.address.city
-                state = newValue.address.state
-                postal = newValue.address.postalCode
+            Section("Notes") {
+                TextField("Notes (optional)", text: $notes, axis: .vertical).lineLimit(2...5)
             }
-            .confirmationDialog("This overlaps a job you’ve already booked.",
-                                isPresented: $overlapConfirm, titleVisibility: .visible) {
-                Button("Schedule anyway") { save() }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("“Book one job at a time” is on. All-day jobs warn on the same day; timed jobs warn when the times overlap.")
+        }
+        .glFormBackground()
+        .navigationTitle(editingJob == nil ? "New Job" : "Edit Job")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button(editingJob == nil ? "Add" : "Save") { attemptSave() }
+                    .disabled(!canSave)
             }
+        }
+        .onChange(of: pickedCustomer) { _, newValue in
+            // Auto-fill the service address from the chosen customer, only if untouched.
+            guard let newValue, street1.isEmpty, city.isEmpty, state.isEmpty, postal.isEmpty else { return }
+            street1 = newValue.address.street1
+            city = newValue.address.city
+            state = newValue.address.state
+            postal = newValue.address.postalCode
+        }
+        .confirmationDialog("This overlaps a job you’ve already booked.",
+                            isPresented: $overlapConfirm, titleVisibility: .visible) {
+            Button("Schedule anyway") { save() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("“Book one job at a time” is on. All-day jobs warn on the same day; timed jobs warn when the times overlap.")
         }
     }
 

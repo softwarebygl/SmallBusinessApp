@@ -10,7 +10,6 @@ import SwiftUI
 import SwiftData
 
 struct JobsListScreen: View {
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
     @AppStorage(SchedulingPrefs.workdaysMaskKey) private var workdaysMask = SchedulingPrefs.defaultWorkdaysMask
     let customer: Customer
@@ -57,8 +56,8 @@ struct JobsListScreen: View {
                     .accessibilityLabel("New Job")
             }
         }
-        .sheet(isPresented: $showingNew) {
-            JobFormScreen(customer: customer).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingNew) {
+            JobFormScreen(customer: customer)
         }
     }
 

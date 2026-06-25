@@ -102,7 +102,7 @@ struct CalendarScreen: View {
             }
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
-        .sheet(isPresented: $showingNewJob) { JobFormScreen().glAppearance(colorScheme) }
+        .navigationDestination(isPresented: $showingNewJob) { JobFormScreen() }
         .sheet(isPresented: $pickingSource) {
             ScheduleSourcePicker { source in
                 pickingSource = false
@@ -134,33 +134,50 @@ struct CalendarScreen: View {
                 }
                 Divider()
                 if let opening = firstOpening {
-                    bannerRow(eyebrow: "NEXT AVAILABLE DATE",
-                              value: opening.start.formatted(.dateTime.weekday(.wide).month().day()),
-                              detail: opening.capacityText)
+                    let prefill = GapPrefill(opening: opening)
+                    NavigationLink {
+                        JobFormScreen(prefillStart: prefill.start, prefillDays: prefill.days, prefillWindow: prefill.window)
+                    } label: {
+                        bannerRow(eyebrow: "NEXT AVAILABLE DATE",
+                                  value: opening.start.formatted(.dateTime.weekday(.wide).month().day()),
+                                  detail: opening.capacityText)
+                    }
+                    .buttonStyle(.plain)
                     Divider()
                 }
-                bannerRow(eyebrow: "NEXT CLEAR DATE",
-                          value: hasOpenEndedRecurrence
-                            ? String(localized: "Ongoing — recurring work")
-                            : clearDate.formatted(.dateTime.weekday(.wide).month().day()),
-                          detail: hasOpenEndedRecurrence
-                            ? "You have a recurring series with no end date"
-                            : (firstOpening == nil ? nil : "Open-ended — nothing booked after"))
+                NavigationLink {
+                    JobFormScreen(prefillStart: clearDate)
+                } label: {
+                    bannerRow(eyebrow: "NEXT CLEAR DATE",
+                              value: hasOpenEndedRecurrence
+                                ? String(localized: "Ongoing — recurring work")
+                                : clearDate.formatted(.dateTime.weekday(.wide).month().day()),
+                              detail: hasOpenEndedRecurrence
+                                ? "You have a recurring series with no end date"
+                                : (firstOpening == nil ? nil : "Open-ended — nothing booked after"))
+                }
+                .buttonStyle(.plain)
             }
         }
     }
 
     private func bannerRow(eyebrow: LocalizedStringKey, value: String, detail: String?) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(eyebrow)
-                .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
-            Text(value)
-                .font(.title3.weight(.semibold)).foregroundStyle(gold)
-            if let detail {
-                Text(detail).font(.caption).foregroundStyle(.secondary)
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(eyebrow)
+                    .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
+                Text(value)
+                    .font(.title3.weight(.semibold)).foregroundStyle(gold)
+                if let detail {
+                    Text(detail).font(.caption).foregroundStyle(.secondary)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // Signals the row pushes a new job pre-filled to this date.
+            Image(systemName: "plus.circle")
+                .font(.title3).foregroundStyle(gold)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(.rect)
     }
 
     // MARK: - Agenda
@@ -353,9 +370,8 @@ struct GapsList: View /* internal for render-coverage tests */ {
         .containerBackground(for: .navigation) { PrimaryBackground() }
         .navigationTitle("Open Gaps")
         .toolbarTitleDisplayMode(.inline)
-        .sheet(item: $prefill) { prefill in
+        .navigationDestination(item: $prefill) { prefill in
             JobFormScreen(prefillStart: prefill.start, prefillDays: prefill.days, prefillWindow: prefill.window)
-                .glAppearance(colorScheme)
         }
     }
 
@@ -373,7 +389,7 @@ struct GapsList: View /* internal for render-coverage tests */ {
     }
 }
 
-private struct GapPrefill: Identifiable {
+private struct GapPrefill: Identifiable, Hashable {
     let id = UUID()
     let start: Date
     let days: Int
