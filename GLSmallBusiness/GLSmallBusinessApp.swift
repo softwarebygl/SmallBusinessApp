@@ -35,6 +35,14 @@ struct GLSmallBusinessApp: App {
         // Versioned schema + migration plan so future model changes upgrade existing
         // customers' data safely. See GLSchema.swift for the rules before changing any @Model.
         let schema = Schema(versionedSchema: GLCurrentSchema.self)
+        #if DEBUG
+        // In-progress CloudKit SHARING engine (NSPersistentCloudKitContainer). Off unless explicitly
+        // enabled for testing; on failure it falls through to the proven `.automatic` path below.
+        if CloudKitSyncEngine.isEnabled {
+            if let shared = try? CloudKitSyncEngine.makeContainer(schema: schema) { return shared }
+            print("⚠️ CloudKit sharing engine failed to start — using the standard .automatic store.")
+        }
+        #endif
         do {
             let cloud = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
             return try ModelContainer(for: schema, migrationPlan: GLMigrationPlan.self, configurations: cloud)
