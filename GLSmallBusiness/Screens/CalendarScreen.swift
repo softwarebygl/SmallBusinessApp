@@ -69,9 +69,9 @@ struct CalendarScreen: View {
         ScrollView {
             VStack(spacing: 18) {
                 banner
+                GLHubRow(title: "All Jobs", systemImage: "hammer") { AllJobsScreen() }
                 MonthGrid(occupied: SchedulingEngine.occupiedDays(expandedJobs, schedule: schedule), gold: gold)
                 agenda
-                GLHubRow(title: "All Jobs", systemImage: "hammer") { AllJobsScreen() }
             }
             .padding()
             .frame(maxWidth: 640)
@@ -120,6 +120,19 @@ struct CalendarScreen: View {
     private var banner: some View {
         GLCard {
             VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("AVAILABILITY")
+                        .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
+                    Spacer()
+                    NavigationLink {
+                        GapsList(jobs: expandedJobs, schedule: schedule)
+                    } label: {
+                        Label("View gaps", systemImage: "rectangle.split.2x1")
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(gold)
+                    }
+                    .buttonStyle(.plain)
+                }
+                Divider()
                 if let opening = firstOpening {
                     bannerRow(eyebrow: "NEXT AVAILABLE DATE",
                               value: opening.start.formatted(.dateTime.weekday(.wide).month().day()),
@@ -133,13 +146,6 @@ struct CalendarScreen: View {
                           detail: hasOpenEndedRecurrence
                             ? "You have a recurring series with no end date"
                             : (firstOpening == nil ? nil : "Open-ended — nothing booked after"))
-                NavigationLink {
-                    GapsList(jobs: expandedJobs, schedule: schedule)
-                } label: {
-                    Label("View gaps", systemImage: "rectangle.split.2x1")
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(gold)
-                }
-                .buttonStyle(.plain)
             }
         }
     }
