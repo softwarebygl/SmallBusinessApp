@@ -52,8 +52,8 @@ struct ReceiptDetailScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .sheet(isPresented: $showingEdit) {
-            ReceiptFormScreen(editing: receipt).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingEdit) {
+            ReceiptFormScreen(editing: receipt)
         }
     }
 

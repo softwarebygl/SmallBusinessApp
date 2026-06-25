@@ -9,9 +9,12 @@ import SwiftUI
 import SwiftData
 import VisionKit
 
-private struct ReceiptFormInput: Identifiable {
+private struct ReceiptFormInput: Identifiable, Hashable {
     let id = UUID()
     let image: UIImage?
+
+    static func == (l: Self, r: Self) -> Bool { l.id == r.id }
+    func hash(into h: inout Hasher) { h.combine(id) }
 }
 
 /// Scope filter for the universal Receipts tab.
@@ -143,8 +146,8 @@ struct ReceiptListView: View {
             )
             .ignoresSafeArea()
         }
-        .sheet(item: $formInput) { input in
-            ReceiptFormScreen(defaultCustomer: defaultCustomer, scanImage: input.image).glAppearance(colorScheme)
+        .navigationDestination(item: $formInput) { input in
+            ReceiptFormScreen(defaultCustomer: defaultCustomer, scanImage: input.image)
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
     }

@@ -53,41 +53,38 @@ struct ScheduleJobSheet: View {
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    LabeledContent("Job", value: source.title.isEmpty ? "Job" : source.title)
-                    if !source.customerName.isEmpty {
-                        LabeledContent("Customer", value: source.customerName)
-                    }
-                }
-                Section {
-                    DatePicker("Start date", selection: $startDate, displayedComponents: .date)
-                    Stepper(value: $durationDays, in: 1...60) {
-                        Text("Length: \(durationDays) \(durationDays == 1 ? "workday" : "workdays")")
-                    }
-                } footer: {
-                    Text("Ends \(endDateText). Weekends and off-days are skipped per your workdays setting.")
-                        .textCase(nil)
-                }
-                Section("Notes") {
-                    TextField("Notes (optional)", text: $notes, axis: .vertical).lineLimit(2...5)
+        Form {
+            Section {
+                LabeledContent("Job", value: source.title.isEmpty ? "Job" : source.title)
+                if !source.customerName.isEmpty {
+                    LabeledContent("Customer", value: source.customerName)
                 }
             }
-            .glFormBackground()
-            .navigationTitle("Schedule Job")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Schedule") { attemptSave() } }
+            Section {
+                DatePicker("Start date", selection: $startDate, displayedComponents: .date)
+                Stepper(value: $durationDays, in: 1...60) {
+                    Text("Length: \(durationDays) \(durationDays == 1 ? "workday" : "workdays")")
+                }
+            } footer: {
+                Text("Ends \(endDateText). Weekends and off-days are skipped per your workdays setting.")
+                    .textCase(nil)
             }
-            .confirmationDialog("These dates overlap a job you've already booked.",
-                                isPresented: $overlapConfirm, titleVisibility: .visible) {
-                Button("Schedule anyway") { save() }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("You have “book one job at a time” on. Schedule this on top of the existing job?")
+            Section("Notes") {
+                TextField("Notes (optional)", text: $notes, axis: .vertical).lineLimit(2...5)
             }
+        }
+        .glFormBackground()
+        .navigationTitle("Schedule Job")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) { Button("Schedule") { attemptSave() } }
+        }
+        .confirmationDialog("These dates overlap a job you've already booked.",
+                            isPresented: $overlapConfirm, titleVisibility: .visible) {
+            Button("Schedule anyway") { save() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You have “book one job at a time” on. Schedule this on top of the existing job?")
         }
     }
 

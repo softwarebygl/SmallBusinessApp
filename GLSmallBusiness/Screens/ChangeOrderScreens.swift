@@ -59,46 +59,43 @@ struct ChangeOrderFormScreen: View {
     private func signed(_ v: Double) -> String { (v >= 0 ? "+" : "") + money(v) }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    TextField("Summary (e.g. Add second coat of sealer)", text: $title)
-                } header: {
-                    InfoLabel("Change Order", info: "Set an item to Credit to subtract for removed work.")
-                }
+        Form {
+            Section {
+                TextField("Summary (e.g. Add second coat of sealer)", text: $title)
+            } header: {
+                InfoLabel("Change Order", info: "Set an item to Credit to subtract for removed work.")
+            }
 
-                Section("Items") {
-                    ForEach($items) { $item in
-                        itemEditor($item)
-                    }
-                    .onDelete { items.remove(atOffsets: $0) }
-                    Button {
-                        items.append(DraftItem())
-                    } label: {
-                        Label("Add line item", systemImage: "plus.circle.fill")
-                    }
+            Section("Items") {
+                ForEach($items) { $item in
+                    itemEditor($item)
                 }
-
-                Section {
-                    TextField("Notes (optional)", text: $note, axis: .vertical)
-                } footer: {
-                    HStack {
-                        Text("This change")
-                        Spacer()
-                        Text(signed(changeTotal)).fontWeight(.semibold)
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.primary)
+                .onDelete { items.remove(atOffsets: $0) }
+                Button {
+                    items.append(DraftItem())
+                } label: {
+                    Label("Add line item", systemImage: "plus.circle.fill")
                 }
             }
-            .glFormBackground()
-            .navigationTitle(editing == nil ? "New Change Order" : "Edit Change Order")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: !canSave, action: save)
+
+            Section {
+                TextField("Notes (optional)", text: $note, axis: .vertical)
+            } footer: {
+                HStack {
+                    Text("This change")
+                    Spacer()
+                    Text(signed(changeTotal)).fontWeight(.semibold)
                 }
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+            }
+        }
+        .glFormBackground()
+        .navigationTitle(editing == nil ? "New Change Order" : "Edit Change Order")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                SaveOnceButton(disabled: !canSave, action: save)
             }
         }
     }
@@ -276,9 +273,9 @@ struct ChangeOrderDetailSheet: View {
             .onAppear { regenerate() }
             .onChange(of: changeOrder.statusRaw) { _, _ in regenerate() }
             .onChange(of: showingEdit) { _, isShowing in if !isShowing { regenerate() } }
-            .sheet(isPresented: $showingEdit) {
+            .navigationDestination(isPresented: $showingEdit) {
                 if let invoice {
-                    ChangeOrderFormScreen(invoice: invoice, editing: changeOrder).glAppearance(colorScheme)
+                    ChangeOrderFormScreen(invoice: invoice, editing: changeOrder)
                 }
             }
             .sheet(item: $sendAction) { action in sendSheet(action).glAppearance(colorScheme) }

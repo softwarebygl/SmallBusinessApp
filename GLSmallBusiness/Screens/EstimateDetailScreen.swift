@@ -125,11 +125,11 @@ struct EstimateDetailScreen: View {
         .onChange(of: showingEdit) { _, isShowing in
             if !isShowing { regeneratePDF() }
         }
-        .sheet(isPresented: $showingEdit) {
-            EstimateFormScreen(editing: estimate).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingEdit) {
+            EstimateFormScreen(editing: estimate)
         }
-        .sheet(isPresented: $showingSchedule) {
-            ScheduleJobSheet(source: .estimate(estimate)).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingSchedule) {
+            ScheduleJobSheet(source: .estimate(estimate))
         }
         .sheet(item: $sendAction) { action in
             sendSheet(for: action).glAppearance(colorScheme)

@@ -136,8 +136,8 @@ struct InvoicesListScreen: View {
                 }
             }
         }
-        .sheet(isPresented: $showingNew) {
-            InvoiceFormScreen(customer: customer).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingNew) {
+            InvoiceFormScreen(customer: customer)
         }
     }
 

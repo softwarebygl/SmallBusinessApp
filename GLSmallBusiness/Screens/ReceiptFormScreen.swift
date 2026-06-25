@@ -59,74 +59,69 @@ struct ReceiptFormScreen: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                if let scanData, let uiImage = UIImage(data: scanData) {
-                    Section {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: .infinity)
-                            .frame(maxHeight: 260)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .overlay {
-                                if isReadingScan {
-                                    ZStack {
-                                        Color.black.opacity(0.35)
-                                        VStack(spacing: 8) {
-                                            ProgressView().tint(.white)
-                                            Text("Reading receipt…").font(.caption).foregroundStyle(.white)
-                                        }
-                                    }
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                }
-                            }
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                    }
-                }
-
-                Section("Details") {
-                    TextField("Vendor", text: $vendor)
-                        .textContentType(.organizationName)
-                        .textInputAutocapitalization(.words)
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                    LabeledContent("Total") {
-                        AutoClearNumberField(placeholder: "0", value: $total, style: .currency, clearsAt: 0)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    TextField("Category (e.g. Materials)", text: $category)
-                }
-
+        Form {
+            if let scanData, let uiImage = UIImage(data: scanData) {
                 Section {
-                    Picker("Assigned to", selection: $selectedCustomerID) {
-                        Text("Business").tag(PersistentIdentifier?.none)
-                        ForEach(allCustomers) { customer in
-                            Text(customer.listDisplayName).tag(customer.persistentModelID as PersistentIdentifier?)
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .frame(maxHeight: 260)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .overlay {
+                            if isReadingScan {
+                                ZStack {
+                                    Color.black.opacity(0.35)
+                                    VStack(spacing: 8) {
+                                        ProgressView().tint(.white)
+                                        Text("Reading receipt…").font(.caption).foregroundStyle(.white)
+                                    }
+                                }
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
                         }
-                    }
-                } header: {
-                    InfoLabel("Assignment", info: "Leave as Business for general expenses, or assign this receipt to a customer's job.")
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
                 }
+            }
 
-                Section("Notes") {
-                    TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(2...6)
+            Section("Details") {
+                TextField("Vendor", text: $vendor)
+                    .textContentType(.organizationName)
+                    .textInputAutocapitalization(.words)
+                DatePicker("Date", selection: $date, displayedComponents: .date)
+                LabeledContent("Total") {
+                    AutoClearNumberField(placeholder: "0", value: $total, style: .currency, clearsAt: 0)
+                        .multilineTextAlignment(.trailing)
                 }
+                TextField("Category (e.g. Materials)", text: $category)
             }
-            .glFormBackground()
-            .navigationTitle(editingReceipt == nil ? "New Receipt" : "Edit Receipt")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+
+            Section {
+                Picker("Assigned to", selection: $selectedCustomerID) {
+                    Text("Business").tag(PersistentIdentifier?.none)
+                    ForEach(allCustomers) { customer in
+                        Text(customer.listDisplayName).tag(customer.persistentModelID as PersistentIdentifier?)
+                    }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: !canSave, action: save)
-                }
+            } header: {
+                InfoLabel("Assignment", info: "Leave as Business for general expenses, or assign this receipt to a customer's job.")
             }
-            .task { await readScanIfNeeded() }
+
+            Section("Notes") {
+                TextField("Notes", text: $notes, axis: .vertical)
+                    .lineLimit(2...6)
+            }
         }
+        .glFormBackground()
+        .navigationTitle(editingReceipt == nil ? "New Receipt" : "Edit Receipt")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                SaveOnceButton(disabled: !canSave, action: save)
+            }
+        }
+        .task { await readScanIfNeeded() }
     }
 
     /// For a freshly scanned receipt, OCR the image and prefill any blank fields.

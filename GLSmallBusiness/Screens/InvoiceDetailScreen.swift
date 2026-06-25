@@ -150,11 +150,11 @@ struct InvoiceDetailScreen: View {
         .onChange(of: showingSetAmountDue) { _, isShowing in
             if !isShowing { regeneratePDF() }
         }
-        .sheet(isPresented: $showingSchedule) {
-            ScheduleJobSheet(source: .invoice(invoice)).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingSchedule) {
+            ScheduleJobSheet(source: .invoice(invoice))
         }
-        .sheet(isPresented: $showingEdit) {
-            InvoiceFormScreen(editing: invoice).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingEdit) {
+            InvoiceFormScreen(editing: invoice)
         }
         .sheet(isPresented: $showingRecordPayment) {
             RecordPaymentSheet(invoice: invoice).glAppearance(colorScheme)
@@ -175,8 +175,8 @@ struct InvoiceDetailScreen: View {
         .sheet(item: $receiptPayment) { payment in
             PaymentReceiptSheet(invoice: invoice, payment: payment).glAppearance(colorScheme)
         }
-        .sheet(isPresented: $showingNewChangeOrder) {
-            ChangeOrderFormScreen(invoice: invoice).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingNewChangeOrder) {
+            ChangeOrderFormScreen(invoice: invoice)
         }
         .sheet(item: $selectedChangeOrder, onDismiss: { regeneratePDF() }) { changeOrder in
             ChangeOrderDetailSheet(changeOrder: changeOrder).glAppearance(colorScheme)

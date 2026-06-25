@@ -149,79 +149,74 @@ struct EstimateFormScreen: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("Job") {
-                    TextField("Job title", text: $jobTitle)
-                    Picker("Status", selection: $status) {
-                        ForEach(EstimateStatus.allCases) { Text($0.label).tag($0) }
-                    }
-                    DatePicker("Valid until", selection: $validUntil, displayedComponents: .date)
+        Form {
+            Section("Job") {
+                TextField("Job title", text: $jobTitle)
+                Picker("Status", selection: $status) {
+                    ForEach(EstimateStatus.allCases) { Text($0.label).tag($0) }
                 }
-
-                Section {
-                    AddressSearchButton(street1: $serviceStreet, city: $serviceCity, state: $serviceState, postalCode: $servicePostal)
-                    TextField("Street", text: $serviceStreet)
-                        .textContentType(.streetAddressLine1)
-                    TextField("City", text: $serviceCity)
-                        .textContentType(.addressCity)
-                    TextField("State", text: $serviceState)
-                        .textContentType(.addressState)
-                        .textInputAutocapitalization(.characters)
-                    TextField("ZIP", text: $servicePostal)
-                        .textContentType(.postalCode)
-                        #if !os(macOS)
-                        .keyboardType(.numberPad)
-                        #endif
-                } header: {
-                    InfoLabel("Service Address", info: "The specific job site or lot this estimate is for. Optional — leave blank if it's at the customer's own address.")
-                }
-
-                ForEach($groups) { $group in
-                    groupSection($group)
-                }
-
-                Section {
-                    Button {
-                        groups.append(GroupDraft())
-                    } label: {
-                        Label("Add group", systemImage: "plus.square.on.square")
-                    }
-                }
-
-                Section("Tax") {
-                    LabeledContent("Tax rate (%)") {
-                        AutoClearNumberField(placeholder: "0", value: $taxRatePercent, style: .number, clearsAt: 0)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    Text("Applied only to line items marked taxable.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-
-                adjustmentSection(title: String(localized: "Discount"), type: $discountType, value: $discountValue)
-                adjustmentSection(title: String(localized: "Deposit"), type: $depositType, value: $depositValue)
-
-                Section("Notes") {
-                    TextField("Notes for the customer", text: $customerNotes, axis: .vertical)
-                        .lineLimit(2...6)
-                    TextField("Terms & conditions", text: $terms, axis: .vertical)
-                        .lineLimit(2...6)
-                }
-
-                summarySection
+                DatePicker("Valid until", selection: $validUntil, displayedComponents: .date)
             }
-            .glFormBackground()
-            .task { groupNameCountsCache = groupNameCounts; lineNameCountsCache = lineNameCounts }
-            .navigationTitle(editingEstimate == nil ? "New Estimate" : "Edit Estimate")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+
+            Section {
+                AddressSearchButton(street1: $serviceStreet, city: $serviceCity, state: $serviceState, postalCode: $servicePostal)
+                TextField("Street", text: $serviceStreet)
+                    .textContentType(.streetAddressLine1)
+                TextField("City", text: $serviceCity)
+                    .textContentType(.addressCity)
+                TextField("State", text: $serviceState)
+                    .textContentType(.addressState)
+                    .textInputAutocapitalization(.characters)
+                TextField("ZIP", text: $servicePostal)
+                    .textContentType(.postalCode)
+                    #if !os(macOS)
+                    .keyboardType(.numberPad)
+                    #endif
+            } header: {
+                InfoLabel("Service Address", info: "The specific job site or lot this estimate is for. Optional — leave blank if it's at the customer's own address.")
+            }
+
+            ForEach($groups) { $group in
+                groupSection($group)
+            }
+
+            Section {
+                Button {
+                    groups.append(GroupDraft())
+                } label: {
+                    Label("Add group", systemImage: "plus.square.on.square")
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: !canSave, action: save)
+            }
+
+            Section("Tax") {
+                LabeledContent("Tax rate (%)") {
+                    AutoClearNumberField(placeholder: "0", value: $taxRatePercent, style: .number, clearsAt: 0)
+                        .multilineTextAlignment(.trailing)
                 }
+                Text("Applied only to line items marked taxable.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            adjustmentSection(title: String(localized: "Discount"), type: $discountType, value: $discountValue)
+            adjustmentSection(title: String(localized: "Deposit"), type: $depositType, value: $depositValue)
+
+            Section("Notes") {
+                TextField("Notes for the customer", text: $customerNotes, axis: .vertical)
+                    .lineLimit(2...6)
+                TextField("Terms & conditions", text: $terms, axis: .vertical)
+                    .lineLimit(2...6)
+            }
+
+            summarySection
+        }
+        .glFormBackground()
+        .task { groupNameCountsCache = groupNameCounts; lineNameCountsCache = lineNameCounts }
+        .navigationTitle(editingEstimate == nil ? "New Estimate" : "Edit Estimate")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                SaveOnceButton(disabled: !canSave, action: save)
             }
         }
     }

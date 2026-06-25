@@ -110,8 +110,8 @@ struct CalendarScreen: View {
             }
             .glAppearance(colorScheme)
         }
-        .sheet(item: $pendingSource) { box in
-            ScheduleJobSheet(source: box.source).glAppearance(colorScheme)
+        .navigationDestination(item: $pendingSource) { box in
+            ScheduleJobSheet(source: box.source)
         }
     }
 
@@ -218,10 +218,13 @@ struct CalendarScreen: View {
     }
 }
 
-/// Identifiable wrapper so the source can drive a `.sheet(item:)`.
-private struct SourceBox: Identifiable {
+/// Identifiable + Hashable wrapper so the source can drive a `.navigationDestination(item:)`.
+private struct SourceBox: Identifiable, Hashable {
     let id = UUID()
     let source: ScheduleJobSource
+
+    static func == (l: Self, r: Self) -> Bool { l.id == r.id }
+    func hash(into h: inout Hasher) { h.combine(id) }
 }
 
 // MARK: - Month grid

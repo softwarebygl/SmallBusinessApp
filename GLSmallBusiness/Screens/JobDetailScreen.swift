@@ -85,9 +85,9 @@ struct JobDetailScreen: View {
         .navigationDestination(isPresented: $showingEdit) {
             JobFormScreen(editing: job)
         }
-        .sheet(isPresented: $showingNewInvoice) {
+        .navigationDestination(isPresented: $showingNewInvoice) {
             if let customer = job.customer {
-                InvoiceFormScreen(customer: customer, job: job).glAppearance(colorScheme)
+                InvoiceFormScreen(customer: customer, job: job)
             }
         }
         .sheet(isPresented: $showingAddToProject) {

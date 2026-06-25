@@ -188,100 +188,95 @@ struct InvoiceFormScreen: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("Invoice") {
-                    TextField("Job title", text: $jobTitle)
-                    Picker("Status", selection: $status) {
-                        ForEach(InvoiceStatus.allCases) { Text($0.label).tag($0) }
-                    }
-                    Picker("Terms", selection: $paymentTerms) {
-                        ForEach(PaymentTerms.allCases) { Text($0.label).tag($0) }
-                    }
-                    .onChange(of: paymentTerms) { _, newTerms in
-                        if let computed = newTerms.dueDate(from: createdAt) {
-                            dueDate = computed
-                        }
-                    }
-                    if paymentTerms == .custom {
-                        DatePicker("Due date", selection: $dueDate, displayedComponents: .date)
-                    } else {
-                        LabeledContent("Due date", value: dueDate.formatted(date: .abbreviated, time: .omitted))
+        Form {
+            Section("Invoice") {
+                TextField("Job title", text: $jobTitle)
+                Picker("Status", selection: $status) {
+                    ForEach(InvoiceStatus.allCases) { Text($0.label).tag($0) }
+                }
+                Picker("Terms", selection: $paymentTerms) {
+                    ForEach(PaymentTerms.allCases) { Text($0.label).tag($0) }
+                }
+                .onChange(of: paymentTerms) { _, newTerms in
+                    if let computed = newTerms.dueDate(from: createdAt) {
+                        dueDate = computed
                     }
                 }
-
-                Section {
-                    AddressSearchButton(street1: $serviceStreet, city: $serviceCity, state: $serviceState, postalCode: $servicePostal)
-                    TextField("Street", text: $serviceStreet)
-                        .textContentType(.streetAddressLine1)
-                    TextField("City", text: $serviceCity)
-                        .textContentType(.addressCity)
-                    TextField("State", text: $serviceState)
-                        .textContentType(.addressState)
-                        .textInputAutocapitalization(.characters)
-                    TextField("ZIP", text: $servicePostal)
-                        .textContentType(.postalCode)
-                        #if !os(macOS)
-                        .keyboardType(.numberPad)
-                        #endif
-                } header: {
-                    InfoLabel("Service Address", info: "The specific job site or lot this invoice is for. Optional — leave blank if it's at the customer's own address.")
+                if paymentTerms == .custom {
+                    DatePicker("Due date", selection: $dueDate, displayedComponents: .date)
+                } else {
+                    LabeledContent("Due date", value: dueDate.formatted(date: .abbreviated, time: .omitted))
                 }
-
-                ForEach($groups) { $group in
-                    groupSection($group)
-                }
-
-                Section {
-                    Button {
-                        groups.append(InvoiceGroupDraft())
-                    } label: {
-                        Label("Add group", systemImage: "plus.square.on.square")
-                    }
-                }
-
-                Section("Tax") {
-                    LabeledContent("Tax rate (%)") {
-                        AutoClearNumberField(placeholder: "0", value: $taxRatePercent, style: .number, clearsAt: 0)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    Text("Applied only to line items marked taxable.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-
-                adjustmentSection(title: String(localized: "Discount"), type: $discountType, value: $discountValue)
-
-                Section {
-                    LabeledContent("Amount due now") {
-                        AutoClearNumberField(placeholder: "0", value: $amountDueNow, style: .currency, clearsAt: 0)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    TextField("What it's for (e.g. Deposit to start)", text: $amountDueDetail)
-                } header: {
-                    InfoLabel("Amount due now", info: "Bill a deposit or milestone now. Leave at $0 to request the full balance.")
-                }
-
-                Section("Notes") {
-                    TextField("Notes for the customer", text: $customerNotes, axis: .vertical)
-                        .lineLimit(2...6)
-                    TextField("Terms & conditions", text: $terms, axis: .vertical)
-                        .lineLimit(2...6)
-                }
-
-                summarySection
             }
-            .glFormBackground()
-            .task { groupNameCountsCache = groupNameCounts; lineNameCountsCache = lineNameCounts }
-            .navigationTitle(editingInvoice == nil ? "New Invoice" : "Edit Invoice")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+
+            Section {
+                AddressSearchButton(street1: $serviceStreet, city: $serviceCity, state: $serviceState, postalCode: $servicePostal)
+                TextField("Street", text: $serviceStreet)
+                    .textContentType(.streetAddressLine1)
+                TextField("City", text: $serviceCity)
+                    .textContentType(.addressCity)
+                TextField("State", text: $serviceState)
+                    .textContentType(.addressState)
+                    .textInputAutocapitalization(.characters)
+                TextField("ZIP", text: $servicePostal)
+                    .textContentType(.postalCode)
+                    #if !os(macOS)
+                    .keyboardType(.numberPad)
+                    #endif
+            } header: {
+                InfoLabel("Service Address", info: "The specific job site or lot this invoice is for. Optional — leave blank if it's at the customer's own address.")
+            }
+
+            ForEach($groups) { $group in
+                groupSection($group)
+            }
+
+            Section {
+                Button {
+                    groups.append(InvoiceGroupDraft())
+                } label: {
+                    Label("Add group", systemImage: "plus.square.on.square")
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: !canSave, action: save)
+            }
+
+            Section("Tax") {
+                LabeledContent("Tax rate (%)") {
+                    AutoClearNumberField(placeholder: "0", value: $taxRatePercent, style: .number, clearsAt: 0)
+                        .multilineTextAlignment(.trailing)
                 }
+                Text("Applied only to line items marked taxable.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            adjustmentSection(title: String(localized: "Discount"), type: $discountType, value: $discountValue)
+
+            Section {
+                LabeledContent("Amount due now") {
+                    AutoClearNumberField(placeholder: "0", value: $amountDueNow, style: .currency, clearsAt: 0)
+                        .multilineTextAlignment(.trailing)
+                }
+                TextField("What it's for (e.g. Deposit to start)", text: $amountDueDetail)
+            } header: {
+                InfoLabel("Amount due now", info: "Bill a deposit or milestone now. Leave at $0 to request the full balance.")
+            }
+
+            Section("Notes") {
+                TextField("Notes for the customer", text: $customerNotes, axis: .vertical)
+                    .lineLimit(2...6)
+                TextField("Terms & conditions", text: $terms, axis: .vertical)
+                    .lineLimit(2...6)
+            }
+
+            summarySection
+        }
+        .glFormBackground()
+        .task { groupNameCountsCache = groupNameCounts; lineNameCountsCache = lineNameCounts }
+        .navigationTitle(editingInvoice == nil ? "New Invoice" : "Edit Invoice")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                SaveOnceButton(disabled: !canSave, action: save)
             }
         }
     }
