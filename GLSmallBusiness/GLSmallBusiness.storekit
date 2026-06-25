@@ -35,7 +35,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.evolvedbygl.GLSmallBusiness.pro.monthly",
+          "productID" : "mybusiness.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Pro Monthly",
           "subscriptionGroupID" : "22148954",
@@ -60,9 +60,9 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.evolvedbygl.GLSmallBusiness.pro.annual",
+          "productID" : "mybusiness.pro.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Pro Annual",
+          "referenceName" : "Pro Yearly",
           "subscriptionGroupID" : "22148954",
           "type" : "RecurringSubscription"
         }

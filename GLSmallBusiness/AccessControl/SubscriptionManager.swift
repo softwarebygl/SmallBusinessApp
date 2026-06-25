@@ -18,8 +18,8 @@ import Observation
 final class SubscriptionManager {
     static let shared = SubscriptionManager()
 
-    static let monthlyID = "com.evolvedbygl.GLSmallBusiness.pro.monthly"
-    static let annualID  = "com.evolvedbygl.GLSmallBusiness.pro.annual"
+    static let monthlyID = "mybusiness.pro.monthly"
+    static let annualID  = "mybusiness.pro.yearly"
     static let productIDs = [monthlyID, annualID]
 
     /// The App Store Connect subscription group ID — mirrored in GLSmallBusiness.storekit so

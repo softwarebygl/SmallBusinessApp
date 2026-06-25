@@ -245,6 +245,9 @@
         }
       }
     },
+    "“Book one job at a time” is on. All-day jobs warn on the same day; timed jobs warn when the times overlap." : {
+
+    },
     "*" : {
       "localizations" : {
         "ca" : {
@@ -563,6 +566,16 @@
     "%lld" : {
 
     },
+    "%lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@"
+          }
+        }
+      }
+    },
     "%lld %@ a 1099-NEC." : {
       "localizations" : {
         "en" : {
@@ -578,16 +591,6 @@
     },
     "%lld invoices have no customer — they still count in Stats. Swipe left to delete any you don't want." : {
 
-    },
-    "%lld open %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld open %2$@"
-          }
-        }
-      }
     },
     "%lld receipt%@" : {
       "localizations" : {
@@ -740,6 +743,9 @@
 
     },
     "A 1099-NEC needs the following before it can be generated:" : {
+
+    },
+    "A single day you take off that isn’t on the holiday list." : {
 
     },
     "Accept an estimate or create an invoice, then schedule it here." : {
@@ -1038,7 +1044,16 @@
         }
       }
     },
+    "Add a date override" : {
+
+    },
+    "Add a day off" : {
+
+    },
     "Add a few details first" : {
+
+    },
+    "Add a job" : {
 
     },
     "Add a signature" : {
@@ -1083,6 +1098,9 @@
           }
         }
       }
+    },
+    "Add document" : {
+
     },
     "Add Employee" : {
 
@@ -1210,7 +1228,19 @@
         }
       }
     },
+    "Add more photos" : {
+
+    },
+    "Add or manage receipts" : {
+
+    },
     "Add photo" : {
+
+    },
+    "Add photos" : {
+
+    },
+    "Add receipt" : {
 
     },
     "Add Receipt" : {
@@ -1260,6 +1290,18 @@
 
     },
     "Add this customer's COI" : {
+
+    },
+    "Add time off" : {
+
+    },
+    "Add to an existing project" : {
+
+    },
+    "Add to project" : {
+
+    },
+    "Add to Project" : {
 
     },
     "Add your business details first" : {
@@ -1391,6 +1433,19 @@
         }
       }
     },
+    "After %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "After %1$lld %2$@"
+          }
+        }
+      }
+    },
+    "After N visits" : {
+
+    },
     "All Activity" : {
 
     },
@@ -1406,7 +1461,13 @@
     "All Invoices" : {
 
     },
+    "All Jobs" : {
+
+    },
     "All Paychecks" : {
+
+    },
+    "All Projects" : {
 
     },
     "All Receipts" : {
@@ -1488,6 +1549,9 @@
           }
         }
       }
+    },
+    "All-day" : {
+
     },
     "Amount" : {
       "localizations" : {
@@ -1863,6 +1927,9 @@
     "Assignment" : {
 
     },
+    "Attach material, equipment, and fuel receipts for this job." : {
+
+    },
     "Attached is your %lld Form 1099-NEC." : {
 
     },
@@ -1905,6 +1972,9 @@
           }
         }
       }
+    },
+    "AVAILABILITY" : {
+
     },
     "Average invoice" : {
       "localizations" : {
@@ -2028,6 +2098,9 @@
           }
         }
       }
+    },
+    "Balance due" : {
+
     },
     "Bank transfer" : {
       "localizations" : {
@@ -2188,6 +2261,9 @@
           }
         }
       }
+    },
+    "Billing" : {
+
     },
     "Book one job at a time" : {
 
@@ -2620,6 +2696,9 @@
     "Change orders you add to an invoice will appear here." : {
 
     },
+    "Change project" : {
+
+    },
     "Change signature" : {
 
     },
@@ -2888,6 +2967,9 @@
     "Collected (cash received)" : {
 
     },
+    "Common closures" : {
+
+    },
     "Complete your business profile" : {
       "localizations" : {
         "ca" : {
@@ -2927,6 +3009,18 @@
           }
         }
       }
+    },
+    "Completed" : {
+
+    },
+    "Completion package" : {
+
+    },
+    "Completion Package" : {
+
+    },
+    "Completion package message" : {
+
     },
     "Compliance" : {
 
@@ -2970,6 +3064,9 @@
           }
         }
       }
+    },
+    "Contracted" : {
+
     },
     "Contractor License" : {
 
@@ -3097,6 +3194,15 @@
     "Counts toward this year's total and the 1099-NEC." : {
 
     },
+    "Coverage begins %@ — the completion date." : {
+
+    },
+    "Coverage starts from each job’s completion date." : {
+
+    },
+    "Create & add" : {
+
+    },
     "Created" : {
       "localizations" : {
         "ca" : {
@@ -3140,6 +3246,9 @@
     "Credit" : {
 
     },
+    "Cultural & religious" : {
+
+    },
     "Custom date" : {
       "localizations" : {
         "ca" : {
@@ -3179,6 +3288,9 @@
           }
         }
       }
+    },
+    "Custom hours" : {
+
     },
     "Customer" : {
       "localizations" : {
@@ -3461,6 +3573,9 @@
         }
       }
     },
+    "Dates" : {
+
+    },
     "day" : {
       "localizations" : {
         "ca" : {
@@ -3500,6 +3615,9 @@
           }
         }
       }
+    },
+    "Day off" : {
+
     },
     "Days" : {
       "localizations" : {
@@ -3670,7 +3788,16 @@
     "Delete entry" : {
 
     },
+    "Delete job" : {
+
+    },
     "Delete paycheck" : {
+
+    },
+    "Delete photo" : {
+
+    },
+    "Delete project" : {
 
     },
     "Delete saved signature" : {
@@ -3683,6 +3810,15 @@
 
     },
     "Delete this customer's COI from your records." : {
+
+    },
+    "Delete this document from the job." : {
+
+    },
+    "Delete this job?" : {
+
+    },
+    "Delete this project? Its jobs are kept." : {
 
     },
     "Delete this reference copy from your records." : {
@@ -3897,6 +4033,15 @@
         }
       }
     },
+    "Document" : {
+
+    },
+    "Documents" : {
+
+    },
+    "Does not repeat" : {
+
+    },
     "Done" : {
       "localizations" : {
         "ca" : {
@@ -3978,9 +4123,6 @@
       }
     },
     "Draw" : {
-
-    },
-    "Drive your next available date and the gaps between jobs." : {
 
     },
     "Due" : {
@@ -4227,7 +4369,6 @@
       }
     },
     "Edit" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -4279,9 +4420,6 @@
     "Edit Change Order" : {
 
     },
-    "Edit customer" : {
-
-    },
     "Edit Customer" : {
       "localizations" : {
         "ca" : {
@@ -4322,19 +4460,10 @@
         }
       }
     },
-    "Edit details" : {
-
-    },
-    "Edit employee" : {
-
-    },
     "Edit Employee" : {
 
     },
     "Edit Entry" : {
-
-    },
-    "Edit estimate" : {
 
     },
     "Edit Estimate" : {
@@ -4380,9 +4509,6 @@
     "Edit Hours" : {
 
     },
-    "Edit invoice" : {
-
-    },
     "Edit Invoice" : {
       "localizations" : {
         "ca" : {
@@ -4423,10 +4549,10 @@
         }
       }
     },
-    "Edit Paycheck" : {
+    "Edit Job" : {
 
     },
-    "Edit receipt" : {
+    "Edit Paycheck" : {
 
     },
     "Edit Receipt" : {
@@ -4468,9 +4594,6 @@
           }
         }
       }
-    },
-    "Edit subcontractor" : {
-
     },
     "Edit Subcontractor" : {
 
@@ -4608,6 +4731,15 @@
 
     },
     "Employment" : {
+
+    },
+    "End" : {
+
+    },
+    "End date" : {
+
+    },
+    "Ends" : {
 
     },
     "Ends %@. Weekends and off-days are skipped per your workdays setting." : {
@@ -5160,6 +5292,9 @@
     "FATCA exemption code" : {
 
     },
+    "Federal" : {
+
+    },
     "Federal tax classification" : {
 
     },
@@ -5338,6 +5473,9 @@
     "FOR" : {
 
     },
+    "for %lld visits" : {
+
+    },
     "For Invoice %@" : {
 
     },
@@ -5348,6 +5486,9 @@
 
     },
     "Form W-9" : {
+
+    },
+    "Free text — attached to each completion package. Coverage starts from the job’s completion date." : {
 
     },
     "From" : {
@@ -5392,6 +5533,9 @@
           }
         }
       }
+    },
+    "From an estimate or invoice" : {
+
     },
     "General Liability (COI)" : {
 
@@ -5532,6 +5676,9 @@
         }
       }
     },
+    "Group several jobs into a project from a job’s detail screen." : {
+
+    },
     "Group subtotal: %@" : {
       "localizations" : {
         "ca" : {
@@ -5662,6 +5809,9 @@
         }
       }
     },
+    "Hours bound the openings shown for timed jobs. All-day jobs just use whole workdays." : {
+
+    },
     "hr" : {
       "localizations" : {
         "ca" : {
@@ -5747,6 +5897,9 @@
           }
         }
       }
+    },
+    "In progress" : {
+
     },
     "In this package" : {
 
@@ -5898,6 +6051,12 @@
         }
       }
     },
+    "Invoice the remaining %@ to issue the completion package." : {
+
+    },
+    "Invoiced" : {
+
+    },
     "Invoiced (billed)" : {
 
     },
@@ -5940,6 +6099,9 @@
           }
         }
       }
+    },
+    "INVOICES" : {
+
     },
     "Invoices across all your customers will appear here." : {
 
@@ -6079,6 +6241,9 @@
     "Job / customer" : {
 
     },
+    "Job Receipts" : {
+
+    },
     "Job Records" : {
 
     },
@@ -6121,6 +6286,15 @@
           }
         }
       }
+    },
+    "Jobs" : {
+
+    },
+    "Jobs across all your customers will appear here." : {
+
+    },
+    "Label (optional)" : {
+
     },
     "Labor" : {
       "localizations" : {
@@ -6245,7 +6419,16 @@
     "Leave off to track it as owed. It won't count toward the 1099 until you mark it paid." : {
 
     },
+    "Left to invoice" : {
+
+    },
     "Legal" : {
+
+    },
+    "Length" : {
+
+    },
+    "Length: %@" : {
 
     },
     "Length: %lld %@" : {
@@ -6585,6 +6768,9 @@
         }
       }
     },
+    "Link a customer to bill this job." : {
+
+    },
     "LLC tax classification (C, S, or P)" : {
 
     },
@@ -6842,6 +7028,9 @@
 
     },
     "Manage Subscription" : {
+
+    },
+    "Master agreement" : {
 
     },
     "Material" : {
@@ -7395,6 +7584,9 @@
         }
       }
     },
+    "Never" : {
+
+    },
     "New change order" : {
 
     },
@@ -7487,6 +7679,9 @@
         }
       }
     },
+    "New invoice" : {
+
+    },
     "New Invoice" : {
       "localizations" : {
         "ca" : {
@@ -7526,6 +7721,15 @@
           }
         }
       }
+    },
+    "New job" : {
+
+    },
+    "New Job" : {
+
+    },
+    "New project" : {
+
     },
     "New Receipt" : {
       "localizations" : {
@@ -7574,6 +7778,9 @@
 
     },
     "NEXT AVAILABLE DATE" : {
+
+    },
+    "NEXT CLEAR DATE" : {
 
     },
     "Next payday" : {
@@ -7770,6 +7977,9 @@
     "No hours logged yet." : {
 
     },
+    "No image" : {
+
+    },
     "No invoice" : {
 
     },
@@ -7813,7 +8023,13 @@
         }
       }
     },
-    "No jobs scheduled. Tap + to schedule an accepted estimate or an invoice." : {
+    "No Jobs" : {
+
+    },
+    "No jobs in this project yet. Add jobs from their detail screen." : {
+
+    },
+    "No jobs scheduled yet. Tap + to add one." : {
 
     },
     "No line items." : {
@@ -7907,6 +8123,9 @@
           }
         }
       }
+    },
+    "No Projects" : {
+
     },
     "No Receipts" : {
       "localizations" : {
@@ -8078,6 +8297,9 @@
       }
     },
     "None yet. Add one from the ••• menu when the job's scope changes." : {
+
+    },
+    "Not set. Add your warranty terms in Edit details — they’re attached to each completion package." : {
 
     },
     "Note" : {
@@ -8252,9 +8474,6 @@
     "Nothing to schedule yet" : {
 
     },
-    "Off" : {
-
-    },
     "Office" : {
 
     },
@@ -8301,7 +8520,16 @@
         }
       }
     },
+    "On date" : {
+
+    },
+    "On these days" : {
+
+    },
     "One salary period." : {
+
+    },
+    "Ongoing — recurring work" : {
 
     },
     "Open change order" : {
@@ -8310,7 +8538,7 @@
     "Open Gaps" : {
 
     },
-    "Open stretches before your booked jobs will show up here." : {
+    "Openings before your booked jobs will show up here." : {
 
     },
     "Optional W-9 exemption codes. Most small businesses leave these blank." : {
@@ -8414,6 +8642,9 @@
           }
         }
       }
+    },
+    "Other days off" : {
+
     },
     "Out" : {
       "localizations" : {
@@ -8594,6 +8825,9 @@
       }
     },
     "PAID IN %@" : {
+
+    },
+    "Paid in full" : {
 
     },
     "PAID IN FULL" : {
@@ -8838,6 +9072,9 @@
         }
       }
     },
+    "Permits, supplier slips, and other files for this job." : {
+
+    },
     "Personal" : {
 
     },
@@ -8922,6 +9159,12 @@
       }
     },
     "Photo" : {
+
+    },
+    "Photos" : {
+
+    },
+    "Pictures of the finished work." : {
 
     },
     "Please try again in a moment. If it keeps happening, make sure your device has some free storage space." : {
@@ -9182,6 +9425,9 @@
         }
       }
     },
+    "Project" : {
+
+    },
     "PROJECT" : {
       "localizations" : {
         "ca" : {
@@ -9221,6 +9467,12 @@
           }
         }
       }
+    },
+    "Project name" : {
+
+    },
+    "Project total" : {
+
     },
     "Pull a name, business, phone, email, and address from your phone's contacts." : {
 
@@ -9496,6 +9748,9 @@
         }
       }
     },
+    "Record the outstanding %@ to issue the completion package." : {
+
+    },
     "Record this paycheck" : {
 
     },
@@ -9682,6 +9937,9 @@
     "Remove document" : {
 
     },
+    "Remove from project" : {
+
+    },
     "Remove group" : {
       "localizations" : {
         "ca" : {
@@ -9729,6 +9987,18 @@
 
     },
     "Remove W-9" : {
+
+    },
+    "Rename" : {
+
+    },
+    "Rename project" : {
+
+    },
+    "Repeats" : {
+
+    },
+    "Repeats every year" : {
 
     },
     "Replace COI" : {
@@ -10087,9 +10357,6 @@
     "Schedule" : {
 
     },
-    "Schedule a job" : {
-
-    },
     "Schedule anyway" : {
 
     },
@@ -10099,13 +10366,46 @@
     "Schedule Job" : {
 
     },
+    "Scheduled" : {
+
+    },
     "Scheduling" : {
 
     },
     "Scope changes" : {
 
     },
+    "Search activity" : {
+
+    },
+    "Search change orders" : {
+
+    },
+    "Search customers" : {
+
+    },
+    "Search employees" : {
+
+    },
+    "Search estimates" : {
+
+    },
     "Search for an address" : {
+
+    },
+    "Search hours" : {
+
+    },
+    "Search invoices" : {
+
+    },
+    "Search jobs" : {
+
+    },
+    "Search paychecks" : {
+
+    },
+    "Search subcontractors" : {
 
     },
     "Search vendor, customer, notes" : {
@@ -10187,6 +10487,9 @@
           }
         }
       }
+    },
+    "Select a customer" : {
+
     },
     "Select a Customer" : {
       "localizations" : {
@@ -10360,6 +10663,9 @@
         }
       }
     },
+    "Service address" : {
+
+    },
     "Service Address" : {
       "localizations" : {
         "ca" : {
@@ -10484,6 +10790,9 @@
         }
       }
     },
+    "Set an agreed price" : {
+
+    },
     "Set an item to Credit to subtract for removed work." : {
 
     },
@@ -10526,6 +10835,9 @@
           }
         }
       }
+    },
+    "Set your workdays and hours, the holidays you take off, and any time off — these drive your next available date and the gaps between jobs." : {
+
     },
     "Settings" : {
       "localizations" : {
@@ -10639,6 +10951,12 @@
 
     },
     "Something went wrong getting that address. Pick another, or type it in by hand." : {
+
+    },
+    "Source" : {
+
+    },
+    "Specific-date overrides" : {
 
     },
     "sq ft" : {
@@ -10804,7 +11122,13 @@
     "SSN" : {
 
     },
+    "Start" : {
+
+    },
     "Start date" : {
+
+    },
+    "Start time" : {
 
     },
     "Start typing a street address to see suggestions." : {
@@ -10854,6 +11178,7 @@
 
     },
     "Stats" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -11362,6 +11687,12 @@
           }
         }
       }
+    },
+    "Tap + to schedule a job for %@." : {
+
+    },
+    "Tap an opening to schedule a job in it." : {
+
     },
     "Tax" : {
       "localizations" : {
@@ -11917,13 +12248,28 @@
     "This %@ was removed" : {
 
     },
+    "This certifies the work above was completed and paid in full. Any warranty coverage begins from the completion date shown." : {
+
+    },
     "This change" : {
+
+    },
+    "This day" : {
 
     },
     "This document hasn't been uploaded yet." : {
 
     },
+    "This overlaps a job you’ve already booked." : {
+
+    },
     "This year" : {
+
+    },
+    "Time" : {
+
+    },
+    "Time off" : {
 
     },
     "To" : {
@@ -12010,6 +12356,9 @@
       }
     },
     "Total expenses" : {
+
+    },
+    "TOTAL PAID" : {
 
     },
     "Trust / Estate" : {
@@ -12197,6 +12546,9 @@
     "Unlock your saved signature." : {
 
     },
+    "until %@" : {
+
+    },
     "Untitled estimate" : {
 
     },
@@ -12382,6 +12734,9 @@
     "Use Passcode" : {
 
     },
+    "Vacation or any stretch you’re unavailable. These days are skipped just like holidays." : {
+
+    },
     "Valid until" : {
       "localizations" : {
         "ca" : {
@@ -12508,6 +12863,12 @@
     "View gaps" : {
 
     },
+    "View source estimate" : {
+
+    },
+    "View source invoice" : {
+
+    },
     "W-9" : {
 
     },
@@ -12520,7 +12881,13 @@
     "Warns you before you double-book a day." : {
 
     },
+    "Warranty" : {
+
+    },
     "Weekly" : {
+
+    },
+    "What is the job?" : {
 
     },
     "What is this?" : {
@@ -12692,10 +13059,19 @@
     "Work date" : {
 
     },
-    "Workday" : {
+    "Work or block a single date — e.g. work this Saturday 9–1, or take a specific Tuesday off. Overrides win over everything else." : {
+
+    },
+    "Work schedule" : {
+
+    },
+    "Work Schedule" : {
 
     },
     "Workdays" : {
+
+    },
+    "Workdays & hours" : {
 
     },
     "Workers' Comp Exemption" : {
@@ -12853,6 +13229,9 @@
 
     },
     "Your W-9 already uses the business name and address from My Company. To complete it, just add:" : {
+
+    },
+    "Your warranty terms" : {
 
     },
     "ZIP" : {

@@ -21,19 +21,48 @@ struct AddressSearchResult {
     var state: String
     var postalCode: String
 
-    /// Join a house number and street name into one line (either part may be missing). Pure + testable.
-    nonisolated static func streetLine(number: String?, street: String?) -> String {
-        [number, street]
-            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
+    nonisolated init(fullAddress: String) {
+        let parsed = Self.parse(fullAddress: fullAddress)
+        street1 = parsed.street
+        city = parsed.city
+        state = parsed.state
+        postalCode = parsed.postalCode
     }
 
-    init(placemark: MKPlacemark) {
-        street1 = Self.streetLine(number: placemark.subThoroughfare, street: placemark.thoroughfare)
-        city = placemark.locality ?? ""
-        state = placemark.administrativeArea ?? ""
-        postalCode = placemark.postalCode ?? ""
+    /// Split a MapKit `fullAddress` ("123 Main St, Springfield, FL 32308, United States") into form
+    /// fields. iOS 26 retired `MKPlacemark`'s structured properties, so we parse the formatted string:
+    /// work from the end (country → "STATE ZIP" → city → whatever's left is the street) so a multi-part
+    /// street like "123 Main St, Apt 4" stays intact. Pure + testable.
+    nonisolated static func parse(fullAddress: String) -> (street: String, city: String, state: String, postalCode: String) {
+        var parts = fullAddress
+            .components(separatedBy: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        // Trailing country, if MapKit included one.
+        if let last = parts.last,
+           ["united states", "usa", "united states of america"].contains(last.lowercased()) {
+            parts.removeLast()
+        }
+
+        // "FL 32308" / "FL 32308-1234" / "FL" / a bare "32308" normally sits last.
+        var state = ""
+        var postalCode = ""
+        if let last = parts.last {
+            let tokens = last.split(separator: " ").map(String.init)
+            if let first = tokens.first, first.count == 2, first.allSatisfy(\.isLetter) {
+                state = first.uppercased()
+                postalCode = tokens.dropFirst().first { $0.contains(where: \.isNumber) } ?? ""
+                parts.removeLast()
+            } else if tokens.count == 1, last.allSatisfy(\.isNumber) {
+                postalCode = last
+                parts.removeLast()
+            }
+        }
+
+        // Of what remains, the last piece is the city and everything before it is the street.
+        let city = parts.count >= 2 ? parts.removeLast() : ""
+        return (parts.joined(separator: ", "), city, state, postalCode)
     }
 }
 
@@ -184,8 +213,11 @@ struct AddressSearchSheet: View {
         Task {
             do {
                 let response = try await MKLocalSearch(request: .init(completion: suggestion)).start()
-                guard let placemark = response.mapItems.first?.placemark else { lookupFailed = true; return }
-                onSelect(AddressSearchResult(placemark: placemark))
+                // iOS 26 retired MKMapItem.placemark; read the formatted address and parse it.
+                guard let fullAddress = response.mapItems.first?.address?.fullAddress else {
+                    lookupFailed = true; return
+                }
+                onSelect(AddressSearchResult(fullAddress: fullAddress))
                 dismiss()
             } catch {
                 lookupFailed = true
