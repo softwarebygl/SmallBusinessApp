@@ -113,7 +113,7 @@ struct CompanyDetailsScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button { showingEdit = true } label: { Label("Edit details", systemImage: "pencil") }
+                    Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
                 } label: {
                     Image(systemName: "ellipsis")
                 }

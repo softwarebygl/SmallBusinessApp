@@ -56,7 +56,7 @@ struct SubcontractorDetailsScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button { showingEdit = true } label: { Label("Edit subcontractor", systemImage: "pencil") }
+                    Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
                 } label: {
                     Image(systemName: "ellipsis")
                 }

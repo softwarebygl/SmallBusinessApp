@@ -25,6 +25,7 @@ struct CustomerDetailScreen: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var imageToCrop: CroppableImage?
     @State private var photoLoadFailed = false
+    @State private var showingEdit = false
     @State private var showingSaveToContacts = false
     @State private var showingCOIImporter = false
     @State private var coiUploadFailed = false
@@ -54,6 +55,9 @@ struct CustomerDetailScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    Button { showingEdit = true } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
                     Button { showingSaveToContacts = true } label: {
                         Label("Save to Contacts", systemImage: "person.crop.circle.badge.plus")
                     }
@@ -107,6 +111,9 @@ struct CustomerDetailScreen: View {
             if let profile = profiles.first {
                 ContractorPackageSheet(customer: customer, profile: profile)
             }
+        }
+        .navigationDestination(isPresented: $showingEdit) {
+            CustomerFormScreen(editing: customer)
         }
     }
 

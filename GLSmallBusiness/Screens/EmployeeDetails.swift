@@ -57,7 +57,7 @@ struct EmployeeDetailsScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button { showingEdit = true } label: { Label("Edit employee", systemImage: "pencil") }
+                    Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
                 } label: {
                     Image(systemName: "ellipsis")
                 }

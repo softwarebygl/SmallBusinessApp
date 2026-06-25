@@ -84,7 +84,7 @@ struct InvoiceDetailScreen: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Section {
-                        Button { showingEdit = true } label: { Label("Edit invoice", systemImage: "pencil") }
+                        Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
                         Button { showingSchedule = true } label: { Label("Schedule", systemImage: "calendar.badge.plus") }
                         Button { showingRecordPayment = true } label: { Label("Record payment", systemImage: "dollarsign.circle") }
                         Button { showingSetAmountDue = true } label: { Label("Set amount due", systemImage: "banknote") }

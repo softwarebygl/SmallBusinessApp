@@ -21,6 +21,7 @@ struct MyPersonalInfoScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Query private var profiles: [UserProfile]
     @State private var showingSignature = false
+    @State private var showingEdit = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -35,9 +36,24 @@ struct MyPersonalInfoScreen: View {
         .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
         .navigationTitle("My Personal Info")
         .toolbarTitleDisplayMode(.large)   // navigational hub — large to match the rest of the chain
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("More")
+            }
+        }
         .sheet(isPresented: $showingSignature) {
             if let profile = profiles.first {
                 SignatureEditorSheet(profile: profile).glAppearance(colorScheme)
+            }
+        }
+        .navigationDestination(isPresented: $showingEdit) {
+            if let profile = profiles.first {
+                MyPersonalInfoFormScreen(profile: profile)
             }
         }
     }
@@ -137,7 +153,7 @@ struct PersonalDetailsScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button { showingEdit = true } label: { Label("Edit details", systemImage: "pencil") }
+                    Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
                 } label: {
                     Image(systemName: "ellipsis")
                 }

@@ -25,6 +25,7 @@ struct SubcontractorDetailScreen: View {
     }
 
     @State private var activeSheet: ActiveSheet?
+    @State private var showingEdit = false
     @State private var showingSaveToContacts = false
     @State private var photoItem: PhotosPickerItem?
     @State private var imageToCrop: CroppableImage?
@@ -74,6 +75,9 @@ struct SubcontractorDetailScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    Button { showingEdit = true } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
                     Button { showingSaveToContacts = true } label: {
                         Label("Save to Contacts", systemImage: "person.crop.circle.badge.plus")
                     }
@@ -92,6 +96,9 @@ struct SubcontractorDetailScreen: View {
             case .allActivity:
                 AllActivitySheet(subcontractor: subcontractor)
             }
+        }
+        .navigationDestination(isPresented: $showingEdit) {
+            SubcontractorFormScreen(editing: subcontractor)
         }
         .sheet(isPresented: $showingSaveToContacts) {
             NewContactView(contact: ContactsBridge.contact(from: subcontractor)) { showingSaveToContacts = false }

@@ -26,6 +26,7 @@ struct EmployeeDetailScreen: View {
     }
 
     @State private var activeSheet: ActiveSheet?
+    @State private var showingEdit = false
     @State private var showingSaveToContacts = false
     @State private var photoItem: PhotosPickerItem?
     @State private var imageToCrop: CroppableImage?
@@ -79,6 +80,9 @@ struct EmployeeDetailScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    Button { showingEdit = true } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
                     Button { showingSaveToContacts = true } label: {
                         Label("Save to Contacts", systemImage: "person.crop.circle.badge.plus")
                     }
@@ -99,6 +103,9 @@ struct EmployeeDetailScreen: View {
             case .allPaychecks:
                 AllPaychecksSheet(employee: employee)
             }
+        }
+        .navigationDestination(isPresented: $showingEdit) {
+            EmployeeFormScreen(editing: employee)
         }
         .sheet(isPresented: $showingSaveToContacts) {
             NewContactView(contact: ContactsBridge.contact(from: employee)) { showingSaveToContacts = false }

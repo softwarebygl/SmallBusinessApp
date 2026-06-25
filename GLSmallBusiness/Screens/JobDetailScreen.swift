@@ -70,7 +70,7 @@ struct JobDetailScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button { showingEdit = true } label: { Label("Edit job", systemImage: "pencil") }
+                    Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
                     Menu {
                         ForEach(JobStatus.allCases) { option in
                             Button { setStatus(option) } label: {

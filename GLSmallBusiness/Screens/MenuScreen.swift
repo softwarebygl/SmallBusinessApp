@@ -170,6 +170,7 @@ struct MyCompanyDetailScreen: View {
     @Query private var profiles: [BusinessProfile]
     @State private var activeDocument: BusinessDocument?
     @State private var ensuredProfile = false
+    @State private var showingEdit = false
 
     private enum BusinessDocument: String, Identifiable, Hashable {
         case insurance, taxReport, w9
@@ -198,6 +199,18 @@ struct MyCompanyDetailScreen: View {
         }
         .navigationTitle("My Business Details")
         .toolbarTitleDisplayMode(.large)   // large so Statistics (pushed from here) renders large too
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button { showingEdit = true } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("More")
+            }
+        }
         .navigationDestination(item: $activeDocument) { document in
             if let profile = profiles.first {
                 switch document {
@@ -208,6 +221,11 @@ struct MyCompanyDetailScreen: View {
                 case .w9:
                     W9DocumentSheet(profile: profile)
                 }
+            }
+        }
+        .navigationDestination(isPresented: $showingEdit) {
+            if let profile = profiles.first {
+                MyCompanyFormScreen(profile: profile)
             }
         }
     }

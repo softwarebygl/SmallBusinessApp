@@ -83,7 +83,7 @@ struct EstimateDetailScreen: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Section {
-                        Button { showingEdit = true } label: { Label("Edit estimate", systemImage: "pencil") }
+                        Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
                         if estimate.status == .accepted {
                             Button { showingSchedule = true } label: { Label("Schedule", systemImage: "calendar.badge.plus") }
                         }
