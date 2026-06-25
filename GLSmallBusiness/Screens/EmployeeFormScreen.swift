@@ -4,9 +4,9 @@
 //
 //  Created by Gold Life LLC on 6/21/26.
 //
-//  Add / edit an employee. Mirrors CustomerFormScreen: a Form in a NavigationStack with the
-//  cream `glFormBackground`, Cancel/Save, and an `onSave` callback so a new employee can be
-//  auto-selected on iPad.
+//  Add / edit an employee. Mirrors CustomerFormScreen: a pushed Form with the cream
+//  `glFormBackground`, a trailing Save (the back button replaces Cancel), and an `onSave`
+//  callback so a new employee can be auto-selected on iPad.
 //
 
 import SwiftUI
@@ -55,96 +55,93 @@ struct EmployeeFormScreen: View {
     private var isValid: Bool { !trim(firstName).isEmpty || !trim(lastName).isEmpty }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                if editing == nil {
-                    Section {
-                        HStack {
-                            Button { showingContactPicker = true } label: {
-                                Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
-                            }
-                            .buttonStyle(.borderless)
-                            Spacer()
-                            InfoButton(text: "Pull a name, phone, and email straight from your phone's contacts.")
+        Form {
+            if editing == nil {
+                Section {
+                    HStack {
+                        Button { showingContactPicker = true } label: {
+                            Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
                         }
+                        .buttonStyle(.borderless)
+                        Spacer()
+                        InfoButton(text: "Pull a name, phone, and email straight from your phone's contacts.")
                     }
-                }
-
-                Section("Name") {
-                    TextField("First name", text: $firstName)
-                        .textContentType(.givenName)
-                    TextField("Last name", text: $lastName)
-                        .textContentType(.familyName)
-                }
-
-                Section("Contact") {
-                    TextField("Email", text: $email)
-                        .textContentType(.emailAddress)
-                        #if !os(macOS)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        #endif
-                    TextField("Phone", text: $phone)
-                        .textContentType(.telephoneNumber)
-                        #if !os(macOS)
-                        .keyboardType(.phonePad)
-                        #endif
-                }
-
-                Section("Pay") {
-                    Picker("Pay type", selection: $payType) {
-                        ForEach(PayType.allCases) { Text($0.label).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-
-                    if payType == .hourly {
-                        LabeledContent("Hourly rate") {
-                            AutoClearNumberField(placeholder: "$0.00", value: $hourlyRate, style: .currency)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    } else {
-                        LabeledContent("Annual salary") {
-                            AutoClearNumberField(placeholder: "$0", value: $annualSalary, style: .currency)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-
-                    Picker("Pays", selection: $payFrequency) {
-                        ForEach(PayFrequency.allCases) { Text($0.label).tag($0) }
-                    }
-                    DatePicker("Next payday", selection: $anchorPayday, displayedComponents: .date)
-                }
-
-                Section("Employment") {
-                    DatePicker("Hire date", selection: $hireDate, displayedComponents: .date)
-                    Toggle("Active", isOn: $isActive)
-                }
-
-                Section("Notes") {
-                    TextField("Notes (optional)", text: $notes, axis: .vertical)
-                        .lineLimit(2...6)
                 }
             }
-            .glFormBackground()
-            .sheet(isPresented: $showingContactPicker) {
-                ContactPickerView { contact in
-                    let draft = ContactsBridge.draft(from: contact)
-                    firstName = draft.firstName; lastName = draft.lastName
-                    email = draft.email; phone = draft.phoneNumber
-                    showingContactPicker = false
-                } onCancel: {
-                    showingContactPicker = false
-                }
-                .ignoresSafeArea()
+
+            Section("Name") {
+                TextField("First name", text: $firstName)
+                    .textContentType(.givenName)
+                TextField("Last name", text: $lastName)
+                    .textContentType(.familyName)
             }
-            .navigationTitle(editing == nil ? "New Employee" : "Edit Employee")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: !isValid, action: save)
+
+            Section("Contact") {
+                TextField("Email", text: $email)
+                    .textContentType(.emailAddress)
+                    #if !os(macOS)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
+                TextField("Phone", text: $phone)
+                    .textContentType(.telephoneNumber)
+                    #if !os(macOS)
+                    .keyboardType(.phonePad)
+                    #endif
+            }
+
+            Section("Pay") {
+                Picker("Pay type", selection: $payType) {
+                    ForEach(PayType.allCases) { Text($0.label).tag($0) }
                 }
+                .pickerStyle(.segmented)
+
+                if payType == .hourly {
+                    LabeledContent("Hourly rate") {
+                        AutoClearNumberField(placeholder: "$0.00", value: $hourlyRate, style: .currency)
+                            .multilineTextAlignment(.trailing)
+                    }
+                } else {
+                    LabeledContent("Annual salary") {
+                        AutoClearNumberField(placeholder: "$0", value: $annualSalary, style: .currency)
+                            .multilineTextAlignment(.trailing)
+                    }
+                }
+
+                Picker("Pays", selection: $payFrequency) {
+                    ForEach(PayFrequency.allCases) { Text($0.label).tag($0) }
+                }
+                DatePicker("Next payday", selection: $anchorPayday, displayedComponents: .date)
+            }
+
+            Section("Employment") {
+                DatePicker("Hire date", selection: $hireDate, displayedComponents: .date)
+                Toggle("Active", isOn: $isActive)
+            }
+
+            Section("Notes") {
+                TextField("Notes (optional)", text: $notes, axis: .vertical)
+                    .lineLimit(2...6)
+            }
+        }
+        .glFormBackground()
+        .sheet(isPresented: $showingContactPicker) {
+            ContactPickerView { contact in
+                let draft = ContactsBridge.draft(from: contact)
+                firstName = draft.firstName; lastName = draft.lastName
+                email = draft.email; phone = draft.phoneNumber
+                showingContactPicker = false
+            } onCancel: {
+                showingContactPicker = false
+            }
+            .ignoresSafeArea()
+        }
+        .navigationTitle(editing == nil ? "New Employee" : "Edit Employee")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                SaveOnceButton(disabled: !isValid, action: save)
             }
         }
     }

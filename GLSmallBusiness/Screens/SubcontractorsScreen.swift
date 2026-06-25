@@ -62,8 +62,8 @@ struct SubcontractorsScreen: View {
             .navigationTitle("Subcontractors")
             .navigationDestination(for: Subcontractor.self) { SubcontractorDetailScreen(subcontractor: $0) }
             .toolbar { toolbar }
-            .sheet(isPresented: $showingAdd) {
-                SubcontractorFormScreen { saved in path.append(saved) }.glAppearance(colorScheme)
+            .navigationDestination(isPresented: $showingAdd) {
+                SubcontractorFormScreen { saved in path.append(saved) }
             }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
             .onAppear { regenerateExport() }

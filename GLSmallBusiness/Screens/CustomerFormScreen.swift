@@ -54,91 +54,86 @@ struct CustomerFormScreen: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                if editing == nil {
-                    Section {
-                        HStack {
-                            Button {
-                                showingContactPicker = true
-                            } label: {
-                                Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
-                            }
-                            .buttonStyle(.borderless)
-                            Spacer()
-                            InfoButton(text: "Pull a name, phone, email, and address straight from your phone's contacts.")
+        Form {
+            if editing == nil {
+                Section {
+                    HStack {
+                        Button {
+                            showingContactPicker = true
+                        } label: {
+                            Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
                         }
+                        .buttonStyle(.borderless)
+                        Spacer()
+                        InfoButton(text: "Pull a name, phone, email, and address straight from your phone's contacts.")
                     }
                 }
+            }
 
-                Section("Name") {
-                    TextField("First name", text: $firstName)
-                        .textContentType(.givenName)
-                    TextField("Middle name (optional)", text: $middleName)
-                        .textContentType(.middleName)
-                    TextField("Last name", text: $lastName)
-                        .textContentType(.familyName)
-                }
-                Section("Business") {
-                    TextField("Business name (optional)", text: $businessName)
-                        .textContentType(.organizationName)
-                }
-                Section("Contact") {
-                    TextField("Email", text: $email)
-                        .textContentType(.emailAddress)
-                        #if !os(macOS)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        #endif
-                    TextField("Phone", text: $phoneNumber)
-                        .textContentType(.telephoneNumber)
-                        #if !os(macOS)
-                        .keyboardType(.phonePad)
-                        #endif
-                    TextField("Office number (optional)", text: $officePhone)
-                        .textContentType(.telephoneNumber)
-                        #if !os(macOS)
-                        .keyboardType(.phonePad)
-                        #endif
-                }
-                Section("Address") {
-                    AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)
-                    TextField("Street", text: $street1)
-                        .textContentType(.streetAddressLine1)
-                    TextField("Apt / Suite (optional)", text: $street2)
-                        .textContentType(.streetAddressLine2)
-                    TextField("City", text: $city)
-                        .textContentType(.addressCity)
-                    TextField("State", text: $state)
-                        .textContentType(.addressState)
-                        .textInputAutocapitalization(.characters)
-                    TextField("Postal code", text: $postalCode)
-                        .textContentType(.postalCode)
-                        #if !os(macOS)
-                        .keyboardType(.numberPad)
-                        #endif
-                }
+            Section("Name") {
+                TextField("First name", text: $firstName)
+                    .textContentType(.givenName)
+                TextField("Middle name (optional)", text: $middleName)
+                    .textContentType(.middleName)
+                TextField("Last name", text: $lastName)
+                    .textContentType(.familyName)
             }
-            .glFormBackground()
-            .sheet(isPresented: $showingContactPicker) {
-                ContactPickerView { contact in
-                    fill(from: ContactsBridge.draft(from: contact))
-                    showingContactPicker = false
-                } onCancel: {
-                    showingContactPicker = false
-                }
-                .ignoresSafeArea()
+            Section("Business") {
+                TextField("Business name (optional)", text: $businessName)
+                    .textContentType(.organizationName)
             }
-            .navigationTitle(editing == nil ? "New Customer" : "Edit Customer")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: !isValid, action: save)
-                }
+            Section("Contact") {
+                TextField("Email", text: $email)
+                    .textContentType(.emailAddress)
+                    #if !os(macOS)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
+                TextField("Phone", text: $phoneNumber)
+                    .textContentType(.telephoneNumber)
+                    #if !os(macOS)
+                    .keyboardType(.phonePad)
+                    #endif
+                TextField("Office number (optional)", text: $officePhone)
+                    .textContentType(.telephoneNumber)
+                    #if !os(macOS)
+                    .keyboardType(.phonePad)
+                    #endif
+            }
+            Section("Address") {
+                AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)
+                TextField("Street", text: $street1)
+                    .textContentType(.streetAddressLine1)
+                TextField("Apt / Suite (optional)", text: $street2)
+                    .textContentType(.streetAddressLine2)
+                TextField("City", text: $city)
+                    .textContentType(.addressCity)
+                TextField("State", text: $state)
+                    .textContentType(.addressState)
+                    .textInputAutocapitalization(.characters)
+                TextField("Postal code", text: $postalCode)
+                    .textContentType(.postalCode)
+                    #if !os(macOS)
+                    .keyboardType(.numberPad)
+                    #endif
+            }
+        }
+        .glFormBackground()
+        .sheet(isPresented: $showingContactPicker) {
+            ContactPickerView { contact in
+                fill(from: ContactsBridge.draft(from: contact))
+                showingContactPicker = false
+            } onCancel: {
+                showingContactPicker = false
+            }
+            .ignoresSafeArea()
+        }
+        .navigationTitle(editing == nil ? "New Customer" : "Edit Customer")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                SaveOnceButton(disabled: !isValid, action: save)
             }
         }
     }

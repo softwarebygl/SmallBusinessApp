@@ -76,7 +76,7 @@ struct CustomersScreen: View {
                 CustomerDetailScreen(customer: customer)
             }
             .toolbar { customerStackToolbar }
-            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance(colorScheme) }
+            .navigationDestination(isPresented: $showingAddSheet) { CustomerFormScreen() }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
         }
     }
@@ -102,7 +102,7 @@ struct CustomersScreen: View {
             .modifier(CustomerListChrome(showsMonogram: false))
             .searchable(text: $searchText, prompt: "Search customers")
             .toolbar { customerToolbar }
-            .sheet(isPresented: $showingAddSheet) { CustomerFormScreen().glAppearance(colorScheme) }
+            .navigationDestination(isPresented: $showingAddSheet) { CustomerFormScreen() }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
         } detail: {
             NavigationStack {

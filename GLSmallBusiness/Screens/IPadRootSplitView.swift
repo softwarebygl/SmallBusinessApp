@@ -141,15 +141,6 @@ struct IPadRootSplitView: View {
             detail
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
-        .sheet(isPresented: $showingAddCustomer) { CustomerFormScreen().glAppearance(colorScheme) }
-        .sheet(isPresented: $showingAddEmployee) {
-            EmployeeFormScreen { saved in selectedEmployeeID = saved.persistentModelID }
-                .glAppearance(colorScheme)
-        }
-        .sheet(isPresented: $showingAddSubcontractor) {
-            SubcontractorFormScreen { saved in selectedSubcontractorID = saved.persistentModelID }
-                .glAppearance(colorScheme)
-        }
         #if DEBUG
         .onAppear { selectDemoCustomerIfNeeded(); selectDemoEmployeeIfNeeded(); selectDemoSubcontractorIfNeeded() }
         .onChange(of: customers.count) { _, _ in selectDemoCustomerIfNeeded() }
@@ -325,6 +316,9 @@ private struct CustomerListColumn: View {
                     .accessibilityLabel("Add Customer")
             }
         }
+        .navigationDestination(isPresented: $showingAdd) {
+            CustomerFormScreen { saved in selection = saved.persistentModelID }
+        }
     }
 
     private func row(_ customer: Customer) -> some View {
@@ -391,6 +385,9 @@ private struct EmployeeListColumn: View {
                 Button { showingAdd = true } label: { Image(systemName: "plus") }
                     .accessibilityLabel("Add Employee")
             }
+        }
+        .navigationDestination(isPresented: $showingAdd) {
+            EmployeeFormScreen { saved in selection = saved.persistentModelID }
         }
     }
 
@@ -482,6 +479,9 @@ private struct SubcontractorListColumn: View {
                 Button { showingAdd = true } label: { Image(systemName: "plus") }
                     .accessibilityLabel("Add Subcontractor")
             }
+        }
+        .navigationDestination(isPresented: $showingAdd) {
+            SubcontractorFormScreen { saved in selection = saved.persistentModelID }
         }
     }
 

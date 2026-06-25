@@ -62,8 +62,8 @@ struct EmployeesScreen: View {
             .navigationTitle("Employees")
             .navigationDestination(for: Employee.self) { EmployeeDetailScreen(employee: $0) }
             .toolbar { toolbar }
-            .sheet(isPresented: $showingAdd) {
-                EmployeeFormScreen { saved in path.append(saved) }.glAppearance(colorScheme)
+            .navigationDestination(isPresented: $showingAdd) {
+                EmployeeFormScreen { saved in path.append(saved) }
             }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
             .onAppear { regenerateExport() }

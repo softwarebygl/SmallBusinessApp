@@ -4,8 +4,9 @@
 //
 //  Created by Gold Life LLC on 6/21/26.
 //
-//  Add / edit a subcontractor. Mirrors EmployeeFormScreen / CustomerFormScreen: a Form in a
-//  NavigationStack with the cream background, Cancel/Save, and an onSave callback (iPad auto-select).
+//  Add / edit a subcontractor. Mirrors EmployeeFormScreen / CustomerFormScreen: a pushed Form
+//  with the cream background, a trailing Save (the back button replaces Cancel), and an onSave
+//  callback (iPad auto-select).
 //  Tax details (W-9 / TIN) come in the tax-document round.
 //
 
@@ -70,122 +71,119 @@ struct SubcontractorFormScreen: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                if editing == nil {
-                    Section {
-                        HStack {
-                            Button { showingContactPicker = true } label: {
-                                Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
-                            }
-                            .buttonStyle(.borderless)
-                            Spacer()
-                            InfoButton(text: "Pull a name, business, phone, email, and address from your phone's contacts.")
+        Form {
+            if editing == nil {
+                Section {
+                    HStack {
+                        Button { showingContactPicker = true } label: {
+                            Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
                         }
+                        .buttonStyle(.borderless)
+                        Spacer()
+                        InfoButton(text: "Pull a name, business, phone, email, and address from your phone's contacts.")
                     }
-                }
-                Section("Name") {
-                    TextField("First name", text: $firstName)
-                        .textContentType(.givenName)
-                    TextField("Last name", text: $lastName)
-                        .textContentType(.familyName)
-                }
-                Section("Business") {
-                    TextField("Business name (optional)", text: $businessName)
-                        .textContentType(.organizationName)
-                }
-                Section("Contact") {
-                    TextField("Email", text: $email)
-                        .textContentType(.emailAddress)
-                        #if !os(macOS)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        #endif
-                    TextField("Phone", text: $phone)
-                        .textContentType(.telephoneNumber)
-                        #if !os(macOS)
-                        .keyboardType(.phonePad)
-                        #endif
-                }
-                Section("Address") {
-                    AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)
-                    TextField("Street", text: $street1)
-                        .textContentType(.streetAddressLine1)
-                    TextField("Apt / Suite (optional)", text: $street2)
-                        .textContentType(.streetAddressLine2)
-                    TextField("City", text: $city)
-                        .textContentType(.addressCity)
-                    TextField("State", text: $state)
-                        .textContentType(.addressState)
-                        .textInputAutocapitalization(.characters)
-                    TextField("Postal code", text: $postalCode)
-                        .textContentType(.postalCode)
-                        #if !os(macOS)
-                        .keyboardType(.numberPad)
-                        #endif
-                }
-                Section {
-                    LabeledContent("Hourly rate") {
-                        AutoClearNumberField(placeholder: "$0.00", value: $hourlyRate, style: .currency)
-                            .multilineTextAlignment(.trailing)
-                    }
-                } header: {
-                    InfoLabel("Pay rate", info: "Optional. If set, you can log what you owe as “hours × rate.” Leave at $0 to enter flat amounts.")
-                }
-                Section {
-                    Picker("Taxpayer ID type", selection: $w9TINType) {
-                        Text("Select…").tag(W9TINType?.none)
-                        ForEach(W9TINType.allCases) { Text($0.label).tag(W9TINType?.some($0)) }
-                    }
-                    .onChange(of: w9TINType) { _, _ in w9TIN = "" }
-                    LabeledContent(w9TINType?.label ?? String(localized: "Tax ID")) {
-                        TINField(kind: w9TINType, text: $w9TIN)
-                    }
-                } header: {
-                    InfoLabel("Tax details (for their 1099-NEC)", info: "Optional. The SSN/EIN from the W-9 they gave you. Stored securely in your Keychain, not the synced database — used to generate their 1099-NEC.")
-                }
-                Section {
-                    Toggle("Active", isOn: $isActive)
-                }
-                Section("Notes") {
-                    TextField("Notes (optional)", text: $notes, axis: .vertical)
-                        .lineLimit(2...6)
                 }
             }
-            .glFormBackground()
-            .sheet(isPresented: $showingContactPicker) {
-                ContactPickerView { contact in
-                    let draft = ContactsBridge.draft(from: contact)
-                    firstName = draft.firstName; lastName = draft.lastName
-                    businessName = draft.businessName
-                    email = draft.email; phone = draft.phoneNumber
-                    street1 = draft.street1; street2 = draft.street2
-                    city = draft.city; state = draft.state; postalCode = draft.postalCode
-                    showingContactPicker = false
-                } onCancel: {
-                    showingContactPicker = false
+            Section("Name") {
+                TextField("First name", text: $firstName)
+                    .textContentType(.givenName)
+                TextField("Last name", text: $lastName)
+                    .textContentType(.familyName)
+            }
+            Section("Business") {
+                TextField("Business name (optional)", text: $businessName)
+                    .textContentType(.organizationName)
+            }
+            Section("Contact") {
+                TextField("Email", text: $email)
+                    .textContentType(.emailAddress)
+                    #if !os(macOS)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
+                TextField("Phone", text: $phone)
+                    .textContentType(.telephoneNumber)
+                    #if !os(macOS)
+                    .keyboardType(.phonePad)
+                    #endif
+            }
+            Section("Address") {
+                AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)
+                TextField("Street", text: $street1)
+                    .textContentType(.streetAddressLine1)
+                TextField("Apt / Suite (optional)", text: $street2)
+                    .textContentType(.streetAddressLine2)
+                TextField("City", text: $city)
+                    .textContentType(.addressCity)
+                TextField("State", text: $state)
+                    .textContentType(.addressState)
+                    .textInputAutocapitalization(.characters)
+                TextField("Postal code", text: $postalCode)
+                    .textContentType(.postalCode)
+                    #if !os(macOS)
+                    .keyboardType(.numberPad)
+                    #endif
+            }
+            Section {
+                LabeledContent("Hourly rate") {
+                    AutoClearNumberField(placeholder: "$0.00", value: $hourlyRate, style: .currency)
+                        .multilineTextAlignment(.trailing)
                 }
-                .ignoresSafeArea()
+            } header: {
+                InfoLabel("Pay rate", info: "Optional. If set, you can log what you owe as “hours × rate.” Leave at $0 to enter flat amounts.")
             }
-            .navigationTitle(editing == nil ? "New Subcontractor" : "Edit Subcontractor")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        guard !isSaving else { return }
-                        isSaving = true
-                        save()
-                    }
-                    .disabled(!isValid || isSaving)
+            Section {
+                Picker("Taxpayer ID type", selection: $w9TINType) {
+                    Text("Select…").tag(W9TINType?.none)
+                    ForEach(W9TINType.allCases) { Text($0.label).tag(W9TINType?.some($0)) }
                 }
+                .onChange(of: w9TINType) { _, _ in w9TIN = "" }
+                LabeledContent(w9TINType?.label ?? String(localized: "Tax ID")) {
+                    TINField(kind: w9TINType, text: $w9TIN)
+                }
+            } header: {
+                InfoLabel("Tax details (for their 1099-NEC)", info: "Optional. The SSN/EIN from the W-9 they gave you. Stored securely in your Keychain, not the synced database — used to generate their 1099-NEC.")
             }
-            .alert("Couldn’t save their Tax ID", isPresented: $tinSaveFailed) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Their other details were saved, but the Tax ID wasn’t. Make sure your device is unlocked, then tap Save again.")
+            Section {
+                Toggle("Active", isOn: $isActive)
             }
+            Section("Notes") {
+                TextField("Notes (optional)", text: $notes, axis: .vertical)
+                    .lineLimit(2...6)
+            }
+        }
+        .glFormBackground()
+        .sheet(isPresented: $showingContactPicker) {
+            ContactPickerView { contact in
+                let draft = ContactsBridge.draft(from: contact)
+                firstName = draft.firstName; lastName = draft.lastName
+                businessName = draft.businessName
+                email = draft.email; phone = draft.phoneNumber
+                street1 = draft.street1; street2 = draft.street2
+                city = draft.city; state = draft.state; postalCode = draft.postalCode
+                showingContactPicker = false
+            } onCancel: {
+                showingContactPicker = false
+            }
+            .ignoresSafeArea()
+        }
+        .navigationTitle(editing == nil ? "New Subcontractor" : "Edit Subcontractor")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    guard !isSaving else { return }
+                    isSaving = true
+                    save()
+                }
+                .disabled(!isValid || isSaving)
+            }
+        }
+        .alert("Couldn’t save their Tax ID", isPresented: $tinSaveFailed) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Their other details were saved, but the Tax ID wasn’t. Make sure your device is unlocked, then tap Save again.")
         }
     }
 

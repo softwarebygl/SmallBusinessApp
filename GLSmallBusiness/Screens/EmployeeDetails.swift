@@ -64,8 +64,8 @@ struct EmployeeDetailsScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .sheet(isPresented: $showingEdit) {
-            EmployeeFormScreen(editing: employee).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingEdit) {
+            EmployeeFormScreen(editing: employee)
         }
     }
 

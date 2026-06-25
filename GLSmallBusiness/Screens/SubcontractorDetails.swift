@@ -63,8 +63,8 @@ struct SubcontractorDetailsScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .sheet(isPresented: $showingEdit) {
-            SubcontractorFormScreen(editing: subcontractor).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingEdit) {
+            SubcontractorFormScreen(editing: subcontractor)
         }
     }
 

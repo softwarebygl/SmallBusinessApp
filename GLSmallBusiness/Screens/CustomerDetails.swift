@@ -54,8 +54,8 @@ struct CustomerDetailsScreen: View {
                 .accessibilityLabel("More")
             }
         }
-        .sheet(isPresented: $showingEdit) {
-            CustomerFormScreen(editing: customer).glAppearance(colorScheme)
+        .navigationDestination(isPresented: $showingEdit) {
+            CustomerFormScreen(editing: customer)
         }
     }
 
