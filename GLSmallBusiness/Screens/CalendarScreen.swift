@@ -69,7 +69,10 @@ struct CalendarScreen: View {
         ScrollView {
             VStack(spacing: 18) {
                 banner
-                GLHubRow(title: "All Jobs", systemImage: "hammer") { AllJobsScreen() }
+                if showsMenuButton {
+                    // iPhone shows All Jobs as a row here; on iPad it lives in the split's detail pane.
+                    GLHubRow(title: "All Jobs", systemImage: "hammer") { AllJobsScreen() }
+                }
                 MonthGrid(occupied: SchedulingEngine.occupiedDays(expandedJobs, schedule: schedule), gold: gold)
                 agenda
             }

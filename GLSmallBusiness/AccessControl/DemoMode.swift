@@ -128,15 +128,15 @@ enum DemoSeed {
         // Demo employees: hours (one crosses 40 → over-40 flag), accrued pay, and a recorded paycheck.
         let nextFriday = Calendar.current.nextDate(after: .now, matching: DateComponents(weekday: 6),
                                                    matchingPolicy: .nextTime) ?? .now
-        let emp1 = Employee(firstName: "Jason", lastName: "Garcia", email: "jason.garcia@example.com",
+        let emp1 = Employee(firstName: "Owen", lastName: "Caldwell", email: "owen.caldwell@example.com",
                             phone: "(850) 555-0110", payType: .hourly, hourlyRate: 28,
                             payFrequency: .weekly, anchorPayday: nextFriday,
                             hireDate: .now.addingTimeInterval(-300 * 86_400))
-        let emp2 = Employee(firstName: "Rebecca", lastName: "Grimes", email: "rebecca.grimes@example.com",
+        let emp2 = Employee(firstName: "Hannah", lastName: "Whitfield", email: "hannah.whitfield@example.com",
                             phone: "(850) 555-0121", payType: .hourly, hourlyRate: 24,
                             payFrequency: .biweekly, anchorPayday: nextFriday,
                             hireDate: .now.addingTimeInterval(-540 * 86_400))
-        let emp3 = Employee(firstName: "Devin", lastName: "Odom", email: "devin.odom@example.com",
+        let emp3 = Employee(firstName: "Caleb", lastName: "Fletcher", email: "caleb.fletcher@example.com",
                             phone: "(850) 555-0137", payType: .salary, annualSalary: 62_400,
                             payFrequency: .monthly, anchorPayday: nextFriday,
                             hireDate: .now.addingTimeInterval(-800 * 86_400))

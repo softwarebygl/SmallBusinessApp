@@ -285,7 +285,7 @@ struct IPadRootSplitView: View {
                     BrandPlaceholder(text: String(localized: "Select a Subcontractor"), systemImage: "hammer")
                 }
             case .calendar:
-                BrandPlaceholder(text: "")   // the calendar fills the content column; no detail pane
+                AllJobsScreen()   // iPad: fill the detail pane with All Jobs instead of an empty placeholder
             case nil:
                 BrandPlaceholder(text: "")
             }
