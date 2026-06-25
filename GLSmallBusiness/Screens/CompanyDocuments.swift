@@ -87,45 +87,40 @@ struct YearEndTaxReportSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    summaryPreview
-                    yearControl
-                    Text("Sharing sends two files for \(String(selectedYear)) — this tax summary and a receipts CSV listing every expense. Hand them to your accountant or keep them for your records.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding()
-                .frame(maxWidth: 640)
-                .frame(maxWidth: .infinity)
+        ScrollView {
+            VStack(spacing: 20) {
+                summaryPreview
+                yearControl
+                Text("Sharing sends two files for \(String(selectedYear)) — this tax summary and a receipts CSV listing every expense. Hand them to your accountant or keep them for your records.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             }
-            .background {
-                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
-            }
-            .navigationTitle("Year-End Tax Report")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(role: .close) { dismiss() }
-                }
-                if !files.isEmpty {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        ShareLink(items: files,
-                                  subject: Text("Year-End Tax Report — \(String(selectedYear))"),
-                                  message: Text(DocumentShareText.body(
-                                    "Attached are the \(String(selectedYear)) year-end records: a receipts CSV and a tax summary.",
-                                    from: businessName))) {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        .tint(gold)
-                    }
-                }
-            }
-            .onAppear { regenerate() }
-            .onChange(of: selectedYear) { _, _ in regenerate() }
+            .padding()
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
         }
+        .background {
+            GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+        }
+        .navigationTitle("Year-End Tax Report")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            if !files.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(items: files,
+                              subject: Text("Year-End Tax Report — \(String(selectedYear))"),
+                              message: Text(DocumentShareText.body(
+                                "Attached are the \(String(selectedYear)) year-end records: a receipts CSV and a tax summary.",
+                                from: businessName))) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .tint(gold)
+                }
+            }
+        }
+        .onAppear { regenerate() }
+        .onChange(of: selectedYear) { _, _ in regenerate() }
     }
 
     // MARK: - Preview "paper"
@@ -293,64 +288,59 @@ struct W9DocumentSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if profile.w9IsComplete {
-                        completeContent
-                    } else {
-                        incompleteContent
+        ScrollView {
+            VStack(spacing: 20) {
+                if profile.w9IsComplete {
+                    completeContent
+                } else {
+                    incompleteContent
+                }
+            }
+            .padding()
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
+        }
+        .background {
+            GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
+        }
+        .navigationTitle("Generate a W-9")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            if let pdfURL {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: pdfURL,
+                              subject: Text(profile.businessName.isEmpty ? "Form W-9" : "W-9 — \(profile.businessName)"),
+                              message: Text(DocumentShareText.body(
+                                "Attached is our completed Form W-9.", from: profile.businessName))) {
+                        Image(systemName: "square.and.arrow.up")
                     }
-                }
-                .padding()
-                .frame(maxWidth: 640)
-                .frame(maxWidth: .infinity)
-            }
-            .background {
-                GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea()
-            }
-            .navigationTitle("Generate a W-9")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(role: .close) { dismiss() }
-                }
-                if let pdfURL {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        ShareLink(item: pdfURL,
-                                  subject: Text(profile.businessName.isEmpty ? "Form W-9" : "W-9 — \(profile.businessName)"),
-                                  message: Text(DocumentShareText.body(
-                                    "Attached is our completed Form W-9.", from: profile.businessName))) {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        .tint(gold)
-                    }
+                    .tint(gold)
                 }
             }
-            .onAppear { regenerate() }
-            .onChange(of: inputSignature) { _, _ in regenerate() }
-            .onChange(of: includeSignature) { _, _ in regenerate() }
-            .onChange(of: showingSignatureEditor) { _, isShowing in
-                // React when the signature editor closes. Adding a signature does NOT auto-enable the
-                // toggle — the user opts in with Face ID via the toggle. If they were already unlocked
-                // this session and changed the signature, refresh to the new one; removal resets.
-                guard !isShowing else { return }
-                if userProfiles.first?.signatureData == nil {
-                    includeSignature = false
-                    signatureUnlocked = false
-                    signatureImage = nil
-                } else if signatureUnlocked {
-                    signatureImage = userProfiles.first?.signatureData.flatMap { UIImage(data: $0) }
-                }
-                regenerate()
+        }
+        .onAppear { regenerate() }
+        .onChange(of: inputSignature) { _, _ in regenerate() }
+        .onChange(of: includeSignature) { _, _ in regenerate() }
+        .onChange(of: showingSignatureEditor) { _, isShowing in
+            // React when the signature editor closes. Adding a signature does NOT auto-enable the
+            // toggle — the user opts in with Face ID via the toggle. If they were already unlocked
+            // this session and changed the signature, refresh to the new one; removal resets.
+            guard !isShowing else { return }
+            if userProfiles.first?.signatureData == nil {
+                includeSignature = false
+                signatureUnlocked = false
+                signatureImage = nil
+            } else if signatureUnlocked {
+                signatureImage = userProfiles.first?.signatureData.flatMap { UIImage(data: $0) }
             }
-            .navigationDestination(isPresented: $showingEdit) {
-                MyCompanyFormScreen(profile: profile)
-            }
-            .sheet(isPresented: $showingSignatureEditor) {
-                if let signatureTarget {
-                    SignatureEditorSheet(profile: signatureTarget).glAppearance(colorScheme)
-                }
+            regenerate()
+        }
+        .navigationDestination(isPresented: $showingEdit) {
+            MyCompanyFormScreen(profile: profile)
+        }
+        .sheet(isPresented: $showingSignatureEditor) {
+            if let signatureTarget {
+                SignatureEditorSheet(profile: signatureTarget).glAppearance(colorScheme)
             }
         }
     }

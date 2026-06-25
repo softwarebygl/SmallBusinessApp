@@ -52,8 +52,8 @@ struct AllChangeOrdersScreen: View {
         }
         .navigationTitle("All Change Orders")
         .toolbarTitleDisplayMode(.large)   // force large; .automatic would inherit the inline parent (the Menu)
-        .sheet(item: $selectedChangeOrder) { changeOrder in
-            ChangeOrderDetailSheet(changeOrder: changeOrder).glAppearance(colorScheme)
+        .navigationDestination(item: $selectedChangeOrder) { changeOrder in
+            ChangeOrderDetailSheet(changeOrder: changeOrder)
         }
     }
 

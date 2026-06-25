@@ -171,7 +171,7 @@ struct MyCompanyDetailScreen: View {
     @State private var activeDocument: BusinessDocument?
     @State private var ensuredProfile = false
 
-    private enum BusinessDocument: String, Identifiable {
+    private enum BusinessDocument: String, Identifiable, Hashable {
         case insurance, taxReport, w9
         var id: String { rawValue }
     }
@@ -198,15 +198,15 @@ struct MyCompanyDetailScreen: View {
         }
         .navigationTitle("My Business Details")
         .toolbarTitleDisplayMode(.large)   // large so Statistics (pushed from here) renders large too
-        .sheet(item: $activeDocument) { document in
+        .navigationDestination(item: $activeDocument) { document in
             if let profile = profiles.first {
                 switch document {
                 case .insurance:
-                    ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
+                    ComplianceDocsManagerSheet(profile: profile)
                 case .taxReport:
-                    YearEndTaxReportSheet().glAppearance(colorScheme)
+                    YearEndTaxReportSheet()
                 case .w9:
-                    W9DocumentSheet(profile: profile).glAppearance(colorScheme)
+                    W9DocumentSheet(profile: profile)
                 }
             }
         }

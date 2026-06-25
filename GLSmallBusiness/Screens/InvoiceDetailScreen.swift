@@ -178,8 +178,11 @@ struct InvoiceDetailScreen: View {
         .navigationDestination(isPresented: $showingNewChangeOrder) {
             ChangeOrderFormScreen(invoice: invoice)
         }
-        .sheet(item: $selectedChangeOrder, onDismiss: { regeneratePDF() }) { changeOrder in
-            ChangeOrderDetailSheet(changeOrder: changeOrder).glAppearance(colorScheme)
+        .navigationDestination(item: $selectedChangeOrder) { changeOrder in
+            ChangeOrderDetailSheet(changeOrder: changeOrder)
+        }
+        .onChange(of: selectedChangeOrder) { _, order in
+            if order == nil { regeneratePDF() }
         }
         .onChange(of: showingNewChangeOrder) { _, isShowing in if !isShowing { regeneratePDF() } }
         .alert("Complete your business profile", isPresented: $showingProfilePrompt) {

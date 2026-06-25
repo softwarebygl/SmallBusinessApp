@@ -74,78 +74,78 @@ struct ContractorPackageSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if customer.hasCOI {
-                        readyContent
-                    } else {
-                        noCOIContent
+        ScrollView {
+            VStack(spacing: 20) {
+                if customer.hasCOI {
+                    readyContent
+                } else {
+                    noCOIContent
+                }
+            }
+            .padding()
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
+        }
+        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+        .navigationTitle("Contractor Package")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            if canShare, let packageURL {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: packageURL,
+                              subject: Text(ContractorPackageMessage.subject(business: profile)),
+                              message: Text(ContractorPackageMessage.body(business: profile))) {
+                        Image(systemName: "square.and.arrow.up")
                     }
-                }
-                .padding()
-                .frame(maxWidth: 640)
-                .frame(maxWidth: .infinity)
-            }
-            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle("Contractor Package")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
-                if canShare, let packageURL {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        ShareLink(item: packageURL,
-                                  subject: Text(ContractorPackageMessage.subject(business: profile)),
-                                  message: Text(ContractorPackageMessage.body(business: profile))) {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        .tint(gold)
-                    }
+                    .tint(gold)
                 }
             }
-            .onAppear { regenerate() }
-            .onChange(of: regenKey) { _, _ in regenerate() }
-            .onChange(of: showingSignatureEditor) { _, isShowing in
-                // When the signature editor closes: removal resets signing; a change refreshes the
-                // image if already unlocked. Adding a signature never auto-enables signing.
-                guard !isShowing else { return }
-                if userProfiles.first?.signatureData == nil {
-                    signW9 = false; signatureUnlocked = false; signatureImage = nil
-                } else if signatureUnlocked {
-                    signatureImage = userProfiles.first?.signatureData.flatMap { UIImage(data: $0) }
-                }
-                regenerate()
+        }
+        .onAppear { regenerate() }
+        .onChange(of: regenKey) { _, _ in regenerate() }
+        .onChange(of: showingSignatureEditor) { _, isShowing in
+            // When the signature editor closes: removal resets signing; a change refreshes the
+            // image if already unlocked. Adding a signature never auto-enables signing.
+            guard !isShowing else { return }
+            if userProfiles.first?.signatureData == nil {
+                signW9 = false; signatureUnlocked = false; signatureImage = nil
+            } else if signatureUnlocked {
+                signatureImage = userProfiles.first?.signatureData.flatMap { UIImage(data: $0) }
             }
-            .fileImporter(isPresented: $showingCOIImporter, allowedContentTypes: [.pdf, .image]) { result in
-                importCOI(result)
+            regenerate()
+        }
+        .fileImporter(isPresented: $showingCOIImporter, allowedContentTypes: [.pdf, .image]) { result in
+            importCOI(result)
+        }
+        .alert("Couldn’t read that file", isPresented: $coiUploadFailed) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("That file couldn’t be opened. Try a different file, or export it as a PDF first.")
+        }
+        .navigationDestination(isPresented: $showingDocuments) {
+            ComplianceDocsManagerSheet(profile: profile)
+        }
+        .onChange(of: showingDocuments) { _, isPresented in
+            if !isPresented { refreshAvailability() }
+        }
+        .navigationDestination(isPresented: $showingW9Edit) {
+            MyCompanyFormScreen(profile: profile)
+        }
+        .onChange(of: showingW9Edit) { _, isPresented in
+            if !isPresented { refreshAvailability() }
+        }
+        .sheet(isPresented: $showingSignatureEditor) {
+            if let signatureTarget {
+                SignatureEditorSheet(profile: signatureTarget).glAppearance(colorScheme)
             }
-            .alert("Couldn’t read that file", isPresented: $coiUploadFailed) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("That file couldn’t be opened. Try a different file, or export it as a PDF first.")
-            }
-            .sheet(isPresented: $showingDocuments, onDismiss: refreshAvailability) {
-                ComplianceDocsManagerSheet(profile: profile).glAppearance(colorScheme)
-            }
-            .navigationDestination(isPresented: $showingW9Edit) {
-                MyCompanyFormScreen(profile: profile)
-            }
-            .onChange(of: showingW9Edit) { _, isPresented in
-                if !isPresented { refreshAvailability() }
-            }
-            .sheet(isPresented: $showingSignatureEditor) {
-                if let signatureTarget {
-                    SignatureEditorSheet(profile: signatureTarget).glAppearance(colorScheme)
-                }
-            }
-            .sheet(isPresented: $showingPreview) {
-                if let packageURL {
-                    DocumentPreviewSheet(url: packageURL,
-                                         title: "Package preview",
-                                         subject: ContractorPackageMessage.subject(business: profile),
-                                         message: ContractorPackageMessage.body(business: profile))
-                        .glAppearance(colorScheme)
-                }
+        }
+        .sheet(isPresented: $showingPreview) {
+            if let packageURL {
+                DocumentPreviewSheet(url: packageURL,
+                                     title: "Package preview",
+                                     subject: ContractorPackageMessage.subject(business: profile),
+                                     message: ContractorPackageMessage.body(business: profile))
+                    .glAppearance(colorScheme)
             }
         }
     }

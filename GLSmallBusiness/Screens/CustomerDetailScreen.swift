@@ -103,9 +103,9 @@ struct CustomerDetailScreen: View {
         } message: {
             Text("That file couldn’t be opened. Try a different file, or export it as a PDF first.")
         }
-        .sheet(isPresented: $showingPackage) {
+        .navigationDestination(isPresented: $showingPackage) {
             if let profile = profiles.first {
-                ContractorPackageSheet(customer: customer, profile: profile).glAppearance(colorScheme)
+                ContractorPackageSheet(customer: customer, profile: profile)
             }
         }
     }

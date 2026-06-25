@@ -194,102 +194,99 @@ struct ChangeOrderDetailSheet: View {
     private var canApply: Bool { changeOrder.status == .approved && !changeOrder.appliedToInvoice }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    if let pdfData {
-                        CertificatePreview(data: pdfData)
-                            .frame(height: 460)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(.black.opacity(0.12)))
-                    } else if generationFailed {
-                        DocumentGenerationError { regenerate() }.frame(height: 460)
-                    } else {
-                        ProgressView().frame(height: 460)
-                    }
-
-                    GLCard(title: "Status") {
-                        Picker("Status", selection: $changeOrder.status) {
-                            ForEach(ChangeOrderStatus.allCases) { Text($0.label).tag($0) }
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                    }
-
-                    if changeOrder.appliedToInvoice {
-                        Label("Added to invoice", systemImage: "checkmark.circle.fill")
-                            .font(.subheadline).foregroundStyle(.green)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding().glCardBackground()
-                    } else if canApply {
-                        DocActionRow(title: "Add items to invoice",
-                                     subtitle: "Append this change to the invoice's line items.",
-                                     systemImage: "plus.rectangle.on.rectangle") { addToInvoice() }
-                    }
-
-                    DocActionRow(title: "Edit change order",
-                                 subtitle: "Update the summary, items, or notes.",
-                                 systemImage: "square.and.pencil") { showingEdit = true }
-
-                    Button(role: .destructive) { confirmDelete = true } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "trash").font(.title3).frame(width: 28).foregroundStyle(.red)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Delete change order").font(.subheadline.weight(.semibold)).foregroundStyle(.red)
-                                Text("Remove this change order.").font(.caption).foregroundStyle(.secondary)
-                            }
-                            Spacer(minLength: 8)
-                        }
-                        .padding().frame(maxWidth: .infinity, alignment: .leading).glCardBackground()
-                    }
-                    .buttonStyle(.plain)
+        ScrollView {
+            VStack(spacing: 16) {
+                if let pdfData {
+                    CertificatePreview(data: pdfData)
+                        .frame(height: 460)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(.black.opacity(0.12)))
+                } else if generationFailed {
+                    DocumentGenerationError { regenerate() }.frame(height: 460)
+                } else {
+                    ProgressView().frame(height: 460)
                 }
-                .padding()
-                .frame(maxWidth: 640)
-                .frame(maxWidth: .infinity)
-            }
-            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle(changeOrder.number.isEmpty ? String(localized: "Change Order") : changeOrder.number)
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        if let invoice, !invoice.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
-                            Button { sendAction = .email } label: { Label("Email change order", systemImage: "envelope") }
-                        }
-                        if let invoice, !invoice.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
-                            Button { sendAction = .text } label: { Label("Text change order", systemImage: "message") }
-                        }
-                        if let pdfURL {
-                            ShareLink(item: pdfURL) { Label("Share change order…", systemImage: "square.and.arrow.up") }
-                        }
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
+
+                GLCard(title: "Status") {
+                    Picker("Status", selection: $changeOrder.status) {
+                        ForEach(ChangeOrderStatus.allCases) { Text($0.label).tag($0) }
                     }
-                    .tint(gold)
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
                 }
-            }
-            .onAppear { regenerate() }
-            .onChange(of: changeOrder.statusRaw) { _, _ in regenerate() }
-            .onChange(of: showingEdit) { _, isShowing in if !isShowing { regenerate() } }
-            .navigationDestination(isPresented: $showingEdit) {
-                if let invoice {
-                    ChangeOrderFormScreen(invoice: invoice, editing: changeOrder)
+
+                if changeOrder.appliedToInvoice {
+                    Label("Added to invoice", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline).foregroundStyle(.green)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding().glCardBackground()
+                } else if canApply {
+                    DocActionRow(title: "Add items to invoice",
+                                 subtitle: "Append this change to the invoice's line items.",
+                                 systemImage: "plus.rectangle.on.rectangle") { addToInvoice() }
                 }
-            }
-            .sheet(item: $sendAction) { action in sendSheet(action).glAppearance(colorScheme) }
-            .alert("Couldn’t send", isPresented: Binding(get: { sendFailureMessage != nil },
-                                                         set: { if !$0 { sendFailureMessage = nil } })) {
-                Button("OK", role: .cancel) { sendFailureMessage = nil }
-            } message: {
-                Text(sendFailureMessage ?? "")
-            }
-            .confirmationDialog("Delete this change order?", isPresented: $confirmDelete, titleVisibility: .visible) {
-                Button("Delete", role: .destructive) {
-                    modelContext.delete(changeOrder)
-                    dismiss()
+
+                DocActionRow(title: "Edit change order",
+                             subtitle: "Update the summary, items, or notes.",
+                             systemImage: "square.and.pencil") { showingEdit = true }
+
+                Button(role: .destructive) { confirmDelete = true } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "trash").font(.title3).frame(width: 28).foregroundStyle(.red)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Delete change order").font(.subheadline.weight(.semibold)).foregroundStyle(.red)
+                            Text("Remove this change order.").font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer(minLength: 8)
+                    }
+                    .padding().frame(maxWidth: .infinity, alignment: .leading).glCardBackground()
                 }
+                .buttonStyle(.plain)
+            }
+            .padding()
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
+        }
+        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+        .navigationTitle(changeOrder.number.isEmpty ? String(localized: "Change Order") : changeOrder.number)
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    if let invoice, !invoice.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
+                        Button { sendAction = .email } label: { Label("Email change order", systemImage: "envelope") }
+                    }
+                    if let invoice, !invoice.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
+                        Button { sendAction = .text } label: { Label("Text change order", systemImage: "message") }
+                    }
+                    if let pdfURL {
+                        ShareLink(item: pdfURL) { Label("Share change order…", systemImage: "square.and.arrow.up") }
+                    }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .tint(gold)
+            }
+        }
+        .onAppear { regenerate() }
+        .onChange(of: changeOrder.statusRaw) { _, _ in regenerate() }
+        .onChange(of: showingEdit) { _, isShowing in if !isShowing { regenerate() } }
+        .navigationDestination(isPresented: $showingEdit) {
+            if let invoice {
+                ChangeOrderFormScreen(invoice: invoice, editing: changeOrder)
+            }
+        }
+        .sheet(item: $sendAction) { action in sendSheet(action).glAppearance(colorScheme) }
+        .alert("Couldn’t send", isPresented: Binding(get: { sendFailureMessage != nil },
+                                                     set: { if !$0 { sendFailureMessage = nil } })) {
+            Button("OK", role: .cancel) { sendFailureMessage = nil }
+        } message: {
+            Text(sendFailureMessage ?? "")
+        }
+        .confirmationDialog("Delete this change order?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                modelContext.delete(changeOrder)
+                dismiss()
             }
         }
     }

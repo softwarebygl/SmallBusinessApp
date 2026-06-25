@@ -123,59 +123,56 @@ struct ComplianceDocsManagerSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
-                    ForEach(ComplianceKind.allCases) { card($0) }
-                    Text("Upload each document once (PDF or image). Tap one to view, share, or replace it — or use the button above to share them all. Stored privately in your iCloud account.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, 4)
-                    referenceCOISection
-                }
-                .padding()
-                .frame(maxWidth: 640)
-                .frame(maxWidth: .infinity)
+        ScrollView {
+            VStack(spacing: 14) {
+                ForEach(ComplianceKind.allCases) { card($0) }
+                Text("Upload each document once (PDF or image). Tap one to view, share, or replace it — or use the button above to share them all. Stored privately in your iCloud account.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 4)
+                referenceCOISection
             }
-            .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
-            .navigationTitle("Insurance & Licensing")
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
-                if !shareURLs.isEmpty {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        ShareLink(items: shareURLs,
-                                  subject: Text(profile.businessName.isEmpty ? "Insurance & Licensing" : "Insurance & Licensing — \(profile.businessName)"),
-                                  message: Text(DocumentShareText.body(
-                                    "Attached are our current insurance, exemption, and license documents.", from: profile.businessName))) {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        .tint(gold)
+            .padding()
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
+        }
+        .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
+        .navigationTitle("Insurance & Licensing")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            if !shareURLs.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(items: shareURLs,
+                              subject: Text(profile.businessName.isEmpty ? "Insurance & Licensing" : "Insurance & Licensing — \(profile.businessName)"),
+                              message: Text(DocumentShareText.body(
+                                "Attached are our current insurance, exemption, and license documents.", from: profile.businessName))) {
+                        Image(systemName: "square.and.arrow.up")
                     }
+                    .tint(gold)
                 }
             }
-            // One importer for every slot. Two stacked `.fileImporter`s would leave all but one dead.
-            .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.pdf, .image]) { result in
-                let target = importTarget
-                importTarget = nil
-                guard case .success(let url) = result else { return }
-                guard let data = url.readSecurityScoped() else { uploadFailed = true; return }
-                switch target {
-                case .compliance(let kind):
-                    kind.store(profile, data: data, name: url.lastPathComponent)
-                case .reference:
-                    profile.ownerReferenceCOIData = data
-                    profile.ownerReferenceCOIName = url.lastPathComponent
-                case .none:
-                    break
-                }
+        }
+        // One importer for every slot. Two stacked `.fileImporter`s would leave all but one dead.
+        .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.pdf, .image]) { result in
+            let target = importTarget
+            importTarget = nil
+            guard case .success(let url) = result else { return }
+            guard let data = url.readSecurityScoped() else { uploadFailed = true; return }
+            switch target {
+            case .compliance(let kind):
+                kind.store(profile, data: data, name: url.lastPathComponent)
+            case .reference:
+                profile.ownerReferenceCOIData = data
+                profile.ownerReferenceCOIName = url.lastPathComponent
+            case .none:
+                break
             }
-            .alert("Couldn’t read that file", isPresented: $uploadFailed) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("That file couldn’t be opened. Try a different file, or export it as a PDF first.")
-            }
+        }
+        .alert("Couldn’t read that file", isPresented: $uploadFailed) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("That file couldn’t be opened. Try a different file, or export it as a PDF first.")
         }
     }
 
