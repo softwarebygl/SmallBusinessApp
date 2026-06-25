@@ -23,6 +23,9 @@ final class Receipt {
     @Attribute(.externalStorage) var scanData: Data?
 
     var customer: Customer?
+    /// The optional job this receipt is for (independent of `customer`). Nullify on delete — a receipt
+    /// is a financial record that outlives the job. The inverse lives on `ScheduledJob.receipts`.
+    var job: ScheduledJob?
 
     init(
         vendor: String = "",
@@ -32,7 +35,8 @@ final class Receipt {
         notes: String = "",
         recognizedText: String = "",
         scanData: Data? = nil,
-        customer: Customer? = nil
+        customer: Customer? = nil,
+        job: ScheduledJob? = nil
     ) {
         self.vendor = vendor
         self.date = date
@@ -42,6 +46,7 @@ final class Receipt {
         self.recognizedText = recognizedText
         self.scanData = scanData
         self.customer = customer
+        self.job = job
         self.createdAt = .now
     }
 }

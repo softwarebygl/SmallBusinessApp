@@ -228,7 +228,49 @@ enum DemoSeed {
         context.insert(job4Pay)
         job4Invoice.amountDueNow = 0
 
+        // Attach proof-of-work photos, a document, and material/equipment receipts to the completed
+        // backsplash job so the Job's Photos / Documents / Receipts sections have content to test.
+        r1.job = job4   // Henderson Hardware materials
+        r3.job = job4   // Sunbelt wet-saw rental
+        let photoBefore = JobAttachment(kind: .photo, name: "Before",
+                                        data: demoPhotoData("BEFORE", color: UIColor(red: 0.55, green: 0.50, blue: 0.42, alpha: 1)),
+                                        job: job4)
+        let photoAfter = JobAttachment(kind: .photo, name: "Finished",
+                                       data: demoPhotoData("FINISHED", color: UIColor(red: 0.78, green: 0.62, blue: 0.28, alpha: 1)),
+                                       job: job4)
+        let permit = JobAttachment(kind: .document, name: "City Permit.pdf",
+                                   data: demoDocData("City Permit — Backsplash Install"), job: job4)
+        [photoBefore, photoAfter, permit].forEach(context.insert)
+
         context.saveChanges()
+    }
+
+    /// A solid-color JPEG with a centered label — stands in for a job-site photo in demo mode.
+    private static func demoPhotoData(_ label: String, color: UIColor) -> Data? {
+        let size = CGSize(width: 1000, height: 750)
+        let image = UIGraphicsImageRenderer(size: size).image { ctx in
+            color.setFill()
+            ctx.fill(CGRect(origin: .zero, size: size))
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: UIFont.boldSystemFont(ofSize: 64),
+                .foregroundColor: UIColor.white.withAlphaComponent(0.92),
+            ]
+            let text = label as NSString
+            let textSize = text.size(withAttributes: attrs)
+            text.draw(at: CGPoint(x: (size.width - textSize.width) / 2, y: (size.height - textSize.height) / 2),
+                      withAttributes: attrs)
+        }
+        return image.jpegData(compressionQuality: 0.8)
+    }
+
+    /// A one-page PDF with a title — stands in for an uploaded job document in demo mode.
+    private static func demoDocData(_ title: String) -> Data {
+        let bounds = CGRect(x: 0, y: 0, width: 612, height: 792)
+        return UIGraphicsPDFRenderer(bounds: bounds).pdfData { ctx in
+            ctx.beginPage()
+            (title as NSString).draw(at: CGPoint(x: 48, y: 64),
+                                     withAttributes: [.font: UIFont.boldSystemFont(ofSize: 24)])
+        }
     }
 
     @MainActor

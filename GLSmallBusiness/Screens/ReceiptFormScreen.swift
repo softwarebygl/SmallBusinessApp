@@ -17,6 +17,9 @@ struct ReceiptFormScreen: View {
 
     private let editingReceipt: Receipt?
     private let scanImage: UIImage?
+    /// When creating from a job-scoped list, the new receipt is attached to this job (in addition to
+    /// its customer). Nil for the universal Receipts tab and ignored when editing.
+    private let defaultJob: ScheduledJob?
 
     @State private var selectedCustomerID: PersistentIdentifier?
     @State private var vendor: String
@@ -28,9 +31,10 @@ struct ReceiptFormScreen: View {
     @State private var scanData: Data?
     @State private var isReadingScan = false
 
-    init(defaultCustomer: Customer?, scanImage: UIImage?) {
+    init(defaultCustomer: Customer?, defaultJob: ScheduledJob? = nil, scanImage: UIImage?) {
         self.editingReceipt = nil
         self.scanImage = scanImage
+        self.defaultJob = defaultJob
         _selectedCustomerID = State(initialValue: defaultCustomer?.persistentModelID)
         _vendor = State(initialValue: "")
         _date = State(initialValue: .now)
@@ -44,6 +48,7 @@ struct ReceiptFormScreen: View {
     init(editing receipt: Receipt) {
         self.editingReceipt = receipt
         self.scanImage = nil
+        self.defaultJob = nil   // editing preserves the receipt's existing job link
         _selectedCustomerID = State(initialValue: receipt.customer?.persistentModelID)
         _vendor = State(initialValue: receipt.vendor)
         _date = State(initialValue: receipt.date)
@@ -145,6 +150,7 @@ struct ReceiptFormScreen: View {
             modelContext.insert(receipt)
         }
         receipt.customer = allCustomers.first { $0.persistentModelID == selectedCustomerID }
+        if editingReceipt == nil { receipt.job = defaultJob }   // attach a new scan to its job
         receipt.vendor = vendor.trimmingCharacters(in: .whitespacesAndNewlines)
         receipt.date = date
         receipt.total = total

@@ -130,6 +130,15 @@ final class ScheduledJob {
     @Relationship(deleteRule: .nullify, inverse: \Invoice.job)
     var billingInvoices: [Invoice]?
 
+    /// Receipts attached to this job (in addition to their customer). Nullify on delete — receipts are
+    /// financial records that survive the job.
+    @Relationship(deleteRule: .nullify, inverse: \Receipt.job)
+    var receipts: [Receipt]?
+
+    /// Proof-of-work photos and additional documents. Cascade on delete — these belong to the job.
+    @Relationship(deleteRule: .cascade, inverse: \JobAttachment.job)
+    var attachments: [JobAttachment]?
+
     init(title: String = "", customerName: String = "", startDate: Date = .now,
          durationDays: Int = 1, notes: String = "", estimate: Estimate? = nil, invoice: Invoice? = nil,
          customer: Customer? = nil, serviceAddress: Address = Address(), agreedPrice: Double? = nil,
@@ -188,6 +197,19 @@ nonisolated extension ScheduledJob {
 
     /// True once the job is created from (or linked to) an estimate or invoice.
     var hasSource: Bool { estimate != nil || invoice != nil }
+
+    /// Proof-of-work photos, newest first.
+    var photos: [JobAttachment] {
+        (attachments ?? []).filter { $0.kind == .photo }.sorted { $0.createdAt > $1.createdAt }
+    }
+    /// Additional documents, newest first.
+    var documents: [JobAttachment] {
+        (attachments ?? []).filter { $0.kind == .document }.sorted { $0.createdAt > $1.createdAt }
+    }
+    /// This job's receipts, newest first.
+    var sortedReceipts: [Receipt] {
+        (receipts ?? []).sorted { $0.date > $1.date }
+    }
 
     /// For a timed job, "1:00 – 4:00 PM"; empty for an all-day job.
     var timeText: String {

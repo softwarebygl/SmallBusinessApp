@@ -9,6 +9,9 @@
 
 import SwiftUI
 import SwiftData
+import PhotosUI
+import UIKit
+import UniformTypeIdentifiers
 
 struct JobDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -26,6 +29,12 @@ struct JobDetailScreen: View {
     @State private var showingAddToProject = false
     @State private var completionURL: URL?
     @State private var showingCompletionPreview = false
+    @State private var showingDocImporter = false
+    @State private var uploadFailed = false
+    @State private var photoItems: [PhotosPickerItem] = []
+    @State private var photoLoadFailed = false
+    @State private var previewPhoto: JobAttachment?
+    @State private var selectedReceipt: Receipt?
 
     private var stillExists: Bool {
         allJobs.contains { $0.persistentModelID == job.persistentModelID }
@@ -42,6 +51,9 @@ struct JobDetailScreen: View {
                 if let project = job.project { projectCard(project) }
                 if job.hasSource { sourceCard }
                 if !job.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { notesCard }
+                photosCard
+                documentsCard
+                receiptsCard
             }
             .padding()
         }
@@ -110,6 +122,28 @@ struct JobDetailScreen: View {
                 dismiss()
             }
             Button("Cancel", role: .cancel) {}
+        }
+        .navigationDestination(item: $selectedReceipt) { receipt in
+            ReceiptDetailScreen(receipt: receipt)
+        }
+        .fileImporter(isPresented: $showingDocImporter, allowedContentTypes: [.pdf, .image]) { result in
+            guard case .success(let url) = result else { return }
+            if let data = url.readSecurityScoped() {
+                modelContext.insert(JobAttachment(kind: .document, name: url.lastPathComponent, data: data, job: job))
+                modelContext.saveChanges()
+            } else {
+                uploadFailed = true
+            }
+        }
+        .task(id: photoItems) { await addPickedPhotos() }
+        .photoLoadFailureAlert($photoLoadFailed)
+        .alert("Couldn’t read that file", isPresented: $uploadFailed) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("That file couldn’t be opened. Try a different file, or export it as a PDF first.")
+        }
+        .fullScreenCover(item: $previewPhoto) { photo in
+            JobPhotoViewer(attachment: photo)
         }
     }
 
@@ -272,6 +306,130 @@ struct JobDetailScreen: View {
         }
     }
 
+    // MARK: - Photos, documents, receipts
+
+    /// Proof-of-finalized-work photos: a thumbnail grid (tap to view full, long-press to delete) plus
+    /// a multi-select picker. Photos aren't cropped — proof shots keep their full frame.
+    private var photosCard: some View {
+        GLCard(title: "Photos") {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Pictures of the finished work.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if !job.photos.isEmpty {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 84), spacing: 8)], spacing: 8) {
+                        ForEach(job.photos) { photo in
+                            Button { previewPhoto = photo } label: {
+                                ScanThumbnail(data: photo.data, size: 84)
+                                    .frame(width: 84, height: 84)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(.black.opacity(0.1)))
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu {
+                                Button(role: .destructive) { delete(photo) } label: {
+                                    Label("Delete photo", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
+                }
+                PhotosPicker(selection: $photoItems, maxSelectionCount: 0, matching: .images) {
+                    Label(job.photos.isEmpty ? "Add photos" : "Add more photos", systemImage: "photo.badge.plus")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(gold)
+                }
+            }
+        }
+    }
+
+    /// Additional documents (PDF or image) — the same upload + view flow as the insurance documents.
+    private var documentsCard: some View {
+        GLCard(title: "Documents") {
+            VStack(alignment: .leading, spacing: 10) {
+                if job.documents.isEmpty {
+                    Text("Permits, supplier slips, and other files for this job.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    ForEach(job.documents) { doc in
+                        NavigationLink { JobDocumentDetailScreen(attachment: doc) } label: { documentRow(doc) }
+                            .buttonStyle(.plain)
+                    }
+                }
+                Divider()
+                Button { showingDocImporter = true } label: {
+                    Label("Add document", systemImage: "plus")
+                }
+            }
+        }
+    }
+
+    private func documentRow(_ doc: JobAttachment) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "doc.text").font(.title3).foregroundStyle(gold)
+            Text(doc.name.isEmpty ? String(localized: "Document") : doc.name)
+                .font(.subheadline).lineLimit(1).truncationMode(.middle)
+            Spacer()
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+        }
+    }
+
+    /// Receipts attached to this job (also visible under the customer). The add/scan flow is the
+    /// shared `ReceiptListView`, scoped to this job so new scans pre-attach.
+    private var receiptsCard: some View {
+        GLCard(title: "Receipts") {
+            VStack(alignment: .leading, spacing: 10) {
+                if job.sortedReceipts.isEmpty {
+                    Text("Attach material, equipment, and fuel receipts for this job.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    ForEach(job.sortedReceipts) { receipt in
+                        Button { selectedReceipt = receipt } label: { receiptRow(receipt) }
+                            .buttonStyle(.plain)
+                    }
+                }
+                Divider()
+                NavigationLink { JobReceiptsScreen(job: job) } label: {
+                    Label(job.sortedReceipts.isEmpty ? "Add receipt" : "Add or manage receipts", systemImage: "plus")
+                }
+            }
+        }
+    }
+
+    private func receiptRow(_ receipt: Receipt) -> some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(receipt.vendor.isEmpty ? String(localized: "Receipt") : receipt.vendor).font(.subheadline)
+                Text(receipt.date.formatted(date: .abbreviated, time: .omitted))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text(receipt.total.formatted(.currency(code: currencyCode))).font(.subheadline)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+        }
+    }
+
+    /// Normalize each picked image to a compressed JPEG (CloudKit-friendly) and attach it to the job.
+    private func addPickedPhotos() async {
+        guard !photoItems.isEmpty else { return }
+        for item in photoItems {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let jpeg = UIImage(data: data)?.jpegData(compressionQuality: 0.7) {
+                modelContext.insert(JobAttachment(kind: .photo, name: "Photo", data: jpeg, job: job))
+            } else {
+                photoLoadFailed = true
+            }
+        }
+        modelContext.saveChanges()
+        photoItems = []
+    }
+
+    private func delete(_ attachment: JobAttachment) {
+        modelContext.delete(attachment)
+        modelContext.saveChanges()
+    }
+
     // MARK: - Helpers
 
     private func sourceLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
@@ -317,5 +475,71 @@ struct JobDetailScreen: View {
         return Calendar.current.isDate(start, inSameDayAs: end)
             ? start.formatted(date: .abbreviated, time: .omitted)
             : "\(start.formatted(date: .abbreviated, time: .omitted)) – \(end.formatted(date: .abbreviated, time: .omitted))"
+    }
+}
+
+/// Full-screen viewer for a proof-of-work photo (or any image/PDF attachment).
+struct JobPhotoViewer: View {
+    @Environment(\.dismiss) private var dismiss
+    let attachment: JobAttachment
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if let data = attachment.data {
+                    CertificatePreview(data: data)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ContentUnavailableView("No image", systemImage: "photo")
+                }
+            }
+            .background { GLColor.backgroundPrimary.render(in: .light).ignoresSafeArea() }
+            .navigationTitle(attachment.name.isEmpty ? "Photo" : attachment.name)
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } }
+            }
+        }
+    }
+}
+
+/// View / replace / remove one job DOCUMENT — the shared insurance-document flow, backed by a
+/// `JobAttachment`. Removing it deletes the attachment record (not just its bytes).
+struct JobDocumentDetailScreen: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var profiles: [BusinessProfile]
+    let attachment: JobAttachment
+
+    var body: some View {
+        DocumentDetailScreen(slot: DocumentSlot(
+            title: attachment.name.isEmpty ? String(localized: "Document") : attachment.name,
+            data: attachment.data,
+            name: attachment.name,
+            fallbackFileName: "Document.pdf",
+            businessName: profiles.first?.businessName ?? "",
+            removeTitle: "Remove document",
+            removeSubtitle: "Delete this document from the job.",
+            store: { data, name in
+                if let data {
+                    attachment.data = data
+                    attachment.name = name
+                } else {
+                    modelContext.delete(attachment)
+                }
+                modelContext.saveChanges()
+            }
+        ))
+    }
+}
+
+/// This job's receipts, using the shared receipts list + scan/add flow scoped to the job.
+struct JobReceiptsScreen: View {
+    let job: ScheduledJob
+
+    var body: some View {
+        ReceiptListView(receipts: job.sortedReceipts,
+                        defaultCustomer: job.customer,
+                        defaultJob: job,
+                        title: "Job Receipts")
     }
 }

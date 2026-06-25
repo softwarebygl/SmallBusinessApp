@@ -230,9 +230,21 @@ struct ViewRenderingTests {
         render(WorkScheduleScreen(), f.container)
         // Job detail (incl. the billing card) + creating an invoice that bills a job.
         let billingJob = ScheduledJob(customer: f.customer, agreedPrice: 1200)
-        render(JobDetailScreen(job: billingJob), f.container)
+        render(JobDetailScreen(job: billingJob), f.container)   // empty photos/documents/receipts branches
         render(InvoiceFormScreen(customer: f.customer, job: billingJob), f.container)
         for job in jobs { render(JobDetailScreen(job: job), f.container) }
+        // A job WITH proof-of-work photos, a document, and a receipt — the populated attachment sections.
+        let attachedJob = ScheduledJob(title: "Backsplash", customer: f.customer, agreedPrice: 1200)
+        f.container.mainContext.insert(attachedJob)
+        let jobPhoto = JobAttachment(kind: .photo, name: "After", data: Data([0xFF, 0xD8, 0xFF]), job: attachedJob)
+        let jobDoc = JobAttachment(kind: .document, name: "Permit.pdf", data: Data([0x25, 0x50, 0x44, 0x46]), job: attachedJob)
+        let jobReceipt = Receipt(vendor: "Henderson Hardware", total: 127.43, customer: f.customer, job: attachedJob)
+        [jobPhoto, jobDoc].forEach(f.container.mainContext.insert)
+        f.container.mainContext.insert(jobReceipt)
+        render(JobDetailScreen(job: attachedJob), f.container)
+        render(JobDocumentDetailScreen(attachment: jobDoc), f.container)
+        render(JobReceiptsScreen(job: attachedJob), f.container)
+        render(JobPhotoViewer(attachment: jobPhoto), f.container)
         // Projects: the grouping sheet, the detail roll-up, and the global list.
         render(AddToProjectSheet(job: billingJob), f.container)
         render(AllProjectsScreen(), f.container)

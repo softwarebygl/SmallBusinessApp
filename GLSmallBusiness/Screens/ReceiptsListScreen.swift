@@ -35,6 +35,8 @@ struct ReceiptListView: View {
 
     let receipts: [Receipt]
     let defaultCustomer: Customer?
+    /// When this list is scoped to a job, new scans attach to it (in addition to `defaultCustomer`).
+    var defaultJob: ScheduledJob? = nil
     var showsAssignee: Bool = false
     var enablesFilters: Bool = false
     /// Navigation title. Defaults to "Receipts" for the tab; the Records-section "All Receipts"
@@ -147,7 +149,7 @@ struct ReceiptListView: View {
             .ignoresSafeArea()
         }
         .navigationDestination(item: $formInput) { input in
-            ReceiptFormScreen(defaultCustomer: defaultCustomer, scanImage: input.image)
+            ReceiptFormScreen(defaultCustomer: defaultCustomer, defaultJob: defaultJob, scanImage: input.image)
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
     }
