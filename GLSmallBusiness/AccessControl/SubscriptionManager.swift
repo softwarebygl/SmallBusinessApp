@@ -6,7 +6,9 @@
 //
 //  Loads the subscription products for the paywall and finishes incoming transactions.
 //  Whether the user is *currently* subscribed is tracked reactively by `.subscriptionStatusTask`
-//  in AppGate (the reliable, Apple-recommended way), not here.
+//  in AppGate (the reliable, Apple-recommended way), which writes the result into the
+//  `isSubscribed` / `statusKnown` flags below. AccessGate reads those app-wide to decide whether a
+//  "new record" action is allowed or should open the paywall.
 //
 
 import Foundation
@@ -30,6 +32,14 @@ final class SubscriptionManager {
 
     private(set) var products: [Product] = []
     private(set) var loadState: LoadState = .loading
+
+    /// Live entitlement, written by AppGate's `.subscriptionStatusTask` and read app-wide by
+    /// AccessGate. `inGracePeriod` / `inBillingRetryPeriod` count as subscribed, so a card hiccup
+    /// never walls a paying customer mid-renewal.
+    var isSubscribed = false
+    /// True once StoreKit has reported a status at least once. Until then the gate stays open so a
+    /// returning subscriber is never blocked on a cold launch before the status read resolves.
+    var statusKnown = false
 
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
 

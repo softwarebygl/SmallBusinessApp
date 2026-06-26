@@ -34,10 +34,13 @@ struct InvoiceStatusBadge: View {
 
 struct InvoiceDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscription
     @Query private var businessProfiles: [BusinessProfile]
     let invoice: Invoice
 
     @State private var showingEdit = false
+    @State private var showingPaywall = false
     @State private var showingRecordPayment = false
     @State private var showingSetAmountDue = false
     @State private var sendAction: SendAction?
@@ -85,7 +88,7 @@ struct InvoiceDetailScreen: View {
                 Menu {
                     Section {
                         Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
-                        Button { showingSchedule = true } label: { Label("Schedule", systemImage: "calendar.badge.plus") }
+                        Button { scheduleJob() } label: { Label("Schedule", systemImage: "calendar.badge.plus") }
                         Button { showingRecordPayment = true } label: { Label("Record payment", systemImage: "dollarsign.circle") }
                         Button { showingSetAmountDue = true } label: { Label("Set amount due", systemImage: "banknote") }
                     }
@@ -153,6 +156,7 @@ struct InvoiceDetailScreen: View {
         .navigationDestination(isPresented: $showingSchedule) {
             ScheduleJobSheet(source: .invoice(invoice))
         }
+        .paywallSheet(isPresented: $showingPaywall)
         .navigationDestination(isPresented: $showingEdit) {
             InvoiceFormScreen(editing: invoice)
         }
@@ -232,6 +236,15 @@ struct InvoiceDetailScreen: View {
             pdfURL = InvoicePDF.render(invoice, business: profile)
         } else {
             pdfURL = nil
+        }
+    }
+
+    private func scheduleJob() {
+        // Scheduling creates a new job, so it honors the same free-tier cap as a blank one.
+        if AccessGate.canCreate(ScheduledJob.self, cap: FreeTier.jobs, in: modelContext, subscription: subscription) {
+            showingSchedule = true
+        } else {
+            showingPaywall = true
         }
     }
 

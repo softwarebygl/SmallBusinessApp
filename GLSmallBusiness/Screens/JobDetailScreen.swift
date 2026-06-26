@@ -17,6 +17,7 @@ struct JobDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscription
     @AppStorage(SchedulingPrefs.workdaysMaskKey) private var workdaysMask = SchedulingPrefs.defaultWorkdaysMask
     @Query private var allJobs: [ScheduledJob]
     @Query private var profiles: [BusinessProfile]
@@ -25,6 +26,7 @@ struct JobDetailScreen: View {
     @State private var showingEdit = false
     @State private var showingDelete = false
     @State private var showingNewInvoice = false
+    @State private var showingPaywall = false
     @State private var selectedInvoice: Invoice?
     @State private var showingAddToProject = false
     @State private var completionURL: URL?
@@ -102,6 +104,7 @@ struct JobDetailScreen: View {
                 InvoiceFormScreen(customer: customer, job: job)
             }
         }
+        .paywallSheet(isPresented: $showingPaywall)
         .sheet(isPresented: $showingAddToProject) {
             AddToProjectSheet(job: job).glAppearance(colorScheme)
         }
@@ -210,7 +213,7 @@ struct JobDetailScreen: View {
                 }
 
                 Divider()
-                Button { showingNewInvoice = true } label: {
+                Button { newInvoice() } label: {
                     Label("New invoice", systemImage: "plus")
                 }
                 .disabled(job.customer == nil)
@@ -237,6 +240,15 @@ struct JobDetailScreen: View {
     }
 
     private func money(_ value: Double) -> String { value.formatted(.currency(code: currencyCode)) }
+
+    /// Open the new-invoice form for this job, or the paywall if a free user is at the invoice cap.
+    private func newInvoice() {
+        if AccessGate.canCreate(Invoice.self, cap: FreeTier.invoices, in: modelContext, subscription: subscription) {
+            showingNewInvoice = true
+        } else {
+            showingPaywall = true
+        }
+    }
 
     private func makeCompletionPackage() {
         completionURL = CompletionPackagePDF.render(job: job, business: profiles.first)

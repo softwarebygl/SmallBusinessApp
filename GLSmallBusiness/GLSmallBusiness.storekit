@@ -23,11 +23,6 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "10000001",
-          "introductoryOffer" : {
-            "internalID" : "20000001",
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P2W"
-          },
           "localizations" : [
             {
               "description" : "Full access, billed monthly",
@@ -48,11 +43,6 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "10000002",
-          "introductoryOffer" : {
-            "internalID" : "20000002",
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P2W"
-          },
           "localizations" : [
             {
               "description" : "Full access, billed yearly",

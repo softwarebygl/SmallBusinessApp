@@ -11,9 +11,11 @@ import SwiftData
 struct EstimatesListScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscription
     let customer: Customer
 
     @State private var showingNew = false
+    @State private var showingPaywall = false
     @State private var isEditing = false
     @State private var selection = Set<PersistentIdentifier>()
     @State private var selectedEstimate: Estimate?
@@ -110,7 +112,7 @@ struct EstimatesListScreen: View {
             } else if estimates.isEmpty {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showingNew = true
+                        newEstimate()
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -120,7 +122,7 @@ struct EstimatesListScreen: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button {
-                            showingNew = true
+                            newEstimate()
                         } label: {
                             Label("New Estimate", systemImage: "plus")
                         }
@@ -138,6 +140,16 @@ struct EstimatesListScreen: View {
         }
         .navigationDestination(isPresented: $showingNew) {
             EstimateFormScreen(customer: customer)
+        }
+        .paywallSheet(isPresented: $showingPaywall)
+    }
+
+    /// Open the new-estimate form, or the paywall if a free user is at the estimate cap.
+    private func newEstimate() {
+        if AccessGate.canCreate(Estimate.self, cap: FreeTier.estimates, in: modelContext, subscription: subscription) {
+            showingNew = true
+        } else {
+            showingPaywall = true
         }
     }
 

@@ -12,8 +12,8 @@ Recommended copy to paste into App Store Connect, plus the decisions only you ca
 **Estimates, invoices & receipts**
 
 ## Promotional text (≤ 170 chars — editable anytime without review)
-Run your contracting business from your phone: professional estimates and invoices, receipt
-scanning, and payment tracking — all synced privately through your own iCloud.
+Free to start. Run your contracting business from your phone — estimates, invoices, receipt
+scanning, and payments, synced privately through your own iCloud. Subscribe for unlimited.
 
 ## Description (≤ 4000 chars)
 GL Business is a simple, professional toolkit for running a small contracting or trades
@@ -48,6 +48,18 @@ YOUR DATA, YOUR iCLOUD
 Make it yours: add your company logo and details, and the app brands your documents and
 personalizes the app to match.
 
+FREE TO START — SUBSCRIBE FOR UNLIMITED
+My Business is free to download and use, including up to 10 customers, 2 employees, 2
+subcontractors, and 15 each of estimates, invoices, jobs, and receipts. To add beyond those
+limits, subscribe to My Business Pro for unlimited everything. Anything you’ve already created
+always stays viewable and exportable — even without a subscription.
+
+SUBSCRIPTION DETAILS
+• My Business Pro — $9.99/month or $89.99/year, charged to your Apple ID at purchase.
+• Subscriptions renew automatically unless turned off at least 24 hours before the period ends.
+• Manage or cancel anytime in your App Store account settings.
+• Terms of Use: https://evolvedbygl.github.io/terms/
+
 ## Keywords (≤ 100 chars, comma-separated)
 estimate,invoice,contractor,receipt,invoicing,billing,quote,small business,tradesman,flooring,tile
 
@@ -67,7 +79,14 @@ https://evolvedbygl.com
 ## App Store Connect settings — decisions
 
 - **Primary category:** Business  ·  **Secondary:** Productivity
-- **Price:** ⟶ DECIDE — Free (recommended for a tool you'll use/share) vs. Paid
+- **Price:** Free to download. Monetized by the **My Business Pro** auto-renewable subscription
+  ($9.99/mo · $89.99/yr) that lifts the free-tier caps. (Do NOT set the app itself to "Paid.")
+  ⚠️ The free/paid split MUST be disclosed in the description — see the "FREE TO START" +
+  "SUBSCRIPTION DETAILS" sections above. That disclosure is what resolves the 2.3.2 rejection.
+  Also remove the old 2-week / 1-month **introductory (free trial) offers** in App Store Connect
+  (App Store Connect → your app → Subscriptions → each product → Introductory Offers → remove),
+  since the free tier now replaces the trial. (The local GLSmallBusiness.storekit already has them
+  removed to match.)
 - **Age rating:** 4+ (no objectionable content)
 - **App Privacy questionnaire:** likely **"Data Not Collected"** — the developer has no access to
   user data (it stays in each user's private CloudKit). Camera is used on-device only. ⟶ confirm

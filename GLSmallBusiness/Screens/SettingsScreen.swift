@@ -64,9 +64,11 @@ struct SettingsScreen: View {
     @AppStorage(AppBranding.useCompanyLogoKey) private var useCompanyLogo = true
     @AppStorage(SchedulingPrefs.oneJobAtATimeKey) private var oneJobAtATime = true
 
+    @Environment(SubscriptionManager.self) private var subscription
     @State private var managingSubscription = false
     @State private var redeemingCode = false
     @State private var restoring = false
+    @State private var showingPaywall = false
     @State private var subscriptionAlert: String?   // result of a restore / redeem; nil = no alert
 
     private let privacyURL = URL(string: "https://evolvedbygl.github.io/privacy/")!
@@ -114,6 +116,13 @@ struct SettingsScreen: View {
             }
 
             Section {
+                if !subscription.isSubscribed {
+                    Button {
+                        showingPaywall = true
+                    } label: {
+                        Label("Upgrade to Unlimited", systemImage: "sparkles")
+                    }
+                }
                 Button {
                     managingSubscription = true
                 } label: {
@@ -163,6 +172,7 @@ struct SettingsScreen: View {
         .contentMargins(.top, 10, for: .scrollContent)   // breathing room below the large title's descenders
         .navigationTitle("Settings")
         .toolbarTitleDisplayMode(.large)
+        .paywallSheet(isPresented: $showingPaywall)
         .manageSubscriptionsSheet(isPresented: $managingSubscription)
         .offerCodeRedemption(isPresented: $redeemingCode) { result in
             if case .failure(let error) = result {

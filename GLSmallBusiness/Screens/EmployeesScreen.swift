@@ -16,11 +16,13 @@ import SwiftData
 struct EmployeesScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscription
     @Query(sort: [SortDescriptor(\Employee.lastName), SortDescriptor(\Employee.firstName)])
     private var employees: [Employee]
     @Query private var businessProfiles: [BusinessProfile]
 
     @State private var showingAdd = false
+    @State private var showingPaywall = false
     @State private var showingMenu = false
     @State private var path: [Employee] = []
     @State private var exportFiles: [URL] = []
@@ -66,6 +68,7 @@ struct EmployeesScreen: View {
                 EmployeeFormScreen { saved in path.append(saved) }
             }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+            .paywallSheet(isPresented: $showingPaywall)
             .onAppear { regenerateExport() }
             .onChange(of: employees.map(\.persistentModelID)) { _, _ in regenerateExport() }
         }
@@ -80,11 +83,11 @@ struct EmployeesScreen: View {
         ToolbarItem(placement: .topBarTrailing) {
             if exportFiles.isEmpty {
                 // Nothing else to bundle yet — a one-tap add, matching the Customers screen.
-                Button { showingAdd = true } label: { Image(systemName: "plus") }
+                Button { addEmployee() } label: { Image(systemName: "plus") }
                     .accessibilityLabel("Add Employee")
             } else {
                 Menu {
-                    Button { showingAdd = true } label: { Label("New employee", systemImage: "plus") }
+                    Button { addEmployee() } label: { Label("New employee", systemImage: "plus") }
                     ShareLink(items: exportFiles) {
                         Label("Year-End Report", systemImage: "square.and.arrow.up")
                     }
@@ -147,6 +150,15 @@ struct EmployeesScreen: View {
     }
 
     // MARK: - Actions
+
+    /// Open the new-employee form, or the paywall if a free user is at the employee cap.
+    private func addEmployee() {
+        if AccessGate.canCreate(Employee.self, cap: FreeTier.employees, in: modelContext, subscription: subscription) {
+            showingAdd = true
+        } else {
+            showingPaywall = true
+        }
+    }
 
     private func delete(at offsets: IndexSet) {
         for index in offsets { modelContext.delete(visibleEmployees[index]) }

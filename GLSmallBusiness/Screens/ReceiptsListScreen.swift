@@ -61,6 +61,9 @@ struct ReceiptListView: View {
     @State private var searchText = ""
     @State private var filter: ReceiptFilter = .all
     @State private var showingMenu = false
+    @State private var showingPaywall = false
+
+    @Environment(SubscriptionManager.self) private var subscription
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
     private var scannerSupported: Bool { VNDocumentCameraViewController.isSupported }
@@ -152,6 +155,21 @@ struct ReceiptListView: View {
             ReceiptFormScreen(defaultCustomer: defaultCustomer, defaultJob: defaultJob, scanImage: input.image)
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+        .paywallSheet(isPresented: $showingPaywall)
+    }
+
+    /// Start a scan, or show the paywall if a free user is at the receipt cap.
+    private func addReceiptScan() {
+        if canAddReceipt() { showingScanner = true } else { showingPaywall = true }
+    }
+
+    /// Open the manual receipt form, or show the paywall if a free user is at the receipt cap.
+    private func addReceiptManual() {
+        if canAddReceipt() { formInput = ReceiptFormInput(image: nil) } else { showingPaywall = true }
+    }
+
+    private func canAddReceipt() -> Bool {
+        AccessGate.canCreate(Receipt.self, cap: FreeTier.receipts, in: modelContext, subscription: subscription)
     }
 
     // MARK: - Rows
@@ -236,13 +254,13 @@ struct ReceiptListView: View {
         Menu {
             if scannerSupported {
                 Button {
-                    showingScanner = true
+                    addReceiptScan()
                 } label: {
                     Label("Scan Receipt", systemImage: "doc.viewfinder")
                 }
             }
             Button {
-                formInput = ReceiptFormInput(image: nil)
+                addReceiptManual()
             } label: {
                 Label("Add Manually", systemImage: "square.and.pencil")
             }

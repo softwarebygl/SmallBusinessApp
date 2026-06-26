@@ -11,10 +11,12 @@ import SwiftData
 
 struct JobsListScreen: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscription
     @AppStorage(SchedulingPrefs.workdaysMaskKey) private var workdaysMask = SchedulingPrefs.defaultWorkdaysMask
     let customer: Customer
 
     @State private var showingNew = false
+    @State private var showingPaywall = false
     @State private var selectedJob: ScheduledJob?
 
     private var jobs: [ScheduledJob] {
@@ -52,12 +54,22 @@ struct JobsListScreen: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showingNew = true } label: { Image(systemName: "plus") }
+                Button { newJob() } label: { Image(systemName: "plus") }
                     .accessibilityLabel("New Job")
             }
         }
         .navigationDestination(isPresented: $showingNew) {
             JobFormScreen(customer: customer)
+        }
+        .paywallSheet(isPresented: $showingPaywall)
+    }
+
+    /// Open the new-job form, or the paywall if a free user is at the job cap.
+    private func newJob() {
+        if AccessGate.canCreate(ScheduledJob.self, cap: FreeTier.jobs, in: modelContext, subscription: subscription) {
+            showingNew = true
+        } else {
+            showingPaywall = true
         }
     }
 

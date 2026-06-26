@@ -18,6 +18,8 @@ struct CalendarScreen: View {
     var showsMenuButton: Bool = true
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscription
     @AppStorage(SchedulingPrefs.workdaysMaskKey) private var workdaysMask = SchedulingPrefs.defaultWorkdaysMask
     @Query(sort: \ScheduledJob.startDate) private var jobs: [ScheduledJob]
     @Query private var profiles: [BusinessProfile]
@@ -26,6 +28,7 @@ struct CalendarScreen: View {
     @State private var pickingSource = false
     @State private var pendingSource: SourceBox?
     @State private var showingNewJob = false
+    @State private var showingPaywall = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
     /// Workdays still come from the existing @AppStorage mask; holidays / vacation / overrides come from
@@ -64,6 +67,20 @@ struct CalendarScreen: View {
         }
     }
 
+    /// Start a job from scratch, or show the paywall if a free user is at the job cap.
+    private func newJobFromScratch() {
+        if canAddJob() { showingNewJob = true } else { showingPaywall = true }
+    }
+
+    /// Schedule a job from an estimate / invoice, or show the paywall if a free user is at the job cap.
+    private func newJobFromSource() {
+        if canAddJob() { pickingSource = true } else { showingPaywall = true }
+    }
+
+    private func canAddJob() -> Bool {
+        AccessGate.canCreate(ScheduledJob.self, cap: FreeTier.jobs, in: modelContext, subscription: subscription)
+    }
+
     @ViewBuilder
     private var content: some View {
         ScrollView {
@@ -94,8 +111,8 @@ struct CalendarScreen: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button { showingNewJob = true } label: { Label("New job", systemImage: "hammer") }
-                    Button { pickingSource = true } label: {
+                    Button { newJobFromScratch() } label: { Label("New job", systemImage: "hammer") }
+                    Button { newJobFromSource() } label: {
                         Label("From an estimate or invoice", systemImage: "doc.text")
                     }
                 } label: {
@@ -105,6 +122,7 @@ struct CalendarScreen: View {
             }
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+        .paywallSheet(isPresented: $showingPaywall)
         .navigationDestination(isPresented: $showingNewJob) { JobFormScreen() }
         .sheet(isPresented: $pickingSource) {
             ScheduleSourcePicker { source in

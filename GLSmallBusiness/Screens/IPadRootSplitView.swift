@@ -300,6 +300,8 @@ private struct CustomerListColumn: View {
     let customers: [Customer]
     @Binding var selection: PersistentIdentifier?
     @Binding var showingAdd: Bool
+    @Environment(SubscriptionManager.self) private var subscription
+    @State private var showingPaywall = false
 
     var body: some View {
         List(selection: $selection) {
@@ -329,12 +331,21 @@ private struct CustomerListColumn: View {
         .navigationTitle("Customers")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showingAdd = true } label: { Image(systemName: "plus") }
+                Button { attemptAdd() } label: { Image(systemName: "plus") }
                     .accessibilityLabel("Add Customer")
             }
         }
         .navigationDestination(isPresented: $showingAdd) {
             CustomerFormScreen { saved in selection = saved.persistentModelID }
+        }
+        .paywallSheet(isPresented: $showingPaywall)
+    }
+
+    private func attemptAdd() {
+        if AccessGate.canCreate(Customer.self, cap: FreeTier.customers, in: modelContext, subscription: subscription) {
+            showingAdd = true
+        } else {
+            showingPaywall = true
         }
     }
 
@@ -362,6 +373,9 @@ private struct EmployeeListColumn: View {
     let employees: [Employee]
     @Binding var selection: PersistentIdentifier?
     @Binding var showingAdd: Bool
+
+    @Environment(SubscriptionManager.self) private var subscription
+    @State private var showingPaywall = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -399,12 +413,21 @@ private struct EmployeeListColumn: View {
         .navigationTitle("Employees")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showingAdd = true } label: { Image(systemName: "plus") }
+                Button { attemptAdd() } label: { Image(systemName: "plus") }
                     .accessibilityLabel("Add Employee")
             }
         }
         .navigationDestination(isPresented: $showingAdd) {
             EmployeeFormScreen { saved in selection = saved.persistentModelID }
+        }
+        .paywallSheet(isPresented: $showingPaywall)
+    }
+
+    private func attemptAdd() {
+        if AccessGate.canCreate(Employee.self, cap: FreeTier.employees, in: modelContext, subscription: subscription) {
+            showingAdd = true
+        } else {
+            showingPaywall = true
         }
     }
 
@@ -459,6 +482,9 @@ private struct SubcontractorListColumn: View {
     @Binding var selection: PersistentIdentifier?
     @Binding var showingAdd: Bool
 
+    @Environment(SubscriptionManager.self) private var subscription
+    @State private var showingPaywall = false
+
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
     var body: some View {
@@ -493,12 +519,21 @@ private struct SubcontractorListColumn: View {
         .navigationTitle("Subcontractors")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showingAdd = true } label: { Image(systemName: "plus") }
+                Button { attemptAdd() } label: { Image(systemName: "plus") }
                     .accessibilityLabel("Add Subcontractor")
             }
         }
         .navigationDestination(isPresented: $showingAdd) {
             SubcontractorFormScreen { saved in selection = saved.persistentModelID }
+        }
+        .paywallSheet(isPresented: $showingPaywall)
+    }
+
+    private func attemptAdd() {
+        if AccessGate.canCreate(Subcontractor.self, cap: FreeTier.subcontractors, in: modelContext, subscription: subscription) {
+            showingAdd = true
+        } else {
+            showingPaywall = true
         }
     }
 

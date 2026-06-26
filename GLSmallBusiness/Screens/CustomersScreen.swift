@@ -12,10 +12,12 @@ struct CustomersScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(SubscriptionManager.self) private var subscription
     @Query(sort: [SortDescriptor(\Customer.lastName), SortDescriptor(\Customer.firstName)])
     private var customers: [Customer]
 
     @State private var showingAddSheet = false
+    @State private var showingPaywall = false
     @State private var showingMenu = false
     @State private var path: [Customer] = []                  // iPhone push navigation
     @State private var selectedCustomerID: PersistentIdentifier?  // iPad detail selection
@@ -82,6 +84,7 @@ struct CustomersScreen: View {
             .toolbar { customerStackToolbar }
             .navigationDestination(isPresented: $showingAddSheet) { CustomerFormScreen() }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+            .paywallSheet(isPresented: $showingPaywall)
             #if DEBUG
             .navigationDestination(isPresented: $showingDemoPush) { DemoPushedScreen() }
             .onAppear {
@@ -117,6 +120,7 @@ struct CustomersScreen: View {
             .toolbar { customerToolbar }
             .navigationDestination(isPresented: $showingAddSheet) { CustomerFormScreen() }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+            .paywallSheet(isPresented: $showingPaywall)
         } detail: {
             NavigationStack {
                 if let selectedCustomer {
@@ -145,7 +149,7 @@ struct CustomersScreen: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                showingAddSheet = true
+                addCustomer()
             } label: {
                 Image(systemName: "plus")
             }
@@ -181,7 +185,7 @@ struct CustomersScreen: View {
             ToolbarItem(placement: .topBarTrailing) {
                 if customers.isEmpty {
                     Button {
-                        showingAddSheet = true
+                        addCustomer()
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -189,7 +193,7 @@ struct CustomersScreen: View {
                 } else {
                     Menu {
                         Button {
-                            showingAddSheet = true
+                            addCustomer()
                         } label: {
                             Label("New Customer", systemImage: "plus")
                         }
@@ -224,6 +228,15 @@ struct CustomersScreen: View {
                       isSelected: isSelected,
                       selectionMark: selectionMark) {
             ProfileAvatar(imageData: customer.profileImageData, initials: customer.initials, size: 60)
+        }
+    }
+
+    /// Open the new-customer form, or the paywall if a free user is at the customer cap.
+    private func addCustomer() {
+        if AccessGate.canCreate(Customer.self, cap: FreeTier.customers, in: modelContext, subscription: subscription) {
+            showingAddSheet = true
+        } else {
+            showingPaywall = true
         }
     }
 

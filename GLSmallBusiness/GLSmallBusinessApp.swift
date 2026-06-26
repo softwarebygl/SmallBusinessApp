@@ -93,7 +93,8 @@ struct GLSmallBusinessApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppGate()   // gates RootView behind an active subscription; RootView is the app
+            AppGate()   // shows the app to everyone (free up to the FreeTier caps) and keeps the
+                        // subscription entitlement live; the paywall appears only at a cap
                 .tint(Color("AccentColor"))   // GL gold accent app-wide (tabs, selections, buttons)
                 .preferredColorScheme(appColorScheme.colorScheme)
                 .environment(SubscriptionManager.shared)

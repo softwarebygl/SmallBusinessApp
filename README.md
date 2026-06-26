@@ -196,6 +196,26 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done (built; tests pending a local iOS runtime):** **Monetization reworked from a hard paywall to a
+  capped free tier (resolves the App Store 2.3.2 metadata rejection).**
+  - **The model:** everyone gets the full app free up to per-type caps (`FreeTier`): 10 customers,
+    2 employees, 2 subcontractors, 15 each of estimates / invoices / jobs / receipts. Creating one
+    past a cap opens `PaywallSheet`. A **My Business Pro** subscription ($9.99/mo · $89.99/yr) lifts
+    every cap. Replaces the old "subscribe at the door" gate — `AppGate` no longer blocks entry; it
+    just keeps the live entitlement (`SubscriptionManager.isSubscribed` / `.statusKnown`) updated.
+  - **One rule, everywhere:** `AccessGate.canCreate(_:cap:in:subscription:)` = subscribed OR global
+    count < cap. Wired into all 15 create entry points (iPhone + iPad list screens, Calendar, the
+    Receipts add-menu, and the estimate→invoice / job→invoice / estimate-or-invoice→job conversions).
+  - **Read-only on lapse falls out for free:** a lapsed subscriber has count ≥ cap and isn't
+    subscribed, so they can't add more — but every existing record stays fully viewable / editable /
+    exportable. No separate read-only mode. Grace/billing-retry still count as subscribed, so a card
+    hiccup never walls a paying customer. Status-unknown (cold launch) never walls either.
+  - **Trial removed:** the capped free tier replaces it. Local `GLSmallBusiness.storekit` intro offers
+    deleted; **the App Store Connect introductory offers must still be removed manually** (see
+    `AppStore-Listing-DRAFT.md`). Settings gains an **Upgrade to Unlimited** entry for non-subscribers.
+  - **Metadata fix:** `AppStore-Listing-DRAFT.md` now discloses the free/paid split + auto-renew terms
+    — that disclosure is what actually clears Guideline 2.3.2. Deleted the old `OnboardingView` door.
+
 - **Done (built + verified; 273 tests pass):** **Profile photos for employees & subcontractors + the two
   deferred error cases.**
   - **Profile photos** for employees and subcontractors, exactly like customers: tap the avatar →

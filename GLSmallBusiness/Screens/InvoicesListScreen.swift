@@ -11,9 +11,11 @@ import SwiftData
 struct InvoicesListScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscription
     let customer: Customer
 
     @State private var showingNew = false
+    @State private var showingPaywall = false
     @State private var isEditing = false
     @State private var selection = Set<PersistentIdentifier>()
     @State private var selectedInvoice: Invoice?
@@ -110,7 +112,7 @@ struct InvoicesListScreen: View {
             } else if invoices.isEmpty {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showingNew = true
+                        newInvoice()
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -120,7 +122,7 @@ struct InvoicesListScreen: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button {
-                            showingNew = true
+                            newInvoice()
                         } label: {
                             Label("New Invoice", systemImage: "plus")
                         }
@@ -138,6 +140,16 @@ struct InvoicesListScreen: View {
         }
         .navigationDestination(isPresented: $showingNew) {
             InvoiceFormScreen(customer: customer)
+        }
+        .paywallSheet(isPresented: $showingPaywall)
+    }
+
+    /// Open the new-invoice form, or the paywall if a free user is at the invoice cap.
+    private func newInvoice() {
+        if AccessGate.canCreate(Invoice.self, cap: FreeTier.invoices, in: modelContext, subscription: subscription) {
+            showingNew = true
+        } else {
+            showingPaywall = true
         }
     }
 

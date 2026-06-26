@@ -35,11 +35,13 @@ struct EstimateStatusBadge: View {
 struct EstimateDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscription
     @Query private var businessProfiles: [BusinessProfile]
     @Query private var allInvoices: [Invoice]
     let estimate: Estimate
 
     @State private var showingEdit = false
+    @State private var showingPaywall = false
     @State private var sendAction: SendAction?
     @State private var pdfURL: URL?
     @State private var showingPreview = false
@@ -79,13 +81,14 @@ struct EstimateDetailScreen: View {
         .navigationDestination(item: $convertedInvoice) { invoice in
             InvoiceDetailScreen(invoice: invoice)
         }
+        .paywallSheet(isPresented: $showingPaywall)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Section {
                         Button { showingEdit = true } label: { Label("Edit", systemImage: "pencil") }
                         if estimate.status == .accepted {
-                            Button { showingSchedule = true } label: { Label("Schedule", systemImage: "calendar.badge.plus") }
+                            Button { scheduleJob() } label: { Label("Schedule", systemImage: "calendar.badge.plus") }
                         }
                         Button { convertToInvoice() } label: { Label("Convert to Invoice", systemImage: "arrow.right.doc.on.clipboard") }
                     }
@@ -345,7 +348,21 @@ struct EstimateDetailScreen: View {
         }
     }
 
+    private func scheduleJob() {
+        // Scheduling creates a new job, so it honors the same free-tier cap as a blank one.
+        if AccessGate.canCreate(ScheduledJob.self, cap: FreeTier.jobs, in: modelContext, subscription: subscription) {
+            showingSchedule = true
+        } else {
+            showingPaywall = true
+        }
+    }
+
     private func convertToInvoice() {
+        // Converting creates a new invoice, so it honors the same free-tier cap as a blank one.
+        guard AccessGate.canCreate(Invoice.self, cap: FreeTier.invoices, in: modelContext, subscription: subscription) else {
+            showingPaywall = true
+            return
+        }
         let number = Invoice.nextNumber(after: allInvoices)
         convertedInvoice = Invoice.make(from: estimate, number: number, in: modelContext)
         // Persist the new invoice immediately so it's safe and shows in Stats right away.

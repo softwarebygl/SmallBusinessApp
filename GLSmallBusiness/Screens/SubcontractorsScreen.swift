@@ -16,11 +16,13 @@ import SwiftData
 struct SubcontractorsScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var subscription
     @Query(sort: [SortDescriptor(\Subcontractor.lastName), SortDescriptor(\Subcontractor.firstName)])
     private var subs: [Subcontractor]
     @Query private var businessProfiles: [BusinessProfile]
 
     @State private var showingAdd = false
+    @State private var showingPaywall = false
     @State private var showingMenu = false
     @State private var path: [Subcontractor] = []
     @State private var exportFiles: [URL] = []
@@ -66,6 +68,7 @@ struct SubcontractorsScreen: View {
                 SubcontractorFormScreen { saved in path.append(saved) }
             }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+            .paywallSheet(isPresented: $showingPaywall)
             .onAppear { regenerateExport() }
             .onChange(of: subs.map(\.persistentModelID)) { _, _ in regenerateExport() }
         }
@@ -80,11 +83,11 @@ struct SubcontractorsScreen: View {
         ToolbarItem(placement: .topBarTrailing) {
             if exportFiles.isEmpty {
                 // Nothing else to bundle yet — a one-tap add, matching the Customers screen.
-                Button { showingAdd = true } label: { Image(systemName: "plus") }
+                Button { addSubcontractor() } label: { Image(systemName: "plus") }
                     .accessibilityLabel("Add Subcontractor")
             } else {
                 Menu {
-                    Button { showingAdd = true } label: { Label("New subcontractor", systemImage: "plus") }
+                    Button { addSubcontractor() } label: { Label("New subcontractor", systemImage: "plus") }
                     ShareLink(items: exportFiles) {
                         Label("Year-End Report", systemImage: "square.and.arrow.up")
                     }
@@ -146,6 +149,15 @@ struct SubcontractorsScreen: View {
     }
 
     // MARK: - Actions
+
+    /// Open the new-subcontractor form, or the paywall if a free user is at the subcontractor cap.
+    private func addSubcontractor() {
+        if AccessGate.canCreate(Subcontractor.self, cap: FreeTier.subcontractors, in: modelContext, subscription: subscription) {
+            showingAdd = true
+        } else {
+            showingPaywall = true
+        }
+    }
 
     private func delete(at offsets: IndexSet) {
         for index in offsets {
