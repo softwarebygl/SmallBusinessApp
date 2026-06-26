@@ -234,25 +234,12 @@ struct InvoicePDFDocument: View {
 // MARK: - PDF rendering
 
 enum InvoicePDF {
-    /// Renders the invoice to a single-page PDF in the temp directory and returns its URL.
+    /// Renders the invoice to a multi-page US-Letter PDF in the temp directory and returns its URL.
     @MainActor
     static func render(_ invoice: Invoice, business: BusinessProfile?) -> URL? {
-        let renderer = ImageRenderer(content: InvoicePDFDocument(invoice: invoice, business: business))
-        renderer.proposedSize = ProposedViewSize(width: InvoicePDFDocument.pageWidth, height: nil)
-
         let safeNumber = invoice.number.isEmpty ? "draft" : invoice.number
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("Invoice-\(safeNumber).pdf")
-
-        var didRender = false
-        renderer.render { size, context in
-            var box = CGRect(origin: .zero, size: size)
-            guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else { return }
-            pdf.beginPDFPage(nil)
-            context(pdf)
-            pdf.endPDFPage()
-            pdf.closePDF()
-            didRender = true
-        }
-        return didRender ? url : nil
+        return PaginatedPDF.render(InvoicePDFDocument(invoice: invoice, business: business),
+                                   width: InvoicePDFDocument.pageWidth, to: url)
     }
 }

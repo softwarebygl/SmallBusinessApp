@@ -24,8 +24,11 @@ struct AppGate: View {
                 case .loading:
                     break
                 case .failure:
-                    subscription.isSubscribed = false
-                    subscription.statusKnown = true
+                    // A StoreKit failure is transient (verification/network), NOT an authoritative
+                    // "not subscribed". Do NOT flip isSubscribed false or mark the status known here —
+                    // that would wall a real subscriber who is over a free cap. Leave the entitlement
+                    // as-is (gate stays open while still unknown) and let the next .success resolve it.
+                    break
                 case .success(let statuses):
                     subscription.isSubscribed = statuses.contains {
                         [.subscribed, .inGracePeriod, .inBillingRetryPeriod].contains($0.state)

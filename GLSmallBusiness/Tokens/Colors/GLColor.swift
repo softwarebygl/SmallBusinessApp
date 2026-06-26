@@ -29,4 +29,11 @@ enum GLColor: ShapeStyle {
             Color(hex: "0B0B0D") : Color(hex: "F9F6EF")
         }
     }
+
+    /// A legible foreground for glyphs/text drawn directly ON a gold fill. Light mode uses white on
+    /// the darker light-gold; dark mode uses near-black on the pale dark-gold — keeping the contrast
+    /// above the WCAG UI minimum in both (white-on-pale-gold would be ~1.6:1 and fail).
+    static func onGold(_ colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? GLColor.backgroundPrimary.render(in: .dark) : .white
+    }
 }

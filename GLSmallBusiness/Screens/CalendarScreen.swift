@@ -251,6 +251,7 @@ private struct SourceBox: Identifiable, Hashable {
 // MARK: - Month grid
 
 private struct MonthGrid: View {
+    @Environment(\.colorScheme) private var colorScheme
     let occupied: Set<Date>
     let gold: Color
     @State private var month: Date = Calendar.current.startOfDay(for: .now)
@@ -311,7 +312,7 @@ private struct MonthGrid: View {
             .font(.subheadline)
             .frame(maxWidth: .infinity, minHeight: 34)
             .background(Circle().fill(isOccupied ? gold : Color.clear).frame(width: 32, height: 32))
-            .foregroundStyle(isOccupied ? .white : (isWorkday ? .primary : .secondary))
+            .foregroundStyle(isOccupied ? GLColor.onGold(colorScheme) : (isWorkday ? .primary : .secondary))
             .overlay {
                 if isToday && !isOccupied {
                     Circle().stroke(gold, lineWidth: 1.5).frame(width: 32, height: 32)

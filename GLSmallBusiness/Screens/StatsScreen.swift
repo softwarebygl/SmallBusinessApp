@@ -55,7 +55,7 @@ struct StatsScreen: View {
                 // (Menu → Business → Statistics), so the title is drawn in-content with the same
                 // script font the nav bar uses — visually identical to every other large title.
                 Text("Statistics")
-                    .font(.custom("Italianno-Regular", size: 48))
+                    .font(.custom("Italianno-Regular", size: 48, relativeTo: .largeTitle))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityAddTraits(.isHeader)
                 periodSelector

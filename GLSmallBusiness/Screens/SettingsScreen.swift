@@ -116,7 +116,8 @@ struct SettingsScreen: View {
             }
 
             Section {
-                if !subscription.isSubscribed {
+                // Only once status is known, so a subscriber never briefly sees "Upgrade" on cold launch.
+                if subscription.statusKnown && !subscription.isSubscribed {
                     Button {
                         showingPaywall = true
                     } label: {

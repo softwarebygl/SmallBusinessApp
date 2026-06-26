@@ -16,6 +16,7 @@ struct InvoicesListScreen: View {
 
     @State private var showingNew = false
     @State private var showingPaywall = false
+    @State private var confirmingBulkDelete = false
     @State private var isEditing = false
     @State private var selection = Set<PersistentIdentifier>()
     @State private var selectedInvoice: Invoice?
@@ -102,7 +103,7 @@ struct InvoicesListScreen: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(role: .destructive) {
-                        deleteSelected()
+                        confirmingBulkDelete = true
                     } label: {
                         Text(selection.isEmpty ? String(localized: "Delete") : String(localized: "Delete (\(selection.count))"))
                     }
@@ -142,6 +143,13 @@ struct InvoicesListScreen: View {
             InvoiceFormScreen(customer: customer)
         }
         .paywallSheet(isPresented: $showingPaywall)
+        .confirmationDialog(selection.count == 1 ? "Delete this invoice?" : "Delete \(selection.count) invoices?",
+                            isPresented: $confirmingBulkDelete, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) { deleteSelected() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Their payments and line items are removed too. This can’t be undone.")
+        }
     }
 
     /// Open the new-invoice form, or the paywall if a free user is at the invoice cap.

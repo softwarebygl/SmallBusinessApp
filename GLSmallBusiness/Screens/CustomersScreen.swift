@@ -18,6 +18,8 @@ struct CustomersScreen: View {
 
     @State private var showingAddSheet = false
     @State private var showingPaywall = false
+    @State private var pendingSwipeDelete: IndexSet?     // captured until the user confirms
+    @State private var confirmingBulkDelete = false
     @State private var showingMenu = false
     @State private var path: [Customer] = []                  // iPhone push navigation
     @State private var selectedCustomerID: PersistentIdentifier?  // iPad detail selection
@@ -43,10 +45,30 @@ struct CustomersScreen: View {
     var body: some View {
         // NavigationSplitView's compact collapse misbehaves inside a TabView, so iPhone keeps the
         // proven NavigationStack push flow and iPad uses the split — same rows/chrome either way.
-        if sizeClass == .regular {
-            splitView
-        } else {
-            stackView
+        Group {
+            if sizeClass == .regular {
+                splitView
+            } else {
+                stackView
+            }
+        }
+        // Deleting a customer cascades to their estimates, invoices, payments, and receipts — confirm
+        // first (both the swipe and the bulk paths), since it can't be undone.
+        .confirmationDialog(swipeDeleteTitle,
+                            isPresented: Binding(get: { pendingSwipeDelete != nil },
+                                                 set: { if !$0 { pendingSwipeDelete = nil } }),
+                            titleVisibility: .visible) {
+            Button("Delete", role: .destructive) { performSwipeDelete() }
+            Button("Cancel", role: .cancel) { pendingSwipeDelete = nil }
+        } message: {
+            Text("Their estimates, invoices, and receipts are removed too. This can’t be undone.")
+        }
+        .confirmationDialog(selection.count == 1 ? "Delete this customer?" : "Delete \(selection.count) customers?",
+                            isPresented: $confirmingBulkDelete, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) { deleteSelected() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Their estimates, invoices, and receipts are removed too. This can’t be undone.")
         }
     }
 
@@ -166,7 +188,7 @@ struct CustomersScreen: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button(role: .destructive) {
-                    deleteSelected()
+                    confirmingBulkDelete = true
                 } label: {
                     Text(selection.isEmpty ? String(localized: "Delete") : String(localized: "Delete (\(selection.count))"))
                 }
@@ -245,13 +267,28 @@ struct CustomersScreen: View {
         selectedCustomerID = customers.first?.persistentModelID
     }
 
+    /// Swipe-to-delete only stashes the target(s); the actual delete waits for the confirmation dialog.
     private func deleteCustomers(at offsets: IndexSet) {
-        for index in offsets {
+        pendingSwipeDelete = offsets
+    }
+
+    private var swipeDeleteTitle: String {
+        if let offsets = pendingSwipeDelete, offsets.count == 1,
+           let i = offsets.first, visibleCustomers.indices.contains(i) {
+            return "Delete \(visibleCustomers[i].listDisplayName)?"
+        }
+        return "Delete \(pendingSwipeDelete?.count ?? 0) customers?"
+    }
+
+    private func performSwipeDelete() {
+        guard let offsets = pendingSwipeDelete else { return }
+        for index in offsets where visibleCustomers.indices.contains(index) {
             modelContext.delete(visibleCustomers[index])
         }
         // Cascades to the customer's invoices/estimates/receipts; commit now so Stats and CloudKit
         // reflect it immediately instead of waiting on deferred autosave.
         modelContext.saveChanges()
+        pendingSwipeDelete = nil
     }
 
     private func toggleSelection(_ customer: Customer) {

@@ -22,8 +22,10 @@ enum JobMigration {
     static func runIfNeeded(_ context: ModelContext) {
         let defaults = UserDefaults.standard
         guard !defaults.bool(forKey: didRunKey) else { return }
-        defaults.set(true, forKey: didRunKey)
         backfill(context)
+        // Mark done only AFTER the backfill completes, so a crash mid-migration retries next launch
+        // rather than permanently skipping the enrichment. backfill is idempotent.
+        defaults.set(true, forKey: didRunKey)
     }
 
     /// The actual enrichment — separated from the run-once flag so it's directly testable.

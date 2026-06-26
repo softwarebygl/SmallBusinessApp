@@ -125,11 +125,15 @@ struct GLSmallBusinessApp: App {
         #if canImport(UIKit)
         let appearance = UINavigationBarAppearance()
         appearance.configureWithDefaultBackground()
+        // Scale the script titles with Dynamic Type (capped so they enlarge for low-vision users
+        // without overrunning the nav bar).
         if let largeFont = UIFont(name: "Italianno-Regular", size: 48) {
-            appearance.largeTitleTextAttributes[.font] = largeFont
+            appearance.largeTitleTextAttributes[.font] =
+                UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: largeFont, maximumPointSize: 64)
         }
         if let inlineFont = UIFont(name: "Italianno-Regular", size: 28) {
-            appearance.titleTextAttributes[.font] = inlineFont
+            appearance.titleTextAttributes[.font] =
+                UIFontMetrics(forTextStyle: .headline).scaledFont(for: inlineFont, maximumPointSize: 40)
         }
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance

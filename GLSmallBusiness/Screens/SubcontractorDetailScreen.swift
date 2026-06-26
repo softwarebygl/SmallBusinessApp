@@ -433,11 +433,17 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
     @State private var previewImage: UIImage?
     @State private var showingEditSub = false
     @State private var showingEditBusiness = false
+    // Default to the most recent COMPLETED tax year — a 1099-NEC for year N is filed in January of
+    // N+1, so the form a contractor actually owes is almost always last year's, not this year's.
+    @State private var selectedYear = Calendar.current.component(.year, from: .now) - 1
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
     private var business: BusinessProfile? { profiles.first }
-    private var year: Int { Calendar.current.component(.year, from: .now) }
-    private var amount: Double { subcontractor.totalPaid(year: year) }
+    private var amount: Double { subcontractor.totalPaid(year: selectedYear) }
+    private var yearOptions: [Int] {
+        let now = Calendar.current.component(.year, from: .now)
+        return Array((now - 4)...now).reversed()
+    }
 
     /// What's still needed before a valid 1099-NEC can be produced.
     private var missing: [String] {
@@ -455,6 +461,7 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
+                yearPicker
                 if let previewImage {
                     Image(uiImage: previewImage)
                         .resizable().scaledToFit()
@@ -484,8 +491,8 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
             if let pdfURL {
                 ToolbarItem(placement: .topBarTrailing) {
                     ShareLink(item: pdfURL,
-                              subject: Text("Form 1099-NEC — \(year)"),
-                              message: Text("Attached is your \(year) Form 1099-NEC.")) {
+                              subject: Text("Form 1099-NEC — \(String(selectedYear))"),
+                              message: Text("Attached is your \(String(selectedYear)) Form 1099-NEC.")) {
                         Image(systemName: "square.and.arrow.up")
                     }
                     .tint(gold)
@@ -493,6 +500,7 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
             }
         }
         .onAppear { regenerate() }
+        .onChange(of: selectedYear) { _, _ in regenerate() }
         .navigationDestination(isPresented: $showingEditSub) {
             SubcontractorFormScreen(editing: subcontractor)
         }
@@ -505,6 +513,20 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
         .onChange(of: showingEditBusiness) { _, isPresented in
             if !isPresented { regenerate() }
         }
+    }
+
+    private var yearPicker: some View {
+        HStack {
+            Text("Tax year").font(.subheadline.weight(.medium))
+            Spacer()
+            Picker("Tax year", selection: $selectedYear) {
+                ForEach(yearOptions, id: \.self) { Text(verbatim: String($0)).tag($0) }
+            }
+            .labelsHidden()
+            .tint(gold)
+        }
+        .padding()
+        .glCardBackground()
     }
 
     private var missingCard: some View {
@@ -538,7 +560,7 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
 
     private func regenerate() {
         guard canGenerate, let business else { pdfURL = nil; previewImage = nil; return }
-        pdfURL = Form1099NECPDF.render(payer: business, recipient: subcontractor, amount: amount, year: year)
+        pdfURL = Form1099NECPDF.render(payer: business, recipient: subcontractor, amount: amount, year: selectedYear)
         previewImage = pdfURL.flatMap { Form1099NECPDF.pageImage(from: $0) }
     }
 }

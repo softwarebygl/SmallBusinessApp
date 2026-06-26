@@ -273,7 +273,9 @@ struct JobFormScreen: View {
                     Text(symbols[index]).font(.caption.weight(.semibold))
                         .frame(width: 32, height: 32)
                         .background(Circle().fill(on ? GLColor.gold.render(in: colorScheme) : Color.secondary.opacity(0.15)))
-                        .foregroundStyle(on ? .white : .secondary)
+                        .foregroundStyle(on ? GLColor.onGold(colorScheme) : .secondary)
+                        .frame(maxWidth: .infinity, minHeight: 44)   // ≥44pt tap target; circle stays 32
+                        .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Calendar.current.weekdaySymbols[index])

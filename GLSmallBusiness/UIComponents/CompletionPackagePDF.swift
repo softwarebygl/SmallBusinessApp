@@ -34,6 +34,8 @@ enum CompletionPackagePDF {
         let renderer = ImageRenderer(content: view)
         renderer.proposedSize = ProposedViewSize(width: pageWidth, height: nil)
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("completion-\(UUID().uuidString).pdf")
+        // The file is only an intermediate; the returned Data is what's merged, so don't leave it behind.
+        defer { try? FileManager.default.removeItem(at: url) }
         var ok = false
         renderer.render { size, context in
             var box = CGRect(origin: .zero, size: size)

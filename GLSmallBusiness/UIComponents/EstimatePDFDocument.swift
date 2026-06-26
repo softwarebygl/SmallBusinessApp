@@ -196,25 +196,12 @@ struct EstimatePDFDocument: View {
 // MARK: - PDF rendering
 
 enum EstimatePDF {
-    /// Renders the estimate to a single-page PDF in the temp directory and returns its URL.
+    /// Renders the estimate to a multi-page US-Letter PDF in the temp directory and returns its URL.
     @MainActor
     static func render(_ estimate: Estimate, business: BusinessProfile?) -> URL? {
-        let renderer = ImageRenderer(content: EstimatePDFDocument(estimate: estimate, business: business))
-        renderer.proposedSize = ProposedViewSize(width: EstimatePDFDocument.pageWidth, height: nil)
-
         let safeNumber = estimate.number.isEmpty ? "draft" : estimate.number
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("Estimate-\(safeNumber).pdf")
-
-        var didRender = false
-        renderer.render { size, context in
-            var box = CGRect(origin: .zero, size: size)
-            guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else { return }
-            pdf.beginPDFPage(nil)
-            context(pdf)
-            pdf.endPDFPage()
-            pdf.closePDF()
-            didRender = true
-        }
-        return didRender ? url : nil
+        return PaginatedPDF.render(EstimatePDFDocument(estimate: estimate, business: business),
+                                   width: EstimatePDFDocument.pageWidth, to: url)
     }
 }

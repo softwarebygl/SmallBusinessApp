@@ -62,6 +62,7 @@ struct ReceiptListView: View {
     @State private var filter: ReceiptFilter = .all
     @State private var showingMenu = false
     @State private var showingPaywall = false
+    @State private var confirmingBulkDelete = false
 
     @Environment(SubscriptionManager.self) private var subscription
 
@@ -113,7 +114,7 @@ struct ReceiptListView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(role: .destructive) {
-                        deleteSelected()
+                        confirmingBulkDelete = true
                     } label: {
                         Text(selection.isEmpty ? String(localized: "Delete") : String(localized: "Delete (\(selection.count))"))
                     }
@@ -156,6 +157,13 @@ struct ReceiptListView: View {
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
         .paywallSheet(isPresented: $showingPaywall)
+        .confirmationDialog(selection.count == 1 ? "Delete this receipt?" : "Delete \(selection.count) receipts?",
+                            isPresented: $confirmingBulkDelete, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) { deleteSelected() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This can’t be undone.")
+        }
     }
 
     /// Start a scan, or show the paywall if a free user is at the receipt cap.

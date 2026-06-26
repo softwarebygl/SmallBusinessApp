@@ -288,8 +288,9 @@ extension Invoice {
     }
 
     /// Builds an invoice from an estimate: copies the frozen snapshot, line items, and
-    /// tax/discount, records the estimate's deposit as an initial payment, and links the
-    /// originating estimate number. The new invoice and its children are inserted into `context`.
+    /// tax/discount, requests the estimate's deposit as the invoice's "amount due now" (it is
+    /// collected and logged as a payment later, not paid here), and links the originating estimate
+    /// number. The new invoice and its children are inserted into `context`.
     @MainActor
     static func make(from estimate: Estimate, number: String, in context: ModelContext) -> Invoice {
         let invoice = Invoice(number: number, jobTitle: estimate.jobTitle, customer: estimate.customer)

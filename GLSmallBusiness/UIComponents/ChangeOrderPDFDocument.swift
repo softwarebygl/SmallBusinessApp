@@ -194,23 +194,10 @@ struct ChangeOrderPDFDocument: View {
 enum ChangeOrderPDF {
     @MainActor
     static func render(_ changeOrder: ChangeOrder, business: BusinessProfile?) -> URL? {
-        let renderer = ImageRenderer(content: ChangeOrderPDFDocument(changeOrder: changeOrder, business: business))
-        renderer.proposedSize = ProposedViewSize(width: ChangeOrderPDFDocument.pageWidth, height: nil)
-
         let safe = changeOrder.number.isEmpty ? "draft" : changeOrder.number
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("ChangeOrder-\(safe).pdf")
-
-        var didRender = false
-        renderer.render { size, context in
-            var box = CGRect(origin: .zero, size: size)
-            guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else { return }
-            pdf.beginPDFPage(nil)
-            context(pdf)
-            pdf.endPDFPage()
-            pdf.closePDF()
-            didRender = true
-        }
-        return didRender ? url : nil
+        return PaginatedPDF.render(ChangeOrderPDFDocument(changeOrder: changeOrder, business: business),
+                                   width: ChangeOrderPDFDocument.pageWidth, to: url)
     }
 }
 

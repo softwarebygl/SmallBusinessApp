@@ -196,6 +196,25 @@ This is the most important section. The goal: **users never lose data or have to
 **Stage:** pre-launch, finalizing **V1** (nothing shipped yet, so all model changes so far are part of V1 —
 no migration needed until the first post-launch change).
 
+- **Done (built; tests pending a local iOS runtime):** **Pre-archive review fixes (18 of 20 findings from
+  a multi-agent review).**
+  - **1099-NEC year picker** — Form1099NECSheet was hardwired to the current calendar year; added a tax-year
+    selector defaulting to the previous (most recent completed) year, the form a contractor actually files.
+  - **Destructive-delete confirmations** — customer swipe + bulk delete (cascades to invoices/payments/
+    receipts) and the bulk delete on Invoices/Estimates/Receipts now confirm first (cascade scope named).
+    Behavior kept as cascade (per owner) — just gated.
+  - **App Store readiness** — added `ITSAppUsesNonExemptEncryption=NO` to Info.plist and a `PrivacyInfo.xcprivacy`
+    manifest (UserDefaults CA92.1, no tracking, no collected data).
+  - **Entitlement edge cases** — AppGate no longer flips `isSubscribed=false` on a StoreKit `.failure` (was
+    wrongly walling a paying subscriber over a cap); Settings "Upgrade" now waits for `statusKnown`.
+  - **PDF pagination** — new `PaginatedPDF` helper splits long invoices/estimates/receipts/change-orders
+    across real Letter pages (was one oversized page). Rasterized at 2× — verify a long doc on device.
+  - **Polish** — dark-mode on-gold contrast (`GLColor.onGold`), 44pt weekday tap targets, Dynamic Type on
+    script titles, completion-package temp-PDF cleanup, JobMigration marks done after (not before) backfill,
+    corrected `Invoice.make` doc comment.
+  - **Deferred deliberately:** payroll backdated-entry coverage and change-order tax-on-discount — both change
+    live money math and need a data-model/product decision + on-device verification; not shipped blind.
+
 - **Done (built; tests pending a local iOS runtime):** **Monetization reworked from a hard paywall to a
   capped free tier (resolves the App Store 2.3.2 metadata rejection).**
   - **The model:** everyone gets the full app free up to per-type caps (`FreeTier`): 10 customers,

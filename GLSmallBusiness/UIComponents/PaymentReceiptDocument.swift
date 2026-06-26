@@ -166,23 +166,10 @@ struct PaymentReceiptPDFDocument: View {
 enum PaymentReceiptPDF {
     @MainActor
     static func render(_ invoice: Invoice, payment: InvoicePayment, business: BusinessProfile?) -> URL? {
-        let renderer = ImageRenderer(content: PaymentReceiptPDFDocument(invoice: invoice, payment: payment, business: business))
-        renderer.proposedSize = ProposedViewSize(width: PaymentReceiptPDFDocument.pageWidth, height: nil)
-
         let safeNumber = invoice.number.isEmpty ? "invoice" : invoice.number
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("Receipt-\(safeNumber).pdf")
-
-        var didRender = false
-        renderer.render { size, context in
-            var box = CGRect(origin: .zero, size: size)
-            guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else { return }
-            pdf.beginPDFPage(nil)
-            context(pdf)
-            pdf.endPDFPage()
-            pdf.closePDF()
-            didRender = true
-        }
-        return didRender ? url : nil
+        return PaginatedPDF.render(PaymentReceiptPDFDocument(invoice: invoice, payment: payment, business: business),
+                                   width: PaymentReceiptPDFDocument.pageWidth, to: url)
     }
 }
 
