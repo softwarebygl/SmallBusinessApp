@@ -643,7 +643,9 @@ struct RecordPaycheckSheet: View /* internal for render-coverage tests */ {
             ?? coveredThrough.map { Calendar.current.date(byAdding: .day, value: 1, to: $0) ?? $0 }
             ?? employee.hireDate
         _payPeriodStart = State(initialValue: start)
-        _payPeriodEnd = State(initialValue: existing?.payPeriodEnd ?? employee.nextPayday())
+        // The period this check COVERS ends today, not on the future payday — otherwise hours logged
+        // later this week land before the cutoff and are silently treated as already paid.
+        _payPeriodEnd = State(initialValue: existing?.payPeriodEnd ?? .now)
         _payDate = State(initialValue: existing?.payDate ?? employee.nextPayday())
         _grossAmount = State(initialValue: existing?.grossAmount ?? employee.accruedGross)
         _hoursPaid = State(initialValue: existing?.hoursPaid ?? (employee.payType == .hourly ? employee.unpaidHours : 0))

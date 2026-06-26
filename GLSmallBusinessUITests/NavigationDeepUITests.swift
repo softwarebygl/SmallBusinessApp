@@ -13,8 +13,8 @@ final class NavigationDeepUITests: GLUITestCase {
 
     func testEmployeeHubAndMoreInfoOpen() {
         app.tabBars.buttons["Employees"].tap()
-        app.staticTexts["Garcia, Jason"].tap()
-        XCTAssertTrue(app.navigationBars["Garcia, Jason"].waitForExistence(timeout: 5),
+        app.staticTexts["Caldwell, Owen"].tap()
+        XCTAssertTrue(app.navigationBars["Caldwell, Owen"].waitForExistence(timeout: 5),
                       "Tapping an employee row should open that employee's hub.")
         app.buttons["More Info"].tap()
         XCTAssertTrue(app.staticTexts["Email"].waitForExistence(timeout: 5),

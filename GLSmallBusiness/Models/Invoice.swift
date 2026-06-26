@@ -256,7 +256,9 @@ extension Invoice {
     var revisedTotal: Double { total + approvedChangeOrderTotal }
 
     var balanceDue: Double {
-        max(0, total - amountPaid)
+        // Use the REVISED total so approved-but-not-yet-applied change orders count as owed — otherwise
+        // an invoice can read "Paid" / $0 while a signed change order still has money outstanding.
+        max(0, revisedTotal - amountPaid)
     }
 
     /// Whether a specific milestone amount (rather than the whole balance) is being requested now.
@@ -268,7 +270,9 @@ extension Invoice {
         hasAmountDueRequest ? min(amountDueNow, balanceDue) : balanceDue
     }
 
-    var isPaid: Bool { total > 0 && balanceDue <= 0.005 }
+    // Settled when nothing is owed. The extra clause lets a $0 (fully-comped) invoice that's been sent
+    // read "Paid" instead of being stuck "Overdue" forever, without making a brand-new $0 draft do so.
+    var isPaid: Bool { balanceDue <= 0.005 && (total > 0.005 || amountPaid > 0.005 || status == .sent) }
     var isPartiallyPaid: Bool { amountPaid > 0 && !isPaid }
     var isOverdue: Bool { !isPaid && status == .sent && dueDate < .now }
 

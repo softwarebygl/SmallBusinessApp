@@ -19,7 +19,6 @@ final class ScreenSweepUITests: GLUITestCase {
         app.buttons["New Customer"].tap()
         XCTAssertTrue(app.navigationBars["New Customer"].waitForExistence(timeout: 5),
                       "New Customer should open the New Customer form.")
-        app.buttons["Cancel"].tap()
     }
 
     func testAddEmployeeFormOpens() {
@@ -28,7 +27,6 @@ final class ScreenSweepUITests: GLUITestCase {
         app.buttons["New employee"].tap()
         XCTAssertTrue(app.navigationBars["New Employee"].waitForExistence(timeout: 5),
                       "New employee should open the New Employee form.")
-        app.buttons["Cancel"].tap()
     }
 
     func testAddSubcontractorFormOpens() {
@@ -37,7 +35,6 @@ final class ScreenSweepUITests: GLUITestCase {
         app.buttons["New subcontractor"].tap()
         XCTAssertTrue(app.navigationBars["New Subcontractor"].waitForExistence(timeout: 5),
                       "New subcontractor should open the New Subcontractor form.")
-        app.buttons["Cancel"].tap()
     }
 
     // MARK: - Hubs open from a row, and "More Info" pushes

@@ -444,8 +444,8 @@ struct MyCompanyFormScreen: View {
 
     private var canSave: Bool {
         !businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && (!email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 
     var body: some View {

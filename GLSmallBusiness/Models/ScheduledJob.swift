@@ -267,13 +267,16 @@ nonisolated extension ScheduledJob {
                 guardCount += 1
             }
         case .monthly:
-            var cursor = start
-            var guardCount = 0
-            while guardCount < 480 {
-                if !consider(cursor) { break }
-                guard let next = calendar.date(byAdding: .month, value: 1, to: cursor) else { break }
-                cursor = calendar.startOfDay(for: next)
-                guardCount += 1
+            // Anchor every occurrence to the ORIGINAL start (start + N months). Calendar clamps each
+            // month from the original day-of-month (Jan 31 → Feb 28 → Mar 31 → Apr 30…). Chaining off
+            // the previous occurrence instead would let a "31st" job permanently drift to the 28th
+            // after the first short month.
+            var monthOffset = 0
+            while monthOffset < 480 {
+                guard let raw = calendar.date(byAdding: .month, value: monthOffset, to: start) else { break }
+                let occurrence = monthOffset == 0 ? raw : calendar.startOfDay(for: raw)
+                if !consider(occurrence) { break }
+                monthOffset += 1
             }
         }
         return result.sorted()

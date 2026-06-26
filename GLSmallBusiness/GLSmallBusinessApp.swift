@@ -85,9 +85,11 @@ struct GLSmallBusinessApp: App {
             DemoSeed.populate(sharedModelContainer.mainContext)
         } else {
             JobMigration.runIfNeeded(sharedModelContainer.mainContext)
+            ProfileDedup.run(sharedModelContainer.mainContext)
         }
         #else
         JobMigration.runIfNeeded(sharedModelContainer.mainContext)
+        ProfileDedup.run(sharedModelContainer.mainContext)
         #endif
     }
 

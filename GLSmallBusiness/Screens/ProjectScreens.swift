@@ -98,7 +98,7 @@ struct ProjectDetailScreen: View {
         allProjects.contains { $0.persistentModelID == project.persistentModelID }
     }
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
-    private var currencyCode: String { Locale.current.currency?.identifier ?? "USD" }
+    private var currencyCode: String { "USD" }   // US-only at launch — match every other money surface
 
     var body: some View {
         ScrollView {

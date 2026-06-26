@@ -173,8 +173,13 @@ struct WorkScheduleScreen: View {
             set: { newDate in
                 let comps = Calendar.current.dateComponents([.hour, .minute], from: newDate)
                 let minutes = (comps.hour ?? 0) * 60 + (comps.minute ?? 0)
-                if start { schedule.weekdayHours[index].startMinutes = minutes }
-                else { schedule.weekdayHours[index].endMinutes = minutes }
+                // Keep start strictly before end so a fat-finger can't set an empty (end ≤ start) window
+                // that silently removes the workday from availability.
+                if start {
+                    schedule.weekdayHours[index].startMinutes = min(minutes, schedule.weekdayHours[index].endMinutes - 1)
+                } else {
+                    schedule.weekdayHours[index].endMinutes = max(minutes, schedule.weekdayHours[index].startMinutes + 1)
+                }
             }
         )
     }

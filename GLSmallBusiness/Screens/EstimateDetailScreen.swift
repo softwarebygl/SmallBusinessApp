@@ -35,10 +35,18 @@ struct EstimateStatusBadge: View {
 struct EstimateDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @Environment(SubscriptionManager.self) private var subscription
     @Query private var businessProfiles: [BusinessProfile]
     @Query private var allInvoices: [Invoice]
+    @Query private var allEstimates: [Estimate]
     let estimate: Estimate
+
+    /// False once this estimate is deleted out from under the view (e.g. its customer was deleted on
+    /// another device, cascading the delete here).
+    private var stillExists: Bool {
+        allEstimates.contains { $0.persistentModelID == estimate.persistentModelID }
+    }
 
     @State private var showingEdit = false
     @State private var showingPaywall = false
@@ -49,6 +57,7 @@ struct EstimateDetailScreen: View {
     @State private var showingProfilePrompt = false
     @State private var convertedInvoice: Invoice?
     @State private var showingSchedule = false
+    @State private var pendingReconvertNumber: String?   // set when re-converting an already-converted estimate
 
     private enum SendAction: Int, Identifiable {
         case email, text
@@ -76,6 +85,11 @@ struct EstimateDetailScreen: View {
         .containerBackground(for: .navigation) {
             PrimaryBackground()
         }
+        .overlay {
+            if !stillExists {
+                DeletedRecordView(noun: "estimate") { dismiss() }
+            }
+        }
         .navigationTitle(estimate.number.isEmpty ? String(localized: "Estimate") : estimate.number)
         .toolbarTitleDisplayMode(.inline)
         .navigationDestination(item: $convertedInvoice) { invoice in
@@ -95,11 +109,11 @@ struct EstimateDetailScreen: View {
                     if let pdfURL {
                         Section {
                             Button { showingPreview = true } label: { Label("Preview", systemImage: "eye") }
-                            if !estimate.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
-                                Button { sendAction = .email } label: { Label("Email estimate", systemImage: "envelope") }
+                            if !estimate.recipientEmail.isEmpty && MFMailComposeViewController.canSendMail() {
+                                Button { regeneratePDF(); sendAction = .email } label: { Label("Email estimate", systemImage: "envelope") }
                             }
-                            if !estimate.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
-                                Button { sendAction = .text } label: { Label("Text estimate", systemImage: "message") }
+                            if !estimate.recipientPhone.isEmpty && MFMessageComposeViewController.canSendText() {
+                                Button { regeneratePDF(); sendAction = .text } label: { Label("Text estimate", systemImage: "message") }
                             }
                             ShareLink(item: pdfURL) { Label("Share estimate…", systemImage: "square.and.arrow.up") }
                         }
@@ -147,13 +161,22 @@ struct EstimateDetailScreen: View {
         .alert("Complete your business profile", isPresented: $showingProfilePrompt) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Add your business name, phone, and email in Menu → My Company before sending an estimate.")
+            Text("Add your business name and a phone or email in Menu → My Company so they appear on your estimate.")
         }
         .alert("Couldn’t send", isPresented: Binding(get: { sendFailureMessage != nil },
                                                      set: { if !$0 { sendFailureMessage = nil } })) {
             Button("OK", role: .cancel) { sendFailureMessage = nil }
         } message: {
             Text(sendFailureMessage ?? "")
+        }
+        .confirmationDialog("Already converted to invoice \(pendingReconvertNumber ?? "")",
+                            isPresented: Binding(get: { pendingReconvertNumber != nil },
+                                                 set: { if !$0 { pendingReconvertNumber = nil } }),
+                            titleVisibility: .visible) {
+            Button("Create Another Invoice") { performConvert(); pendingReconvertNumber = nil }
+            Button("Cancel", role: .cancel) { pendingReconvertNumber = nil }
+        } message: {
+            Text("This estimate was already turned into an invoice. Creating another will bill this job twice.")
         }
     }
 
@@ -341,11 +364,10 @@ struct EstimateDetailScreen: View {
     }
 
     private func regeneratePDF() {
-        if let profile = businessProfiles.first, profile.isComplete {
-            pdfURL = EstimatePDF.render(estimate, business: profile)
-        } else {
-            pdfURL = nil
-        }
+        // Always render so a brand-new user can at least Preview/Share what they built — don't dead-end
+        // them behind a complete business profile. A missing profile just renders a blank letterhead,
+        // which the preview makes obvious so they know to fill it in.
+        pdfURL = EstimatePDF.render(estimate, business: businessProfiles.first)
     }
 
     private func scheduleJob() {
@@ -363,6 +385,17 @@ struct EstimateDetailScreen: View {
             showingPaywall = true
             return
         }
+        // If this estimate was already converted, confirm before minting a second invoice for one job
+        // (otherwise a revisit + tap silently double-counts revenue).
+        if !estimate.number.isEmpty,
+           let existing = allInvoices.first(where: { $0.sourceEstimateNumber == estimate.number }) {
+            pendingReconvertNumber = existing.number
+            return
+        }
+        performConvert()
+    }
+
+    private func performConvert() {
         let number = Invoice.nextNumber(after: allInvoices)
         convertedInvoice = Invoice.make(from: estimate, number: number, in: modelContext)
         // Persist the new invoice immediately so it's safe and shows in Stats right away.

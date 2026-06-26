@@ -258,7 +258,12 @@ extension Estimate {
     var depositAmount: Double { totals.deposit }
 
     var isExpired: Bool {
-        status != .accepted && status != .declined && validUntil < .now
+        guard status != .accepted, status != .declined else { return false }
+        // Valid through the WHOLE "valid until" day — compare against the start of the next day, so the
+        // badge doesn't flip to "Expired" partway through the day the estimate says it's valid until.
+        let endOfDay = Calendar.current.date(byAdding: .day, value: 1,
+                                             to: Calendar.current.startOfDay(for: validUntil)) ?? validUntil
+        return endOfDay <= .now
     }
 
     /// Status as shown to the user — surfaces "Expired" when past the valid-until date.

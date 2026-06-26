@@ -18,14 +18,15 @@ struct ProfileCustomerTests {
         #expect(p.ownerFullName == "Adrian Gutierrez")
     }
 
-    @Test func isCompleteNeedsNamePhoneEmail() {
+    @Test func isCompleteNeedsNameAndOneContact() {
         let p = BusinessProfile()
         #expect(!p.isComplete)
         p.businessName = "Gold Life LLC"
+        #expect(!p.isComplete)        // name only — needs a phone or email
         p.phone = "555"
-        #expect(!p.isComplete)        // still missing email
-        p.email = "a@b.com"
-        #expect(p.isComplete)
+        #expect(p.isComplete)         // name + phone is enough (phone-only businesses are valid)
+        p.phone = ""; p.email = "a@b.com"
+        #expect(p.isComplete)         // name + email is also enough
     }
 
     @Test func w9LegalNameFallsBackToBusinessName() {

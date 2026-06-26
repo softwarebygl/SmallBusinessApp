@@ -10,9 +10,17 @@ import SwiftData
 
 struct ReceiptDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
+    @Query private var allReceipts: [Receipt]
     let receipt: Receipt
 
     @State private var showingEdit = false
+
+    /// False once this receipt is deleted out from under the view (e.g. its customer was deleted on
+    /// another device, cascading the delete here).
+    private var stillExists: Bool {
+        allReceipts.contains { $0.persistentModelID == receipt.persistentModelID }
+    }
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -39,6 +47,11 @@ struct ReceiptDetailScreen: View {
         }
         .containerBackground(for: .navigation) {
             PrimaryBackground()
+        }
+        .overlay {
+            if !stillExists {
+                DeletedRecordView(noun: "receipt") { dismiss() }
+            }
         }
         .navigationTitle(receipt.displayVendor)
         .toolbarTitleDisplayMode(.inline)

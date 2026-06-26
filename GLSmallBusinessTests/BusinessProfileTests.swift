@@ -15,17 +15,19 @@ import SwiftUI
 @MainActor
 struct BusinessProfileTests {
 
-    @Test func isCompleteRequiresNamePhoneEmail() {
+    @Test func isCompleteNeedsNameAndOneContact() {
         let b = BusinessProfile()
-        #expect(!b.isComplete)
-        b.businessName = "Summit Tile"; b.phone = "850-555-0142"; b.email = "office@summit.com"
-        #expect(b.isComplete)
+        #expect(!b.isComplete)                                   // nothing set
+        b.businessName = "Summit Tile"
+        #expect(!b.isComplete)                                   // name only — no way to be reached
+        b.phone = "850-555-0142"
+        #expect(b.isComplete)                                    // name + phone is enough
+        b.phone = ""; b.email = "office@summit.com"
+        #expect(b.isComplete)                                    // name + email is enough (phone-only or email-only both valid)
         b.email = "   "
-        #expect(!b.isComplete)
-        b.email = "office@summit.com"; b.phone = ""
-        #expect(!b.isComplete)
-        b.phone = "850-555-0142"; b.businessName = ""
-        #expect(!b.isComplete)
+        #expect(!b.isComplete)                                   // blank contact again → name only
+        b.email = "office@summit.com"; b.businessName = ""
+        #expect(!b.isComplete)                                   // contact but no name
     }
 
     @Test func logoPrefersVariantThenFallsBack() {

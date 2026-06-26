@@ -211,12 +211,13 @@ extension BusinessProfile {
             .joined(separator: " ")
     }
 
-    /// The required fields (business name, phone, email) are all filled —
-    /// gates sending an estimate.
+    /// Has a business name and at least one way to be reached (phone OR email) — a phone-only sole
+    /// proprietor who texts everything is a complete, valid setup.
     var isComplete: Bool {
-        !businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasName = !businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasContact = !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return hasName && hasContact
     }
 
     /// The logo to display for a given appearance, falling back to the other variant so a single
@@ -288,8 +289,8 @@ extension BusinessProfile {
         if w9TaxClassification == nil {
             missing.append(String(localized: "Federal tax classification"))
         }
-        if w9TINType == nil || secureTIN.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            missing.append(String(localized: "Tax ID (SSN or EIN)"))
+        if w9TINType == nil || secureTIN.filter(\.isNumber).count != 9 {
+            missing.append(String(localized: "Tax ID (SSN or EIN)"))   // needs a full 9 digits, like the 1099 path
         }
         return missing
     }

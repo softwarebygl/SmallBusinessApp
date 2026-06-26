@@ -1307,7 +1307,11 @@
     "Add your business details first" : {
 
     },
+    "Add your business name and a phone or email in Menu → My Company so they appear on your estimate." : {
+
+    },
     "Add your business name, phone, and email in Menu → My Company before sending an estimate." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -1551,6 +1555,9 @@
       }
     },
     "All-day" : {
+
+    },
+    "Already converted to invoice %@" : {
 
     },
     "Amount" : {
@@ -1930,7 +1937,7 @@
     "Attach material, equipment, and fuel receipts for this job." : {
 
     },
-    "Attached is your %lld Form 1099-NEC." : {
+    "Attached is your %@ Form 1099-NEC." : {
 
     },
     "Auto" : {
@@ -2745,9 +2752,6 @@
         }
       }
     },
-    "Check your connection and tap Retry — or restore a previous purchase or redeem an offer code below." : {
-
-    },
     "Check your connection and tap Retry — or unlock with a GL access code below." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2788,6 +2792,9 @@
           }
         }
       }
+    },
+    "Check your connection and try again." : {
+
     },
     "Choose a different photo" : {
 
@@ -2920,6 +2927,9 @@
           }
         }
       }
+    },
+    "Close" : {
+
     },
     "Closing" : {
 
@@ -3167,13 +3177,13 @@
         }
       }
     },
-    "Couldn’t load plans right now" : {
-
-    },
     "Couldn’t load that address" : {
 
     },
     "Couldn’t open this document" : {
+
+    },
+    "Couldn’t reach the App Store" : {
 
     },
     "Couldn’t read that file" : {
@@ -3201,6 +3211,9 @@
 
     },
     "Create & add" : {
+
+    },
+    "Create Another Invoice" : {
 
     },
     "Created" : {
@@ -3782,6 +3795,18 @@
         }
       }
     },
+    "Delete %lld customers?" : {
+
+    },
+    "Delete %lld estimates?" : {
+
+    },
+    "Delete %lld invoices?" : {
+
+    },
+    "Delete %lld receipts?" : {
+
+    },
     "Delete change order" : {
 
     },
@@ -3809,16 +3834,28 @@
     "Delete this change order?" : {
 
     },
+    "Delete this customer?" : {
+
+    },
     "Delete this customer's COI from your records." : {
 
     },
     "Delete this document from the job." : {
 
     },
+    "Delete this estimate?" : {
+
+    },
+    "Delete this invoice?" : {
+
+    },
     "Delete this job?" : {
 
     },
     "Delete this project? Its jobs are kept." : {
+
+    },
+    "Delete this receipt?" : {
 
     },
     "Delete this reference copy from your records." : {
@@ -5482,7 +5519,7 @@
     "For your own reference" : {
 
     },
-    "Form 1099-NEC — %lld" : {
+    "Form 1099-NEC — %@" : {
 
     },
     "Form W-9" : {
@@ -6815,6 +6852,7 @@
       }
     },
     "Loading plans…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -8824,6 +8862,9 @@
         }
       }
     },
+    "PAID IN" : {
+
+    },
     "PAID IN %@" : {
 
     },
@@ -9346,6 +9387,7 @@
 
     },
     "Private sync through your own iCloud" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -9386,6 +9428,7 @@
       }
     },
     "Professional estimates & invoices" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -10143,6 +10186,7 @@
 
     },
     "Run your trade from your phone." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -10235,6 +10279,7 @@
 
     },
     "Scan & track receipts" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -11356,6 +11401,9 @@
     "Subject line, then the message between the greeting and your signature, used when you send the %@ by email or text. Leave any field blank to use the suggested wording shown." : {
 
     },
+    "Subscribe to add unlimited customers, estimates, invoices, jobs, and receipts. Everything you’ve already created stays yours either way." : {
+
+    },
     "Subscription" : {
 
     },
@@ -12150,6 +12198,9 @@
     "That photo couldn’t be opened — it may be in a format we can’t read, or it didn’t finish downloading from iCloud. Please try a different one." : {
 
     },
+    "That’s more than the %@ balance due. Enter the balance due or less." : {
+
+    },
     "The “To” date must be on or after the “From” date." : {
 
     },
@@ -12239,13 +12290,25 @@
     "The year these records cover." : {
 
     },
+    "Their estimates, invoices, and receipts are removed too. This can’t be undone." : {
+
+    },
+    "Their line items are removed too. This can’t be undone." : {
+
+    },
     "Their other details were saved, but the Tax ID wasn’t. Make sure your device is unlocked, then tap Save again." : {
+
+    },
+    "Their payments and line items are removed too. This can’t be undone." : {
 
     },
     "These dates overlap a job you've already booked." : {
 
     },
     "This %@ was removed" : {
+
+    },
+    "This can’t be undone." : {
 
     },
     "This certifies the work above was completed and paid in full. Any warranty coverage begins from the completion date shown." : {
@@ -12258,6 +12321,9 @@
 
     },
     "This document hasn't been uploaded yet." : {
+
+    },
+    "This estimate was already turned into an invoice. Creating another will bill this job twice." : {
 
     },
     "This overlaps a job you’ve already booked." : {
@@ -12640,6 +12706,9 @@
 
     },
     "Update the summary, items, or notes." : {
+
+    },
+    "Upgrade to Unlimited" : {
 
     },
     "Upload a new PDF or image." : {
@@ -13174,6 +13243,9 @@
       }
     },
     "You’re not signed in to iCloud, so your business info is saved on this device only — it won’t back up or sync to your other devices. You can turn that on anytime by signing in to iCloud in the Settings app." : {
+
+    },
+    "You’ve reached the free limit" : {
 
     },
     "Your business" : {

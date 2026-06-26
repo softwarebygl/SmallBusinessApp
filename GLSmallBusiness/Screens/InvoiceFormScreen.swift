@@ -472,6 +472,14 @@ struct InvoiceFormScreen: View {
     }
 
     private func save() {
+        // If the invoice we're editing was deleted out from under us (e.g. its customer was deleted on
+        // another device), don't rebuild line items on a tombstoned object — bail instead of orphaning
+        // the edits.
+        if let editingInvoice,
+           !allInvoices.contains(where: { $0.persistentModelID == editingInvoice.persistentModelID }) {
+            dismiss()
+            return
+        }
         let invoice: Invoice
         if let editingInvoice {
             invoice = editingInvoice

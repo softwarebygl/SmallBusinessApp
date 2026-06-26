@@ -22,6 +22,7 @@ struct MyPersonalInfoScreen: View {
     @Query private var profiles: [UserProfile]
     @State private var showingSignature = false
     @State private var showingEdit = false
+    @State private var ensuredProfile = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
 
@@ -30,8 +31,15 @@ struct MyPersonalInfoScreen: View {
             if let profile = profiles.first {
                 detail(profile)
             } else {
-                Color.clear.onAppear { modelContext.insert(UserProfile()) }
+                Color.clear
             }
+        }
+        .task {
+            // Create the single profile once, and only if there genuinely isn't one — guarding against a
+            // transient empty state during sync (or a repeated appear) inserting a blank duplicate.
+            guard !ensuredProfile, profiles.isEmpty else { return }
+            ensuredProfile = true
+            modelContext.insert(UserProfile())
         }
         .background { GLColor.backgroundPrimary.render(in: colorScheme).ignoresSafeArea() }
         .navigationTitle("My Personal Info")

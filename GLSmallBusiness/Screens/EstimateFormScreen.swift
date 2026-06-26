@@ -413,6 +413,14 @@ struct EstimateFormScreen: View {
     }
 
     private func save() {
+        // If the estimate we're editing was deleted out from under us (e.g. its customer was deleted on
+        // another device), don't rebuild line items on a tombstoned object — that silently orphans the
+        // edits. Bail instead.
+        if let editingEstimate,
+           !allEstimates.contains(where: { $0.persistentModelID == editingEstimate.persistentModelID }) {
+            dismiss()
+            return
+        }
         let estimate: Estimate
         if let editingEstimate {
             estimate = editingEstimate

@@ -27,8 +27,28 @@ struct SubcontractorsScreen: View {
     @State private var path: [Subcontractor] = []
     @State private var exportFiles: [URL] = []
     @State private var searchText = ""
+    @State private var selectedYear = Calendar.current.component(.year, from: .now)
+    @State private var didAutoSelectYear = false
 
     private var gold: Color { GLColor.gold.render(in: colorScheme) }
+
+    private var yearOptions: [Int] {
+        let now = Calendar.current.component(.year, from: .now)
+        return Array((now - 4)...now).reversed()
+    }
+
+    /// Open on the most recent year with payments, so a January visit shows last year's 1099 picture
+    /// (when 1099-NECs are actually due) instead of an empty in-progress year. Runs once.
+    private func autoSelectActiveYear() {
+        guard !didAutoSelectYear else { return }
+        didAutoSelectYear = true
+        let now = Calendar.current.component(.year, from: .now)
+        for year in stride(from: now, through: now - 4, by: -1)
+        where Subcontractor1099Summary.forYear(subs, year: year).totalPaid > 0.005 {
+            selectedYear = year
+            return
+        }
+    }
 
     private var visibleSubs: [Subcontractor] {
         searchText.isEmpty ? subs : subs.filter { $0.matchesSearch(searchText) }
@@ -40,7 +60,7 @@ struct SubcontractorsScreen: View {
                 if subs.isEmpty {
                     emptyState
                 } else {
-                    summaryHeader(Subcontractor1099Summary.forYear(subs))
+                    summaryHeader(Subcontractor1099Summary.forYear(subs, year: selectedYear))
                     Section("Subcontractors") {
                         ForEach(visibleSubs) { sub in
                             Button { path.append(sub) } label: { row(sub) }
@@ -69,8 +89,9 @@ struct SubcontractorsScreen: View {
             }
             .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
             .paywallSheet(isPresented: $showingPaywall)
-            .onAppear { regenerateExport() }
-            .onChange(of: subs.map(\.persistentModelID)) { _, _ in regenerateExport() }
+            .onAppear { autoSelectActiveYear(); regenerateExport() }
+            .onChange(of: subs.map(\.persistentModelID)) { _, _ in autoSelectActiveYear(); regenerateExport() }
+            .onChange(of: selectedYear) { _, _ in regenerateExport() }
         }
     }
 
@@ -103,8 +124,23 @@ struct SubcontractorsScreen: View {
 
     private func summaryHeader(_ totals: Subcontractor1099Summary.YearTotals) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("PAID THIS YEAR")
-                .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
+            HStack(spacing: 4) {
+                Text("PAID IN")
+                    .font(.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(.secondary)
+                Menu {
+                    ForEach(yearOptions, id: \.self) { year in
+                        Button(String(year)) { selectedYear = year }
+                    }
+                } label: {
+                    HStack(spacing: 2) {
+                        Text(verbatim: String(selectedYear)).font(.caption2.weight(.bold))
+                        Image(systemName: "chevron.up.chevron.down").font(.system(size: 8))
+                    }
+                    .foregroundStyle(gold)
+                }
+                .accessibilityLabel("Tax year")
+                Spacer()
+            }
             Text(totals.totalPaid.formatted(.currency(code: "USD")))
                 .font(.title3.weight(.semibold))
             Text(totals.count1099 == 0
@@ -126,9 +162,9 @@ struct SubcontractorsScreen: View {
 
     private func row(_ sub: Subcontractor) -> some View {
         let owed = sub.outstanding
-        let total = sub.totalPaid()
+        let total = sub.totalPaid(year: selectedYear)
         let subtitle = owed > 0.005 ? "Owed \(owed.formatted(.currency(code: "USD")))"
-                     : (sub.requires1099() ? "1099-NEC due" : "")
+                     : (sub.requires1099(year: selectedYear) ? "1099-NEC due" : "")
         return PersonRowCard(
             name: sub.listDisplayName,
             subtitle: subtitle,
@@ -170,7 +206,7 @@ struct SubcontractorsScreen: View {
     private func regenerateExport() {
         exportFiles = SubPayExport.files(
             subcontractors: subs,
-            year: Calendar.current.component(.year, from: .now),
+            year: selectedYear,
             business: businessProfiles.first
         )
     }

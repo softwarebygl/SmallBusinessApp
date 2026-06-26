@@ -48,6 +48,15 @@ struct StatsScreen: View {
 
     private var hasData: Bool { !invoices.isEmpty || !estimates.isEmpty || !receipts.isEmpty }
 
+    /// Open on the most recent year that has activity, so a January (or seasonal) visit doesn't land on
+    /// an all-zeros current year and read as "the app lost my numbers".
+    private func selectMostRecentActiveYear() {
+        let years = StatsEngine.availableYears(invoices: invoices, estimates: estimates, receipts: receipts)
+        if let mostRecent = years.max(), !years.contains(selectedYear) {
+            selectedYear = mostRecent
+        }
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 18) {
@@ -85,6 +94,7 @@ struct StatsScreen: View {
         }
         .navigationTitle("")   // title is drawn in-content (see note above); keep the bar compact
         .toolbarTitleDisplayMode(.inline)
+        .onAppear { selectMostRecentActiveYear() }
     }
 
     // MARK: - Period selector

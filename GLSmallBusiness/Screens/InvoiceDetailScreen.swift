@@ -35,9 +35,17 @@ struct InvoiceStatusBadge: View {
 struct InvoiceDetailScreen: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @Environment(SubscriptionManager.self) private var subscription
     @Query private var businessProfiles: [BusinessProfile]
+    @Query private var allInvoices: [Invoice]
     let invoice: Invoice
+
+    /// False once this invoice is deleted out from under the view (e.g. its customer was deleted on
+    /// another device, cascading the delete here).
+    private var stillExists: Bool {
+        allInvoices.contains { $0.persistentModelID == invoice.persistentModelID }
+    }
 
     @State private var showingEdit = false
     @State private var showingPaywall = false
@@ -81,6 +89,11 @@ struct InvoiceDetailScreen: View {
         .containerBackground(for: .navigation) {
             PrimaryBackground()
         }
+        .overlay {
+            if !stillExists {
+                DeletedRecordView(noun: "invoice") { dismiss() }
+            }
+        }
         .navigationTitle(invoice.number.isEmpty ? String(localized: "Invoice") : invoice.number)
         .toolbarTitleDisplayMode(.inline)
         .toolbar {
@@ -116,11 +129,11 @@ struct InvoiceDetailScreen: View {
                     if let pdfURL {
                         Section {
                             Button { showingPreview = true } label: { Label("Preview", systemImage: "eye") }
-                            if !invoice.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
-                                Button { sendAction = .email } label: { Label("Email invoice", systemImage: "envelope") }
+                            if !invoice.recipientEmail.isEmpty && MFMailComposeViewController.canSendMail() {
+                                Button { regeneratePDF(); sendAction = .email } label: { Label("Email invoice", systemImage: "envelope") }
                             }
-                            if !invoice.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
-                                Button { sendAction = .text } label: { Label("Text invoice", systemImage: "message") }
+                            if !invoice.recipientPhone.isEmpty && MFMessageComposeViewController.canSendText() {
+                                Button { regeneratePDF(); sendAction = .text } label: { Label("Text invoice", systemImage: "message") }
                             }
                             ShareLink(item: pdfURL) { Label("Share invoice…", systemImage: "square.and.arrow.up") }
                         }
@@ -232,11 +245,9 @@ struct InvoiceDetailScreen: View {
     }
 
     private func regeneratePDF() {
-        if let profile = businessProfiles.first, profile.isComplete {
-            pdfURL = InvoicePDF.render(invoice, business: profile)
-        } else {
-            pdfURL = nil
-        }
+        // Always render so the document is previewable/shareable even before the business profile is
+        // filled in — don't dead-end a new user. (See EstimateDetailScreen for the rationale.)
+        pdfURL = InvoicePDF.render(invoice, business: businessProfiles.first)
     }
 
     private func scheduleJob() {
@@ -536,13 +547,18 @@ struct RecordPaymentSheet: View /* internal for render-coverage tests */ {
 
     init(invoice: Invoice) {
         self.invoice = invoice
-        _amount = State(initialValue: invoice.balanceDue)
+        // Prefill what the customer was actually asked to pay now (the milestone/deposit if set),
+        // not the full remaining balance — so a quick Save on a deposit invoice doesn't record the
+        // whole job as paid.
+        _amount = State(initialValue: invoice.currentAmountDue)
     }
+
+    private var exceedsBalance: Bool { amount > invoice.balanceDue + 0.005 }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section("Payment") {
+                Section {
                     LabeledContent("Amount") {
                         AutoClearNumberField(placeholder: "0", value: $amount, style: .currency, clearsAt: 0)
                             .multilineTextAlignment(.trailing)
@@ -552,6 +568,13 @@ struct RecordPaymentSheet: View /* internal for render-coverage tests */ {
                         ForEach(PaymentMethod.allCases) { Text($0.label).tag($0) }
                     }
                     TextField("Note (optional)", text: $note)
+                } header: {
+                    Text("Payment")
+                } footer: {
+                    if exceedsBalance {
+                        Text("That’s more than the \(invoice.balanceDue.formatted(.currency(code: "USD"))) balance due. Enter the balance due or less.")
+                            .foregroundStyle(.red)
+                    }
                 }
             }
             .glFormBackground()
@@ -562,7 +585,7 @@ struct RecordPaymentSheet: View /* internal for render-coverage tests */ {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    SaveOnceButton(disabled: amount <= 0, action: save)
+                    SaveOnceButton(disabled: amount <= 0 || exceedsBalance, action: save)
                 }
             }
         }
@@ -685,10 +708,10 @@ struct PaymentReceiptSheet: View /* internal for render-coverage tests */ {
                 ToolbarItem(placement: .topBarLeading) { Button(role: .close) { dismiss() } }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        if !invoice.customerEmail.isEmpty && MFMailComposeViewController.canSendMail() {
+                        if !invoice.recipientEmail.isEmpty && MFMailComposeViewController.canSendMail() {
                             Button { sendAction = .email } label: { Label("Email receipt", systemImage: "envelope") }
                         }
-                        if !invoice.customerPhone.isEmpty && MFMessageComposeViewController.canSendText() {
+                        if !invoice.recipientPhone.isEmpty && MFMessageComposeViewController.canSendText() {
                             Button { sendAction = .text } label: { Label("Text receipt", systemImage: "message") }
                         }
                         if let pdfURL {

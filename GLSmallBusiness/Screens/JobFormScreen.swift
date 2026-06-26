@@ -253,7 +253,7 @@ struct JobFormScreen: View {
         return pickedCustomer != nil   // a from-scratch job needs a customer
     }
 
-    private var currencyCode: String { Locale.current.currency?.identifier ?? "USD" }
+    private var currencyCode: String { "USD" }   // US-only at launch — match every other money surface
 
     private var durationLabel: String {
         let hours = durationMinutes / 60, minutes = durationMinutes % 60

@@ -45,7 +45,6 @@ final class DocumentsCoverageUITests: GLUITestCase {
         app.buttons["New Invoice"].tap()
         XCTAssertTrue(app.textFields["Job title"].waitForExistence(timeout: 5),
                       "New Invoice should open the invoice form.")
-        app.buttons["Cancel"].tap()
     }
 
     func testReceiptDetailOpens() {

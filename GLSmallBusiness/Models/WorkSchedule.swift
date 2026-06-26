@@ -165,9 +165,19 @@ nonisolated enum WorkCalendar {
 
     private static func interval(on day: Date, _ startMinutes: Int, _ endMinutes: Int,
                                  _ calendar: Calendar) -> [DateInterval] {
-        guard endMinutes > startMinutes,
-              let start = calendar.date(byAdding: .minute, value: startMinutes, to: day),
-              let end = calendar.date(byAdding: .minute, value: endMinutes, to: day) else { return [] }
+        guard endMinutes > startMinutes else { return [] }
+        let dayStart = calendar.startOfDay(for: day)
+        // Set the wall-clock hour/minute (not "add elapsed minutes") so the window stays 8–5 across a
+        // DST transition instead of drifting to 9–6 / 7–4, matching how timed job starts are built.
+        guard let start = calendar.date(bySettingHour: startMinutes / 60, minute: startMinutes % 60,
+                                        second: 0, of: dayStart) else { return [] }
+        let end: Date?
+        if endMinutes >= 24 * 60 {
+            end = calendar.date(byAdding: .day, value: 1, to: dayStart)   // "to midnight" = start of next day
+        } else {
+            end = calendar.date(bySettingHour: endMinutes / 60, minute: endMinutes % 60, second: 0, of: dayStart)
+        }
+        guard let end else { return [] }
         return [DateInterval(start: start, end: end)]
     }
 

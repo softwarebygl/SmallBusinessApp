@@ -24,7 +24,6 @@ final class CoverageExpansionUITests: GLUITestCase {
         app.buttons["New Estimate"].tap()
         XCTAssertTrue(app.textFields["Job title"].waitForExistence(timeout: 5),
                       "New Estimate should open the estimate form.")
-        app.buttons["Cancel"].tap()
     }
 
     func testStatisticsOpens() {

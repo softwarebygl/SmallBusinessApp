@@ -479,7 +479,7 @@ struct JobDetailScreen: View {
         modelContext.saveChanges()
     }
 
-    private var currencyCode: String { Locale.current.currency?.identifier ?? "USD" }
+    private var currencyCode: String { "USD" }   // US-only at launch — match every other money surface
 
     private var dateRange: String {
         let start = job.startDate
