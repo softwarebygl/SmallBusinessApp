@@ -36,6 +36,12 @@ struct GLSmallBusinessApp: App {
         // customers' data safely. See GLSchema.swift for the rules before changing any @Model.
         let schema = Schema(versionedSchema: GLCurrentSchema.self)
         #if DEBUG
+        // Auto-maintain the CloudKit DEVELOPMENT schema: if the data model changed since the last run,
+        // force-create every record type/field so nothing is missing before you Deploy to Production.
+        // No-op when the model is unchanged. Runs synchronously to completion before the live store
+        // loads. (Production still requires a manual ‘Deploy Schema Changes’ in CloudKit Dashboard.)
+        CloudKitSyncEngine.initializeCloudKitSchemaIfNeeded()
+
         // In-progress CloudKit SHARING engine (NSPersistentCloudKitContainer). Off unless explicitly
         // enabled for testing; on failure it falls through to the proven `.automatic` path below.
         if CloudKitSyncEngine.isEnabled {

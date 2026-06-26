@@ -68,3 +68,87 @@ nonisolated enum CloudKitSyncEngine {
         return try ModelContainer(for: schema, migrationPlan: GLMigrationPlan.self, configurations: config)
     }
 }
+
+#if DEBUG
+extension CloudKitSyncEngine {
+    /// Keeps the CloudKit **Development** schema complete and in sync with the model — automatically.
+    ///
+    /// Why this exists: SwiftData's `.automatic` mirroring only creates CloudKit schema lazily, as
+    /// records actually sync. Never-exercised models (`Paycheck`, `Project`, `SubPayment`), to-one
+    /// links (`ScheduledJob.customer/invoice/project`, `Invoice.job`, `Receipt.job`) and optional
+    /// photo/file/text fields therefore never reach CloudKit — and in Production (locked schema) those
+    /// saves silently fail. `initializeCloudKitSchema` introspects the model and creates the *complete*
+    /// schema regardless of data, closing that gap.
+    ///
+    /// Runs on DEBUG launches and is a NO-OP unless the model's shape changed since the last successful
+    /// run (tracked by a fingerprint in `UserDefaults`), so it stays out of the way day to day and only
+    /// does work right after you edit an `@Model`. Force a re-run by launching with
+    /// `-initializeCloudKitSchema YES`.
+    ///
+    /// ⚠️ This can ONLY update the **Development** environment. Apple does not allow code to change the
+    /// **Production** schema — after this runs you must still open CloudKit Dashboard →
+    /// **Deploy Schema Changes…** (Development → Production) once. That manual deploy is unavoidable by
+    /// design (the production schema is permanent and additive-only). Compiled out of Release builds.
+    ///
+    /// Requires a DEBUG build on a device/simulator signed into the container's iCloud account. Uses a
+    /// throwaway temp store so the live `default.store` is never touched — the schema lives in the
+    /// CloudKit container (keyed by `containerIdentifier`), not the local store file.
+    static func initializeCloudKitSchemaIfNeeded() {
+        guard let model = NSManagedObjectModel.makeManagedObjectModel(for: GLSchemaV1.models) else {
+            print("❌ [schema-init] Could not build the managed object model from GLSchemaV1.")
+            return
+        }
+
+        let fingerprintKey = "cloudKitSchemaFingerprint"
+        let fingerprint = schemaFingerprint(model)
+        let forced = UserDefaults.standard.bool(forKey: "initializeCloudKitSchema")
+        guard forced || UserDefaults.standard.string(forKey: fingerprintKey) != fingerprint else {
+            return   // model shape unchanged since the last successful init — nothing to do
+        }
+
+        let container = NSPersistentCloudKitContainer(name: "GLSmallBusiness", managedObjectModel: model)
+        // Throwaway local store: initializeCloudKitSchema writes & deletes sample records of every type;
+        // keep that churn off the real store. Only the CloudKit Development schema gets populated.
+        let tempURL = URL.temporaryDirectory.appending(path: "schema-init-\(UUID().uuidString).store")
+        let desc = NSPersistentStoreDescription(url: tempURL)
+        desc.cloudKitContainerOptions =
+            NSPersistentCloudKitContainerOptions(containerIdentifier: containerIdentifier)
+        container.persistentStoreDescriptions = [desc]
+
+        var loadError: Error?
+        container.loadPersistentStores { _, error in loadError = error }
+        if let loadError {
+            print("❌ [schema-init] Temp store load failed: \(loadError)")
+            return
+        }
+
+        do {
+            print("⏳ [schema-init] Model changed — creating the FULL CloudKit schema in DEVELOPMENT… (can take a minute)")
+            try container.initializeCloudKitSchema(options: [])
+            UserDefaults.standard.set(fingerprint, forKey: fingerprintKey)   // remember only on success
+            print("✅ [schema-init] DEVELOPMENT schema is now complete. "
+                + "Deploy it: CloudKit Dashboard → ‘Deploy Schema Changes…’ (Development → Production).")
+        } catch {
+            print("❌ [schema-init] initializeCloudKitSchema failed (schema NOT updated, retries next launch): \(error)")
+        }
+
+        // NOTE: do NOT delete tempURL here. initializeCloudKitSchema leaves CloudKit mirroring tasks
+        // briefly using the store; removing the file out from under them throws SQLite "vnode unlinked
+        // while in use" noise in the console. It lives in the OS temp directory (reclaimed automatically),
+        // so leaving it is harmless — and this whole path is DEBUG-only.
+    }
+
+    /// A stable fingerprint of the model's shape (entity names + their property names). Changes whenever
+    /// an `@Model` or a stored property is added/removed — exactly when the CloudKit schema needs
+    /// regenerating. Stored as a plain string, not `hashValue` (which isn't stable across launches).
+    private static func schemaFingerprint(_ model: NSManagedObjectModel) -> String {
+        model.entities
+            .sorted { ($0.name ?? "") < ($1.name ?? "") }
+            .map { entity in
+                let props = entity.propertiesByName.keys.sorted().joined(separator: ",")
+                return "\(entity.name ?? "?"){\(props)}"
+            }
+            .joined(separator: "|")
+    }
+}
+#endif

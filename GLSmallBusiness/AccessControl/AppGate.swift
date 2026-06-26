@@ -17,16 +17,17 @@ import StoreKit
 
 struct AppGate: View {
     @State private var subscribed = false
-    @State private var statusKnown = false
+    @State private var statusResolved = false   // set ONLY when StoreKit actually reports a status
+    @State private var timedOut = false          // last-resort backstop so we never trap on the splash
 
     var body: some View {
         Group {
             if subscribed || DemoMode.isActive {
                 RootView()
-            } else if !statusKnown {
-                SplashView()
-            } else {
+            } else if statusResolved || timedOut {
                 OnboardingView()
+            } else {
+                SplashView()
             }
         }
         .subscriptionStatusTask(for: SubscriptionManager.groupID) { taskState in
@@ -35,20 +36,24 @@ struct AppGate: View {
                 break
             case .failure:
                 subscribed = false
-                statusKnown = true
+                statusResolved = true
             case .success(let statuses):
                 subscribed = statuses.contains {
                     [.subscribed, .inGracePeriod, .inBillingRetryPeriod].contains($0.state)
                 }
-                statusKnown = true
+                statusResolved = true
             @unknown default:
-                statusKnown = true
+                statusResolved = true
             }
         }
         .task {
-            // Safety net: never sit on the splash forever if status is slow or unavailable.
-            try? await Task.sleep(for: .seconds(3))
-            statusKnown = true
+            // Last-resort backstop: if StoreKit never answers (e.g. no network on first launch), fall
+            // through to the paywall rather than trapping the user on the splash. A subscriber is never
+            // shown the paywall for good — `subscribed` flips to RootView the instant the status task
+            // reports an active entitlement, even if it arrives after this fires. The window is generous
+            // (8s) so the normal sub-second status read resolves first and no paywall flash occurs.
+            try? await Task.sleep(for: .seconds(8))
+            timedOut = true
         }
     }
 }

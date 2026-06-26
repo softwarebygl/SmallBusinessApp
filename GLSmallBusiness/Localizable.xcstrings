@@ -2745,6 +2745,9 @@
         }
       }
     },
+    "Check your connection and tap Retry — or restore a previous purchase or redeem an offer code below." : {
+
+    },
     "Check your connection and tap Retry — or unlock with a GL access code below." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2785,9 +2788,6 @@
           }
         }
       }
-    },
-    "Check your connection and tap Retry." : {
-
     },
     "Choose a different photo" : {
 

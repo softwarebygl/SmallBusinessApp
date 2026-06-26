@@ -17,6 +17,9 @@ import StoreKit
 struct OnboardingView: View {
     @Environment(SubscriptionManager.self) private var subs
     @State private var retrying = false
+    @State private var restoring = false
+    @State private var redeeming = false
+    @State private var actionMessage: String?
 
     private let privacyURL = URL(string: "https://evolvedbygl.github.io/privacy/")!
     private let termsURL   = URL(string: "https://evolvedbygl.github.io/terms/")!
@@ -65,7 +68,7 @@ struct OnboardingView: View {
                 Image(systemName: "wifi.exclamationmark")
                     .font(.largeTitle).foregroundStyle(.secondary)
                 Text("Couldn’t load plans right now").font(.headline)
-                Text("Check your connection and tap Retry.")
+                Text("Check your connection and tap Retry — or restore a previous purchase or redeem an offer code below.")
                     .font(.subheadline).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
@@ -80,10 +83,41 @@ struct OnboardingView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
+
+            // Escape hatches that need NO product data, so an existing subscriber is never trapped on
+            // this error screen (required for Restore by guideline 3.1.2; redemption stays Apple-native).
+            VStack(spacing: 12) {
+                Button {
+                    Task {
+                        restoring = true
+                        do { try await AppStore.sync() }
+                        catch { actionMessage = SubscriptionActions.restoreFailureMessage(for: error) }
+                        restoring = false
+                    }
+                } label: {
+                    if restoring { ProgressView() } else { Text("Restore Purchases") }
+                }
+                .disabled(restoring)
+
+                Button("Redeem Code") { redeeming = true }
+            }
+            .font(.callout)
+
             Spacer()
             legalFooter
         }
         .padding()
+        .offerCodeRedemption(isPresented: $redeeming) { result in
+            if case .failure(let error) = result {
+                actionMessage = SubscriptionActions.redeemFailureMessage(for: error)
+            }
+        }
+        .alert("Subscription", isPresented: Binding(get: { actionMessage != nil },
+                                                    set: { if !$0 { actionMessage = nil } })) {
+            Button("OK", role: .cancel) { actionMessage = nil }
+        } message: {
+            Text(actionMessage ?? "")
+        }
     }
 
     // MARK: - Shared pieces
