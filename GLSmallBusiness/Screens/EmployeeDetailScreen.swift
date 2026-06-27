@@ -720,6 +720,14 @@ struct RecordPaycheckSheet: View /* internal for render-coverage tests */ {
                 note: note.trimmingCharacters(in: .whitespacesAndNewlines), employee: employee
             )
             modelContext.insert(check)
+            // Mark the employee's currently-unpaid hours through this period as covered by this check,
+            // so they stop showing as owed — and a later backdated entry for an earlier date still
+            // surfaces as unpaid (it's not covered by this or any check).
+            let cutoff = Calendar.current.startOfDay(for: payPeriodEnd)
+            for entry in (employee.timeEntries ?? [])
+            where entry.paycheck == nil && Calendar.current.startOfDay(for: entry.date) <= cutoff {
+                entry.paycheck = check
+            }
         }
         modelContext.saveChanges()
         dismiss()

@@ -133,6 +133,11 @@ final class TimeEntry {
     /// Optional job tag: the customer/job these hours were worked on, enabling labor-cost-per-job.
     /// Nullified (not deleted) if the customer is removed, so the hours survive.
     var customer: Customer?
+    /// The paycheck that covered these hours (nil = still unpaid). Set when a paycheck is recorded;
+    /// nullified if that paycheck is deleted, so the hours correctly become owed again. This is how
+    /// "what's still owed" is tracked — NOT by date — so a backdated/forgotten entry isn't silently
+    /// treated as already paid.
+    var paycheck: Paycheck?
 
     init(date: Date = .now, hours: Double = 0, note: String = "", rateSnapshot: Double = 0,
          employee: Employee? = nil, customer: Customer? = nil) {
@@ -162,6 +167,10 @@ final class Paycheck {
     var note: String = ""
 
     var employee: Employee?
+    /// The time entries this paycheck paid for. Nullified (entries survive, become unpaid) if the
+    /// paycheck is deleted.
+    @Relationship(deleteRule: .nullify, inverse: \TimeEntry.paycheck)
+    var coveredEntries: [TimeEntry]?
 
     init(payPeriodStart: Date = .now, payPeriodEnd: Date = .now, payDate: Date = .now,
          grossAmount: Double = 0, hoursPaid: Double = 0, method: PaymentMethod = .check,
@@ -224,22 +233,11 @@ nonisolated extension Employee {
         (paychecks ?? []).sorted { $0.payDate > $1.payDate }
     }
 
-    /// The latest recorded paycheck (by the period it covered), used to find which hours are still unpaid.
-    private var lastCoveredThrough: Date? {
-        (paychecks ?? []).map(\.payPeriodEnd).max()
-    }
-
-    /// Hours logged that haven't been covered by a recorded paycheck yet. Compared by whole day so the
-    /// dollar figure agrees with the next paycheck's prefilled date range (which starts the day after the
-    /// last covered period) — an entry on the period-end day itself counts as paid, not unpaid.
+    /// Hours logged that no recorded paycheck has covered yet. Tracked by the TimeEntry↔Paycheck link
+    /// (set when a paycheck is recorded), NOT by date — so a backdated or forgotten entry still counts
+    /// as owed instead of being silently assumed paid.
     var unpaidHours: Double {
-        guard let cutoff = lastCoveredThrough else {
-            return (timeEntries ?? []).reduce(0) { $0 + $1.hours }
-        }
-        let cutoffDay = calendar.startOfDay(for: cutoff)
-        return (timeEntries ?? [])
-            .filter { calendar.startOfDay(for: $0.date) > cutoffDay }
-            .reduce(0) { $0 + $1.hours }
+        (timeEntries ?? []).filter { $0.paycheck == nil }.reduce(0) { $0 + $1.hours }
     }
 
     /// What's owed for the work not yet paid: unpaid hours × rate (hourly), or one period's salary.

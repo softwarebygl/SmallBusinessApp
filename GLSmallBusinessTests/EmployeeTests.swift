@@ -86,23 +86,24 @@ struct EmployeePayMathTests {
 
     @Test func unpaidHoursExcludesCoveredEntries() {
         let employee = TS.employee(hourlyRate: 20)
-        TS.logHours(employee, 8, date: TS.day(2026, 6, 1))    // covered by the paycheck below
-        TS.logHours(employee, 5, date: TS.day(2026, 6, 10))   // after coverage
-        TS.paycheck(employee, gross: 160, hours: 8, periodStart: TS.day(2026, 6, 1),
-                    periodEnd: TS.day(2026, 6, 7), payDate: TS.day(2026, 6, 8))
+        let covered = TS.logHours(employee, 8, date: TS.day(2026, 6, 1))   // paid by the check below
+        TS.logHours(employee, 5, date: TS.day(2026, 6, 10))                // not yet covered
+        let check = TS.paycheck(employee, gross: 160, hours: 8, periodStart: TS.day(2026, 6, 1),
+                                periodEnd: TS.day(2026, 6, 7), payDate: TS.day(2026, 6, 8))
+        covered.paycheck = check                                           // the link is what marks it paid
         #expect(close(employee.unpaidHours, 5))
     }
 
-    /// Hours logged later in the day on the paycheck's last covered day must count as PAID, not unpaid —
-    /// the figure is compared by whole day so it agrees with the next paycheck's prefilled date range.
-    @Test func unpaidHoursTreatsPeriodEndDayAsCovered() {
+    /// A time entry no paycheck covers stays owed — even if its date falls inside an already-paid
+    /// period. The old date-based logic silently dropped such backdated/forgotten entries.
+    @Test func unpaidHoursCountsBackdatedUncoveredEntries() {
         let employee = TS.employee(hourlyRate: 20)
-        let periodEndAfternoon = TS.day(2026, 6, 7).addingTimeInterval(14 * 3600)   // 2 PM on the period-end day
-        TS.logHours(employee, 6, date: periodEndAfternoon)    // same day as period end → covered
-        TS.logHours(employee, 4, date: TS.day(2026, 6, 8))    // the day after → unpaid
-        TS.paycheck(employee, gross: 320, hours: 16, periodStart: TS.day(2026, 6, 1),
-                    periodEnd: TS.day(2026, 6, 7), payDate: TS.day(2026, 6, 8))
-        #expect(close(employee.unpaidHours, 4))
+        let covered = TS.logHours(employee, 8, date: TS.day(2026, 6, 3))
+        let check = TS.paycheck(employee, gross: 160, hours: 8, periodStart: TS.day(2026, 6, 1),
+                                periodEnd: TS.day(2026, 6, 7), payDate: TS.day(2026, 6, 8))
+        covered.paycheck = check
+        TS.logHours(employee, 3, date: TS.day(2026, 6, 4))   // backdated, NOT covered by the check
+        #expect(close(employee.unpaidHours, 3))              // still owed
     }
 
     @Test func accruedGrossHourly() {
