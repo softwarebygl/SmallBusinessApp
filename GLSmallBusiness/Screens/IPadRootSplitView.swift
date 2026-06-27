@@ -18,11 +18,11 @@
 import SwiftUI
 import SwiftData
 import CloudKit
+import UIKit
 
 /// Chooses the navigation shell by width: the single split view on regular width (iPad, large
 /// iPhone landscape); the existing tab bar on compact (iPhone portrait, narrow multitasking).
 struct RootView: View {
-    @Environment(\.horizontalSizeClass) private var sizeClass
     /// Shown at most once: a friendly heads-up that, with no iCloud account, data stays on-device.
     @AppStorage("hasShownNoICloudNotice") private var hasShownNoICloudNotice = false
     @State private var showICloudNotice = false
@@ -52,7 +52,11 @@ struct RootView: View {
 
     @ViewBuilder
     private var chrome: some View {
-        if sizeClass == .regular {
+        // Key the shell on the DEVICE, not the size class. iPad always uses the split (which collapses
+        // gracefully in Split View / Stage Manager), so resizing into a narrow multitasking width never
+        // tears down the shell and silently loses in-progress form input or the current selection.
+        // (Keying on horizontalSizeClass swapped iPad <-> iPhone shells mid-edit and dropped state.)
+        if UIDevice.current.userInterfaceIdiom == .pad {
             IPadRootSplitView()
         } else {
             RootTabView()
