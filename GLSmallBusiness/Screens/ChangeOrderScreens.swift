@@ -314,6 +314,7 @@ struct ChangeOrderDetailSheet: View {
                 unit: item.unit, unitPrice: item.unitPrice, kind: .labor,
                 isTaxable: item.isTaxable, sortIndex: index
             )
+            li.fromChangeOrder = true   // charged at full price; the invoice discount won't re-rate it
             li.group = group
             modelContext.insert(li)
         }

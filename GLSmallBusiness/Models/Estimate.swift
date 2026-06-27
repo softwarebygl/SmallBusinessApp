@@ -133,6 +133,16 @@ nonisolated struct EstimateTotals {
         case .fixed: deposit = min(depositValue, total)
         }
     }
+
+    /// Raw-values initializer — used to combine a discounted base with a full-price add-on (applied
+    /// change orders, which are NOT subject to the invoice's overall discount).
+    init(subtotal: Double, discount: Double, tax: Double, total: Double, deposit: Double = 0) {
+        self.subtotal = subtotal
+        self.discount = discount
+        self.tax = tax
+        self.total = total
+        self.deposit = deposit
+    }
 }
 
 // MARK: - Estimate

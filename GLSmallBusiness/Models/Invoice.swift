@@ -197,14 +197,27 @@ extension Invoice {
     }
 
     /// Money math, shared with estimates. Invoices don't carry a deposit (payments cover that).
+    /// The overall discount applies only to the ORIGINAL work; change-order line items are added at
+    /// full price (and full tax) on top, so the invoice matches each signed change order exactly.
     var totals: EstimateTotals {
-        EstimateTotals(
-            lines: allLineItems.map { ($0.lineTotal, $0.isTaxable) },
+        let original = allLineItems.filter { !$0.fromChangeOrder }
+        let base = EstimateTotals(
+            lines: original.map { ($0.lineTotal, $0.isTaxable) },
             taxRatePercent: taxRatePercent,
             discountType: discountType,
             discountValue: discountValue,
             depositType: .none,
             depositValue: 0
+        )
+        let coItems = allLineItems.filter { $0.fromChangeOrder }
+        guard !coItems.isEmpty else { return base }
+        let coSubtotal = coItems.reduce(0) { $0 + $1.lineTotal }
+        let coTax = coItems.filter(\.isTaxable).reduce(0) { $0 + $1.lineTotal } * (taxRatePercent / 100)
+        return EstimateTotals(
+            subtotal: base.subtotal + coSubtotal,
+            discount: base.discount,                       // discount stays on the original work only
+            tax: base.tax + coTax,                         // change-order tax at full rate, un-discounted
+            total: base.total + coSubtotal + coTax
         )
     }
 
@@ -385,6 +398,9 @@ final class InvoiceLineItem {
     var kind: LineItemKind = LineItemKind.labor
     var isTaxable: Bool = false
     var sortIndex: Int = 0
+    /// True for line items pushed in from a change order. They're charged at full price — the invoice's
+    /// overall discount does NOT apply to them — so the invoice matches the signed change order exactly.
+    var fromChangeOrder: Bool = false
 
     var group: InvoiceGroup?
 
