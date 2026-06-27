@@ -425,9 +425,18 @@ struct JobDetailScreen: View {
     /// Normalize each picked image to a compressed JPEG (CloudKit-friendly) and attach it to the job.
     private func addPickedPhotos() async {
         guard !photoItems.isEmpty else { return }
-        for item in photoItems {
-            if let data = try? await item.loadTransferable(type: Data.self),
-               let jpeg = UIImage(data: data)?.jpegData(compressionQuality: 0.7) {
+        let items = Array(photoItems.prefix(50))   // sane batch guard
+        for item in items {
+            guard let data = try? await item.loadTransferable(type: Data.self) else {
+                photoLoadFailed = true
+                continue
+            }
+            // Downsize + encode OFF the main actor so a batch of 12MP photos doesn't hitch the UI or
+            // store multi-MB blobs that bloat the store and slow CloudKit sync.
+            let jpeg = await Task.detached(priority: .utility) {
+                ImageDownsampler.downsizedJPEG(from: data, maxPixelSize: 2048)
+            }.value
+            if let jpeg {
                 modelContext.insert(JobAttachment(kind: .photo, name: "Photo", data: jpeg, job: job))
             } else {
                 photoLoadFailed = true

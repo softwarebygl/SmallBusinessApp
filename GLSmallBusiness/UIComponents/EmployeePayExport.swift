@@ -44,8 +44,9 @@ enum EmployeePayExport {
             ].map(csvField)
             rows.append(columns.joined(separator: ","))
         }
-        let prefix = (business?.businessName).map { $0.isEmpty ? "" : "# \($0) — employee wages \(year)\n" } ?? ""
-        return write(prefix + rows.joined(separator: "\n"), name: "GL-Employee-Wages-\(year).csv")
+        // No in-band "# business — year" banner (CSV has no portable comment row; it shifts/splits the
+        // header). Business + year are in the filename.
+        return write(rows.joined(separator: "\n"), name: "GL-Employee-Wages-\(year).csv")
     }
 
     // MARK: - Paycheck ledger
@@ -83,7 +84,8 @@ enum EmployeePayExport {
     private static func write(_ text: String, name: String) -> URL? {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
         do {
-            try text.write(to: url, atomically: true, encoding: .utf8)
+            let content = name.hasSuffix(".csv") ? "\u{FEFF}" + text : text   // UTF-8 BOM for Excel-on-Windows
+            try content.write(to: url, atomically: true, encoding: .utf8)
             return url
         } catch {
             return nil

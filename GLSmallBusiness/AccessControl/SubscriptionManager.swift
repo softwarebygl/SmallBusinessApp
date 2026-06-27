@@ -46,6 +46,26 @@ final class SubscriptionManager {
     private init() {
         updatesTask = listenForTransactions()
         Task { await loadProducts() }
+        Task { await refreshCachedEntitlement() }
+    }
+
+    /// Resolve entitlement from StoreKit's locally-cached `currentEntitlements`, which works OFFLINE.
+    /// Without this, a cold launch while offline leaves `statusKnown` false, and AccessGate keeps the
+    /// gate open — handing a capped free user unlimited creation for the session. AppGate's live
+    /// `.subscriptionStatusTask` still overrides this with the authoritative result when online.
+    func refreshCachedEntitlement() async {
+        var active = false
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let txn) = result,
+               Self.productIDs.contains(txn.productID),
+               txn.revocationDate == nil,
+               (txn.expirationDate ?? .distantFuture) > .now {
+                active = true
+                break
+            }
+        }
+        isSubscribed = active
+        statusKnown = true
     }
 
     func loadProducts() async {

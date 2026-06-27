@@ -36,10 +36,11 @@ enum ProfileDedup {
     }
 
     private static func isBlank(_ p: BusinessProfile) -> Bool {
-        p.businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && p.phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && p.email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && p.logoData == nil
+        func empty(_ s: String) -> Bool { s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        return empty(p.businessName) && empty(p.phone) && empty(p.email)
+            && empty(p.licenseNumber) && empty(p.w9LegalName) && empty(p.warrantyText)
+            && empty(p.address.street1) && empty(p.address.city)
+            && p.logoData == nil && p.logoDataDark == nil
     }
 
     private static func isBlank(_ p: UserProfile) -> Bool {

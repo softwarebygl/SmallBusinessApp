@@ -77,8 +77,9 @@ enum Form1099NECPDF {
         text(ctx, payer.address.state, x: 54, y: 651, size: 8, maxWidth: 115)
         text(ctx, payer.address.postalCode, x: 212, y: 651, size: 8, maxWidth: 80)
 
-        // For calendar year — 2-digit (the form preprints "20").
-        text(ctx, String(format: "%02d", year % 100), x: 421, y: 690, size: 10)
+        // For calendar year — the bundled IRS template does NOT preprint the century, so stamp the
+        // full 4-digit year (a 2-digit "26" reads as an ambiguous/wrong tax year on a furnished return).
+        text(ctx, String(year), x: 414, y: 690, size: 10)
 
         // TINs.
         text(ctx, formatTIN(payer.secureTIN, type: payer.w9TINType), x: 56, y: 615, size: 9, maxWidth: 112)

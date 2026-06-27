@@ -23,11 +23,26 @@ fileprivate func wipeSwiftDataStore(at url: URL) {
 }
 #endif
 
+/// Opaque branded cover shown over the whole app whenever it isn't active, so sensitive on-screen
+/// data (SSN/TIN, a customer's financials, a 1099/W-9 preview) never lands in the app-switcher
+/// snapshot. Contains no user data of its own.
+private struct PrivacyScreen: View {
+    var body: some View {
+        ZStack {
+            Color(.systemBackground).ignoresSafeArea()
+            Text("My Business")
+                .font(.custom("Italianno-Regular", size: 52))
+                .foregroundStyle(Color("AccentColor"))
+        }
+    }
+}
+
 @main
 struct GLSmallBusinessApp: App {
     /// Device-local appearance preference (Light / Dark / Auto), set in Settings.
     @AppStorage(AppColorScheme.storageKey) private var appColorSchemeRaw = AppColorScheme.system.rawValue
     private var appColorScheme: AppColorScheme { AppColorScheme(rawValue: appColorSchemeRaw) ?? .system }
+    @Environment(\.scenePhase) private var scenePhase
 
     /// Private-CloudKit-backed store. With `.automatic`, CloudKit sync turns on once the
     /// iCloud capability is enabled; until then (or with no iCloud account) it stays local.
@@ -100,6 +115,12 @@ struct GLSmallBusinessApp: App {
                 .tint(Color("AccentColor"))   // GL gold accent app-wide (tabs, selections, buttons)
                 .preferredColorScheme(appColorScheme.colorScheme)
                 .environment(SubscriptionManager.shared)
+                // Cover the UI whenever the app isn't active so the iOS app-switcher snapshot can't
+                // capture an on-screen SSN/TIN or a customer's financials. (No app data is in
+                // PrivacyScreen.)
+                .overlay {
+                    if scenePhase != .active { PrivacyScreen() }
+                }
         }
         .modelContainer(sharedModelContainer)
     }

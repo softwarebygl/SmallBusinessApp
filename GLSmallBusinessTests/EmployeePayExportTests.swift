@@ -104,7 +104,7 @@ struct EmployeePayExportTests {
         profile.businessName = "Gold Life, LLC"
         let employee = TS.employee(first: "Sam", last: "O'Neil, Jr")
         let w = wages(EmployeePayExport.files(employees: [employee], year: 2026, business: profile))
-        #expect(w.contains("# Gold Life, LLC"))           // business name header (raw, comment line)
+        #expect(!w.contains("# Gold Life"))               // no in-band banner row; business name is in the filename
         #expect(w.contains("\"Sam O'Neil, Jr\""))         // CSV field quoted because it has a comma
     }
 }

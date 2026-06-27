@@ -41,8 +41,10 @@ enum SubPayExport {
             ].map(csvField)
             rows.append(columns.joined(separator: ","))
         }
-        let prefix = (business?.businessName).map { $0.isEmpty ? "" : "# \($0) — 1099 summary \(year)\n" } ?? ""
-        return write(prefix + rows.joined(separator: "\n"), name: "GL-Subcontractor-1099-\(year).csv")
+        // No in-band "# business — year" banner: CSV has no portable comment row, so Excel/Sheets treat
+        // it as a header/data row (and a comma in the business name splits it into two cells). The
+        // business + year are already in the filename.
+        return write(rows.joined(separator: "\n"), name: "GL-Subcontractor-1099-\(year).csv")
     }
 
     // MARK: - Payment ledger (one row per payment)
@@ -78,7 +80,10 @@ enum SubPayExport {
     private static func write(_ text: String, name: String) -> URL? {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
         do {
-            try text.write(to: url, atomically: true, encoding: .utf8)
+            // Prepend a UTF-8 BOM to CSVs so Excel-on-Windows renders accented names (José, Nguyễn)
+            // correctly instead of falling back to Windows-1252. Invisible in Numbers/Sheets.
+            let content = name.hasSuffix(".csv") ? "\u{FEFF}" + text : text
+            try content.write(to: url, atomically: true, encoding: .utf8)
             return url
         } catch {
             return nil

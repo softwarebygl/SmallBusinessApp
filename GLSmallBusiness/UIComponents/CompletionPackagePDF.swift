@@ -31,22 +31,12 @@ enum CompletionPackagePDF {
 
     @MainActor
     private static func pageData<V: View>(_ view: V) -> Data? {
-        let renderer = ImageRenderer(content: view)
-        renderer.proposedSize = ProposedViewSize(width: pageWidth, height: nil)
+        // Route through the shared paginator so a long warranty/terms block splits across US-Letter
+        // pages like every other document, instead of one oversized page that prints scaled-down.
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("completion-\(UUID().uuidString).pdf")
-        // The file is only an intermediate; the returned Data is what's merged, so don't leave it behind.
-        defer { try? FileManager.default.removeItem(at: url) }
-        var ok = false
-        renderer.render { size, context in
-            var box = CGRect(origin: .zero, size: size)
-            guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else { return }
-            pdf.beginPDFPage(nil)
-            context(pdf)
-            pdf.endPDFPage()
-            pdf.closePDF()
-            ok = true
-        }
-        return ok ? try? Data(contentsOf: url) : nil
+        defer { try? FileManager.default.removeItem(at: url) }   // intermediate; the returned Data is merged
+        guard PaginatedPDF.render(view, width: pageWidth, to: url) != nil else { return nil }
+        return try? Data(contentsOf: url)
     }
 
     static func trimmed(_ value: String?) -> String { (value ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }

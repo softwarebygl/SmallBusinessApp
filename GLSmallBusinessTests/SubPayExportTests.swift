@@ -114,7 +114,7 @@ struct SubPayExportTests {
         let sub = TS.subcontractor(first: "Sam", last: "O'Neil, Jr")
         TS.paySub(sub, 800, date: TS.day(2026, 2, 2))
         let s = summary(SubPayExport.files(subcontractors: [sub], year: 2026, business: profile))
-        #expect(s.contains("# Gold Life, LLC"))
+        #expect(!s.contains("# Gold Life"))   // no in-band banner row; business name is in the filename
         #expect(s.contains("\"Sam O'Neil, Jr\""))
     }
 

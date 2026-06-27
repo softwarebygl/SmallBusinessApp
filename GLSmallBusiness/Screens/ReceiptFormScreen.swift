@@ -42,7 +42,9 @@ struct ReceiptFormScreen: View {
         _category = State(initialValue: "")
         _notes = State(initialValue: "")
         _recognizedText = State(initialValue: "")
-        _scanData = State(initialValue: scanImage?.jpegData(compressionQuality: 0.7))
+        // Downsize the scan before storing — a full-res VisionKit capture is multi-MB, bloating the
+        // store and slowing CloudKit sync, for no visible receipt-quality gain.
+        _scanData = State(initialValue: scanImage.flatMap { ImageDownsampler.downsizedJPEG($0, maxDimension: 2000) })
     }
 
     init(editing receipt: Receipt) {

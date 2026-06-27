@@ -92,7 +92,8 @@ enum StatsExport {
     private static func write(_ text: String, name: String) -> URL? {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
         do {
-            try text.write(to: url, atomically: true, encoding: .utf8)
+            let content = name.hasSuffix(".csv") ? "\u{FEFF}" + text : text   // UTF-8 BOM for Excel-on-Windows
+            try content.write(to: url, atomically: true, encoding: .utf8)
             return url
         } catch {
             return nil

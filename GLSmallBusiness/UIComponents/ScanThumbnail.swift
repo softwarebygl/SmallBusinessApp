@@ -32,6 +32,28 @@ enum ImageDownsampler {
         guard let cg = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
         return UIImage(cgImage: cg)
     }
+
+    /// Downsize image `data` to at most `maxPixelSize` px on the long edge and re-encode as JPEG, for
+    /// STORAGE (not just a thumbnail). Memory-efficient — never fully decodes the original. nonisolated
+    /// so callers can run it off the main actor.
+    nonisolated static func downsizedJPEG(from data: Data, maxPixelSize: CGFloat, quality: CGFloat = 0.7) -> Data? {
+        (thumbnail(from: data, maxPixelSize: maxPixelSize) ?? UIImage(data: data))?
+            .jpegData(compressionQuality: quality)
+    }
+
+    /// Downsize a UIImage to at most `maxDimension` pt on the long edge and JPEG-encode it.
+    nonisolated static func downsizedJPEG(_ image: UIImage, maxDimension: CGFloat, quality: CGFloat = 0.7) -> Data? {
+        let longEdge = max(image.size.width, image.size.height)
+        guard longEdge > maxDimension else { return image.jpegData(compressionQuality: quality) }
+        let scale = maxDimension / longEdge
+        let newSize = CGSize(width: (image.size.width * scale).rounded(),
+                             height: (image.size.height * scale).rounded())
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: newSize, format: format)
+            .image { _ in image.draw(in: CGRect(origin: .zero, size: newSize)) }
+            .jpegData(compressionQuality: quality)
+    }
 }
 
 struct ScanThumbnail: View {
