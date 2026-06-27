@@ -396,7 +396,7 @@ struct EstimateDetailScreen: View {
     }
 
     private func performConvert() {
-        let number = Invoice.nextNumber(after: allInvoices)
+        let number = Invoice.nextNumber(after: allInvoices, profile: businessProfiles.first)
         convertedInvoice = Invoice.make(from: estimate, number: number, in: modelContext)
         // Persist the new invoice immediately so it's safe and shows in Stats right away.
         modelContext.saveChanges()

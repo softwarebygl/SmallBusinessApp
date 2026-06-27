@@ -58,6 +58,7 @@ struct InvoiceFormScreen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @Query private var allInvoices: [Invoice]
+    @Query private var businessProfiles: [BusinessProfile]
     @Query private var allInvoiceGroups: [InvoiceGroup]
     @Query private var allInvoiceLineItems: [InvoiceLineItem]
     @Query private var allEstimateGroups: [EstimateGroup]
@@ -489,7 +490,7 @@ struct InvoiceFormScreen: View {
             invoice.groups = []
         } else {
             invoice = Invoice(customer: customer)
-            invoice.number = Invoice.nextNumber(after: allInvoices)
+            invoice.number = Invoice.nextNumber(after: allInvoices, profile: businessProfiles.first)
             invoice.job = linkedJob   // progress-billing link (nil for a standalone invoice)
             modelContext.insert(invoice)
         }

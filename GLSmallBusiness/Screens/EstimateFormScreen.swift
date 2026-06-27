@@ -58,6 +58,7 @@ struct EstimateFormScreen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @Query private var allEstimates: [Estimate]
+    @Query private var businessProfiles: [BusinessProfile]
     @Query private var allGroups: [EstimateGroup]
     @Query private var allLineItems: [EstimateLineItem]
 
@@ -430,7 +431,7 @@ struct EstimateFormScreen: View {
             estimate.groups = []
         } else {
             estimate = Estimate(customer: customer)
-            estimate.number = Estimate.nextNumber(after: allEstimates)
+            estimate.number = Estimate.nextNumber(after: allEstimates, profile: businessProfiles.first)
             modelContext.insert(estimate)
         }
 

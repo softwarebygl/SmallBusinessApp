@@ -297,11 +297,16 @@ extension Invoice {
         return status.label
     }
 
-    static func nextNumber(after existing: [Invoice]) -> String {
-        let highest = existing
+    /// The next invoice number. Seeded from the larger of the highest existing number and the profile's
+    /// monotonic counter, then bumps the counter — so deleting the highest invoice doesn't reuse its
+    /// number. Pass the business profile to enable the counter (nil = plain max+1, used in tests).
+    static func nextNumber(after existing: [Invoice], profile: BusinessProfile? = nil) -> String {
+        let computed = existing
             .compactMap { Int($0.number.replacingOccurrences(of: "INV-", with: "")) }
             .max() ?? 0
-        return String(format: "INV-%04d", highest + 1)
+        let next = max(profile?.lastInvoiceNumber ?? 0, computed) + 1
+        profile?.lastInvoiceNumber = next
+        return String(format: "INV-%04d", next)
     }
 
     /// Builds an invoice from an estimate: copies the frozen snapshot, line items, and

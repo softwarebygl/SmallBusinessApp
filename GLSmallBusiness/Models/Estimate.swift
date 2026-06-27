@@ -281,11 +281,16 @@ extension Estimate {
         isExpired ? String(localized: "Expired") : status.label
     }
 
-    static func nextNumber(after existing: [Estimate]) -> String {
-        let highest = existing
+    /// The next estimate number. Seeded from the larger of the highest existing number and the profile's
+    /// monotonic counter, then bumps the counter (so deleting the highest estimate doesn't reuse its
+    /// number). Pass the business profile to enable the counter (nil = plain max+1, used in tests).
+    static func nextNumber(after existing: [Estimate], profile: BusinessProfile? = nil) -> String {
+        let computed = existing
             .compactMap { Int($0.number.replacingOccurrences(of: "EST-", with: "")) }
             .max() ?? 0
-        return String(format: "EST-%04d", highest + 1)
+        let next = max(profile?.lastEstimateNumber ?? 0, computed) + 1
+        profile?.lastEstimateNumber = next
+        return String(format: "EST-%04d", next)
     }
 }
 

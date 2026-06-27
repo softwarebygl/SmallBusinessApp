@@ -83,6 +83,12 @@ final class BusinessProfile {
     /// Optional dark-appearance logo. Falls back to `logoData` when not set.
     @Attribute(.externalStorage) var logoDataDark: Data?
 
+    /// Highest invoice / estimate number ever issued. A monotonic counter so deleting the highest-
+    /// numbered document doesn't reuse its number for a new one (which would collide with the already-
+    /// sent original); it lives on the synced profile so it also stays consistent across devices.
+    var lastInvoiceNumber: Int = 0
+    var lastEstimateNumber: Int = 0
+
     // Optional custom wording for each document's email/text — subject, intro, and closing. Empty =
     // use the prepared default, so future default-wording improvements reach anyone who hasn't
     // customized. Estimate intro/closing kept their original names (`messageIntro`/`messageClosing`)
