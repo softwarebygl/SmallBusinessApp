@@ -150,6 +150,7 @@ struct ReceiptFormScreen: View {
                         Text(job.displayTitle).tag(job.persistentModelID as PersistentIdentifier?)
                     }
                 }
+                .accessibilityIdentifier("receiptJobPicker")
             } header: {
                 InfoLabel("Assignment", info: "Leave as Business for general expenses, or assign this receipt to a customer and, optionally, a specific job.")
             }

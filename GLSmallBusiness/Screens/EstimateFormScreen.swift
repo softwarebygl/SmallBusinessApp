@@ -347,6 +347,7 @@ struct EstimateFormScreen: View {
                     Text("$ off").tag(AdjustmentType.fixed)
                 }
                 .pickerStyle(.menu)
+                .accessibilityIdentifier("lineDiscountPicker")
                 Spacer()
                 if line.discountType.wrappedValue != .none {
                     AutoClearNumberField(placeholder: "0", value: line.discountValue, style: .number, clearsAt: 0)

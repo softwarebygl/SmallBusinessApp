@@ -34,6 +34,7 @@ private struct DiscardChangesGuard: ViewModifier {
                                 Text("Back")
                             }
                         }
+                        .accessibilityIdentifier("discardBackButton")
                     }
                 }
             }
