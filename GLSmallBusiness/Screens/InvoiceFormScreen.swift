@@ -34,6 +34,18 @@ private struct InvoiceLineItemDraft: Identifiable, Equatable {
         discountValue = item.discountValue
     }
 
+    init(from item: EstimateLineItem) {
+        name = item.name
+        details = item.details
+        quantity = item.quantity
+        unit = item.unit
+        unitPrice = item.unitPrice
+        kind = item.kind
+        isTaxable = item.isTaxable
+        discountType = item.discountType
+        discountValue = item.discountValue
+    }
+
     var grossLineTotal: Double { quantity * unitPrice }
     var lineDiscount: Double { LineDiscount.amount(type: discountType, value: discountValue, gross: grossLineTotal) }
     var lineTotal: Double { max(0, grossLineTotal - lineDiscount) }
@@ -56,7 +68,45 @@ private struct InvoiceGroupDraft: Identifiable, Equatable {
         if lines.isEmpty { lines = [InvoiceLineItemDraft()] }
     }
 
+    init(from group: EstimateGroup) {
+        name = group.name
+        note = group.note
+        lines = group.sortedLineItems.map { InvoiceLineItemDraft(from: $0) }
+        if lines.isEmpty { lines = [InvoiceLineItemDraft()] }
+    }
+
     var subtotal: Double { lines.reduce(0) { $0 + $1.lineTotal } }
+}
+
+private struct JobInvoiceCarry {
+    var groups: [InvoiceGroupDraft]
+    var taxRatePercent: Double
+    var discountType: AdjustmentType
+    var discountValue: Double
+    var terms: String
+    var customerNotes: String
+}
+
+/// Line items + pricing to pre-fill when creating the FIRST invoice for a job, taken from the document
+/// that created the job (its source estimate, else its source invoice) — so the agreed work doesn't have
+/// to be re-entered. Returns nil once the job already has a billing invoice: pre-filling the same scope
+/// again would double the job's invoiced total, so later progress draws start blank (the running history
+/// stays visible on the job and on each invoice's payment list).
+private func jobInvoiceCarry(for job: ScheduledJob) -> JobInvoiceCarry? {
+    guard (job.billingInvoices ?? []).isEmpty else { return nil }
+    if let estimate = job.estimate, !estimate.sortedGroups.isEmpty {
+        return JobInvoiceCarry(groups: estimate.sortedGroups.map { InvoiceGroupDraft(from: $0) },
+                               taxRatePercent: estimate.taxRatePercent,
+                               discountType: estimate.discountType, discountValue: estimate.discountValue,
+                               terms: estimate.terms, customerNotes: estimate.customerNotes)
+    }
+    if let source = job.invoice, !source.sortedGroups.isEmpty {
+        return JobInvoiceCarry(groups: source.sortedGroups.map { InvoiceGroupDraft(from: $0) },
+                               taxRatePercent: source.taxRatePercent,
+                               discountType: source.discountType, discountValue: source.discountValue,
+                               terms: source.terms, customerNotes: source.customerNotes)
+    }
+    return nil
 }
 
 /// Snapshot of everything the form edits, for unsaved-changes detection.
@@ -158,22 +208,25 @@ struct InvoiceFormScreen: View {
         self.linkedJob = job
         let now = Date.now
         self.createdAt = now
+        // Pre-fill the work from the document that created the job, so it isn't re-entered (first invoice
+        // only — see jobInvoiceCarry).
+        let carry = jobInvoiceCarry(for: job)
         _jobTitle = State(initialValue: job.displayTitle)
         _status = State(initialValue: .draft)
         _paymentTerms = State(initialValue: .net30)
         _dueDate = State(initialValue: PaymentTerms.net30.dueDate(from: now) ?? now)
-        _taxRatePercent = State(initialValue: 0)
-        _discountType = State(initialValue: .none)
-        _discountValue = State(initialValue: 0)
-        _customerNotes = State(initialValue: "")
-        _terms = State(initialValue: "")
+        _taxRatePercent = State(initialValue: carry?.taxRatePercent ?? 0)
+        _discountType = State(initialValue: carry?.discountType ?? .none)
+        _discountValue = State(initialValue: carry?.discountValue ?? 0)
+        _customerNotes = State(initialValue: carry?.customerNotes ?? "")
+        _terms = State(initialValue: carry?.terms ?? "")
         _serviceStreet = State(initialValue: job.serviceAddress.street1)
         _serviceCity = State(initialValue: job.serviceAddress.city)
         _serviceState = State(initialValue: job.serviceAddress.state)
         _servicePostal = State(initialValue: job.serviceAddress.postalCode)
         _amountDueNow = State(initialValue: 0)
         _amountDueDetail = State(initialValue: "")
-        _groups = State(initialValue: [InvoiceGroupDraft()])
+        _groups = State(initialValue: carry?.groups ?? [InvoiceGroupDraft()])
     }
 
     init(editing invoice: Invoice) {

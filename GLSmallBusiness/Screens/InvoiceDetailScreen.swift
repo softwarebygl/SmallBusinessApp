@@ -442,6 +442,38 @@ struct InvoiceDetailScreen: View {
                     }
                 }
             }
+
+            // The running payment history across the whole job (this invoice's sibling billing invoices),
+            // so the full picture is visible here — not just on the job screen. Read-only; these payments
+            // belong to their own invoices and are not re-counted on this one.
+            if let job = invoice.job {
+                let otherPayments = (job.billingInvoices ?? [])
+                    .filter { $0.persistentModelID != invoice.persistentModelID }
+                    .flatMap { $0.sortedPayments }
+                    .sorted { $0.date < $1.date }
+                if !otherPayments.isEmpty {
+                    Divider().padding(.vertical, 4)
+                    HStack {
+                        Text("Earlier on this job").font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Text(otherPayments.reduce(0) { $0 + $1.amount }.formatted(.currency(code: "USD")))
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    ForEach(otherPayments) { payment in
+                        HStack(alignment: .firstTextBaseline) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(payment.method.label)
+                                Text(payment.date.formatted(date: .abbreviated, time: .omitted))
+                                    .font(.caption)
+                            }
+                            Spacer()
+                            Text(payment.amount.formatted(.currency(code: "USD")))
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
     }
 
