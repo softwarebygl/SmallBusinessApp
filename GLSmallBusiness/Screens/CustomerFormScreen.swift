@@ -97,18 +97,8 @@ struct CustomerFormScreen: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     #endif
-                TextField("Phone", text: $phoneNumber)
-                    .textContentType(.telephoneNumber)
-                    #if !os(macOS)
-                    .keyboardType(.phonePad)
-                    #endif
-                    .phoneNumberFormatted($phoneNumber)
-                TextField("Office number (optional)", text: $officePhone)
-                    .textContentType(.telephoneNumber)
-                    #if !os(macOS)
-                    .keyboardType(.phonePad)
-                    #endif
-                    .phoneNumberFormatted($officePhone)
+                PhoneTextField(placeholder: "Phone", text: $phoneNumber)
+                PhoneTextField(placeholder: "Office number (optional)", text: $officePhone)
             }
             Section("Address") {
                 AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)

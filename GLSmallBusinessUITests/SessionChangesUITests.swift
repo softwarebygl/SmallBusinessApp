@@ -11,9 +11,10 @@ import XCTest
 
 final class SessionChangesUITests: GLUITestCase {
 
-    // #5 — typing digits at human pace (one at a time) formats with dashes. (typeText'ing all 10 at
-    // once outruns SwiftUI's reformat onChange and is an XCUITest artifact, not a real-typing path.)
-    func testPhoneFieldAutoDashes() {
+    // #5 — auto-dash, AND robustness: typeText sends all 10 digits faster than any human, which used to
+    // drop a digit with the old SwiftUI .onChange reformat. PhoneTextField formats atomically, so this
+    // (the original failing case) must now produce the full number — no character dropped.
+    func testPhoneFieldAutoDashesWithoutDroppingDigits() {
         app.tabBars.buttons["Customers"].tap()
         app.buttons["More"].tap()
         app.buttons["New Customer"].tap()
@@ -21,9 +22,9 @@ final class SessionChangesUITests: GLUITestCase {
         let phone = app.textFields["Phone"]
         XCTAssertTrue(phone.waitForExistence(timeout: 5), "The New Customer form should have a Phone field.")
         phone.tap()
-        for digit in "5551234567" { phone.typeText(String(digit)) }
+        phone.typeText("5551234567")
         XCTAssertEqual(phone.value as? String, "555-123-4567",
-                       "Typing 10 digits should auto-format to 555-123-4567.")
+                       "Typing 10 digits should auto-format to 555-123-4567 with no digit lost.")
     }
 
     // #7 — editing a form then going Back prompts to discard, and confirming leaves the form. The PROMPT

@@ -3,9 +3,13 @@
 //  GLSmallBusiness
 //
 //  Live US phone-number formatting — auto-inserts dashes as the user types (5551234567 → 555-123-4567)
-//  and ignores any dashes/spaces the user types themselves. Mirrors the TINField/TINFormatter approach
-//  (sanitize to digits, reformat on every keystroke). Apply `.phoneNumberFormatted($binding)` to any
-//  phone TextField; keep `.keyboardType(.phonePad)` alongside it.
+//  and ignores any dashes/spaces the user types themselves.
+//
+//  `PhoneFormatter` is the pure formatting function (unit-tested). `PhoneTextField` is the field to use
+//  in forms: it formats at the UIKit level (UITextField delegate), so each edit is applied atomically and
+//  a character can NEVER be dropped — even under paste, autofill, a third-party keyboard, or
+//  faster-than-human input. (A plain SwiftUI TextField + `.onChange` reformat round-trips through the
+//  binding, which can race fast input and lose a digit — which is exactly what the XCUITest caught.)
 //
 
 import SwiftUI
@@ -40,14 +44,69 @@ enum PhoneFormatter {
     }
 }
 
-extension View {
-    /// Live US phone formatting on a text binding — inserts dashes as the user types. Pairs with
-    /// `.keyboardType(.phonePad)`. Reformats only on change, so an existing stored value isn't disturbed
-    /// until the user edits it.
-    func phoneNumberFormatted(_ text: Binding<String>) -> some View {
-        onChange(of: text.wrappedValue) { _, newValue in
-            let formatted = PhoneFormatter.format(newValue)
-            if formatted != newValue { text.wrappedValue = formatted }
+#if canImport(UIKit)
+import UIKit
+
+/// A phone field that formats live and never drops a character. Formats inside the UITextField delegate,
+/// so input and formatting can't get out of sync the way a SwiftUI `.onChange` reformat can.
+struct PhoneTextField: UIViewRepresentable {
+    let placeholder: String
+    @Binding var text: String
+
+    func makeUIView(context: Context) -> UITextField {
+        let field = UITextField()
+        field.placeholder = placeholder
+        field.keyboardType = .phonePad
+        field.textContentType = .telephoneNumber
+        field.borderStyle = .none
+        field.font = .preferredFont(forTextStyle: .body)
+        field.adjustsFontForContentSizeCategory = true
+        field.delegate = context.coordinator
+        // Fill the row width (and leave room for a trailing marker, e.g. the required-field asterisk).
+        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        field.text = PhoneFormatter.format(text)
+        return field
+    }
+
+    func updateUIView(_ field: UITextField, context: Context) {
+        // Reflect external changes (e.g. the contact picker filling the number), formatted.
+        let formatted = PhoneFormatter.format(text)
+        if field.text != formatted { field.text = formatted }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(text: $text) }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        @Binding var text: String
+        init(text: Binding<String>) { _text = text }
+
+        func textField(_ field: UITextField, shouldChangeCharactersIn range: NSRange,
+                       replacementString string: String) -> Bool {
+            let current = field.text ?? ""
+            guard let r = Range(range, in: current) else { return false }
+            let proposed = current.replacingCharacters(in: r, with: string)
+            let formatted = PhoneFormatter.format(proposed)
+            field.text = formatted
+            text = formatted
+            // Phone entry runs left-to-right and dashes only get appended, so park the caret at the end.
+            let end = field.endOfDocument
+            field.selectedTextRange = field.textRange(from: end, to: end)
+            return false   // we applied the (formatted) change ourselves
         }
     }
 }
+#else
+/// Non-UIKit fallback — keeps call sites identical on platforms without UITextField.
+struct PhoneTextField: View {
+    let placeholder: String
+    @Binding var text: String
+    var body: some View {
+        TextField(placeholder, text: $text)
+            .onChange(of: text) { _, newValue in
+                let formatted = PhoneFormatter.format(newValue)
+                if formatted != newValue { text = formatted }
+            }
+    }
+}
+#endif

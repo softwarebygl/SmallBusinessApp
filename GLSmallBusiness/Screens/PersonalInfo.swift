@@ -280,12 +280,7 @@ struct MyPersonalInfoFormScreen: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     #endif
-                TextField("Phone", text: $phone)
-                    .textContentType(.telephoneNumber)
-                    #if !os(macOS)
-                    .keyboardType(.phonePad)
-                    #endif
-                    .phoneNumberFormatted($phone)
+                PhoneTextField(placeholder: "Phone", text: $phone)
             }
         }
         .glFormBackground()

@@ -108,12 +108,7 @@ struct SubcontractorFormScreen: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     #endif
-                TextField("Phone", text: $phone)
-                    .textContentType(.telephoneNumber)
-                    #if !os(macOS)
-                    .keyboardType(.phonePad)
-                    #endif
-                    .phoneNumberFormatted($phone)
+                PhoneTextField(placeholder: "Phone", text: $phone)
             }
             Section("Address") {
                 AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)
