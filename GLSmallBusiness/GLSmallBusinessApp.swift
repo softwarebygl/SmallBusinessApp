@@ -44,6 +44,12 @@ struct GLSmallBusinessApp: App {
     private var appColorScheme: AppColorScheme { AppColorScheme(rawValue: appColorSchemeRaw) ?? .system }
     @Environment(\.scenePhase) private var scenePhase
 
+    #if DEBUG
+    /// Installs the CloudKit share-acceptance delegate (DEBUG-only, like the sharing engine). A Release
+    /// build has no app delegate at all, so its scene lifecycle is unchanged. See ShareAcceptance.swift.
+    @UIApplicationDelegateAdaptor(ShareAppDelegate.self) private var shareDelegate
+    #endif
+
     /// Private-CloudKit-backed store. With `.automatic`, CloudKit sync turns on once the
     /// iCloud capability is enabled; until then (or with no iCloud account) it stays local.
     let sharedModelContainer: ModelContainer = {
@@ -121,6 +127,9 @@ struct GLSmallBusinessApp: App {
                 .overlay {
                     if scenePhase != .active { PrivacyScreen() }
                 }
+                // Owner-side: if the business is already shared, fold any records added since the invite
+                // into the share. No-op unless the sharing engine is on (Release: always off).
+                .task { await CloudKitSyncEngine.syncSharedRecordsIfNeeded() }
         }
         .modelContainer(sharedModelContainer)
     }

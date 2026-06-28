@@ -15,6 +15,7 @@
 import Foundation
 import SwiftData
 import CoreData
+import CloudKit
 
 /// Pure infrastructure — `nonisolated` so it can build containers from the App's bootstrap without
 /// pinning to the main actor (the target defaults to MainActor isolation).
@@ -41,6 +42,31 @@ nonisolated enum CloudKitSyncEngine {
         URL.applicationSupportDirectory.appending(path: "default.store")
     }
 
+    /// The accepted-shares store (CloudKit `.shared` scope). Data shared TO this device by another Apple
+    /// ID lands here — a SEPARATE file from `default.store` (the owner's own private data), because
+    /// CloudKit keeps the private and shared databases apart. Held so the accept-invitation call can
+    /// target it.
+    nonisolated(unsafe) private static var sharedStore: NSPersistentStore?
+
+    static var sharedStoreURL: URL {
+        URL.applicationSupportDirectory.appending(path: "shared.store")
+    }
+
+    /// The one store the SwiftData UI reads. The owner reads their own data (`default.store`); a device
+    /// that has ACCEPTED a share is a pure participant (no private data of its own), so its UI reads the
+    /// shared store instead. This participant-side rendering is the seam to confirm in on-device testing.
+    static var uiStoreURL: URL {
+        SharingState.isParticipant ? sharedStoreURL : defaultStoreURL
+    }
+
+    /// The top-level @Model entity names. Every other record (line items, payments, groups, attachments,
+    /// time entries, …) is reachable from one of these through a relationship, so a CKShare covering
+    /// these covers the whole business. Keep in sync with GLSchemaV1's top-level types.
+    static let topLevelEntityNames = [
+        "Customer", "Invoice", "Estimate", "Receipt", "Employee",
+        "Subcontractor", "ScheduledJob", "Project", "BusinessProfile", "UserProfile",
+    ]
+
     /// Builds a SwiftData `ModelContainer` whose underlying store is driven by an
     /// `NSPersistentCloudKitContainer` (so CKShare can be added later). Throws if the Core Data stack
     /// can't open the store, letting the caller fall back to the proven `.automatic` path.
@@ -50,22 +76,133 @@ nonisolated enum CloudKitSyncEngine {
         }
 
         let cloud = NSPersistentCloudKitContainer(name: "GLSmallBusiness", managedObjectModel: model)
-        let privateStore = NSPersistentStoreDescription(url: defaultStoreURL)
-        privateStore.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-        privateStore.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-        privateStore.cloudKitContainerOptions =
-            NSPersistentCloudKitContainerOptions(containerIdentifier: containerIdentifier)
-        // databaseScope defaults to `.private`; the `.shared` scope is added in the sharing phase.
-        cloud.persistentStoreDescriptions = [privateStore]
 
+        // Two stores: the owner's own data (`.private`) and any data shared TO this device by another
+        // Apple ID (`.shared`). CloudKit keeps the private and shared databases apart, so they're
+        // separate files. The shared store is what makes accepting an invite possible.
+        let privateStore = makeStoreDescription(url: defaultStoreURL, scope: .private)
+        let sharedStoreDescription = makeStoreDescription(url: sharedStoreURL, scope: .shared)
+        cloud.persistentStoreDescriptions = [privateStore, sharedStoreDescription]
+
+        // Stores load synchronously (shouldAddStoreAsynchronously = false), so the handler fires once per
+        // store before `loadPersistentStores` returns — capture the first error across both.
         var loadError: Error?
-        cloud.loadPersistentStores { _, error in loadError = error }
+        cloud.loadPersistentStores { _, error in
+            if let error { loadError = loadError ?? error }
+        }
         if let loadError { throw loadError }
         mirror = cloud   // keep the mirror alive for the app's lifetime
+        sharedStore = cloud.persistentStoreCoordinator.persistentStores.first { $0.url == sharedStoreURL }
 
-        // SwiftData opens the SAME store for the UI. It must NOT drive CloudKit (`.none`) — NSPCKC does.
-        let config = ModelConfiguration(schema: schema, url: defaultStoreURL, cloudKitDatabase: .none)
+        // SwiftData opens ONE store for the UI (owner → private, participant → shared). It must NOT drive
+        // CloudKit (`.none`) — NSPCKC does.
+        let config = ModelConfiguration(schema: schema, url: uiStoreURL, cloudKitDatabase: .none)
         return try ModelContainer(for: schema, migrationPlan: GLMigrationPlan.self, configurations: config)
+    }
+
+    /// A CloudKit-mirrored store description for one database scope. History tracking + remote-change
+    /// notifications are required for both SwiftData coexistence and CloudKit sharing.
+    private static func makeStoreDescription(url: URL,
+                                             scope: CKDatabase.Scope) -> NSPersistentStoreDescription {
+        let description = NSPersistentStoreDescription(url: url)
+        description.shouldAddStoreAsynchronously = false
+        description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+        description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+        let options = NSPersistentCloudKitContainerOptions(containerIdentifier: containerIdentifier)
+        options.databaseScope = scope
+        description.cloudKitContainerOptions = options
+        return description
+    }
+}
+
+// MARK: - Sharing (CKShare, root-free)
+//
+// Whole-business sharing WITHOUT a synthetic root object: CloudKit's `share([objects], to:)` accepts a
+// list of records and shares each one PLUS everything reachable from it through relationships. Passing
+// every top-level record (its children come along automatically) covers the whole business in one
+// CKShare — and needs zero data-model change, so the app's schema stays exactly as it ships today.
+
+nonisolated enum CloudKitShareError: Error { case engineOff, nothingToShare, shareFailed }
+
+extension CloudKitSyncEngine {
+    /// The CKContainer backing the share — handed to `UICloudSharingController`.
+    static var ckContainer: CKContainer { CKContainer(identifier: containerIdentifier) }
+
+    /// Every top-level managed object in the owner's store (NSPCKC's sharing API works on managed
+    /// objects, not SwiftData models).
+    @MainActor
+    private static func allTopLevelObjects() -> [NSManagedObject] {
+        guard let mirror else { return [] }
+        let context = mirror.viewContext
+        return topLevelEntityNames.flatMap { name -> [NSManagedObject] in
+            (try? context.fetch(NSFetchRequest<NSManagedObject>(entityName: name))) ?? []
+        }
+    }
+
+    /// The existing business-wide share, if one has been minted (drives the owner UI's "Manage invite").
+    @MainActor
+    static func currentShare() -> CKShare? {
+        guard let mirror else { return nil }
+        let ids = allTopLevelObjects().map(\.objectID)
+        guard !ids.isEmpty, let shares = try? mirror.fetchShares(matching: ids) else { return nil }
+        return shares.values.first
+    }
+
+    /// Mints (or returns the already-minted) CKShare covering the whole business, then makes sure every
+    /// current record is in it. The caller hands the result to `UICloudSharingController`.
+    @MainActor
+    static func shareEverything() async throws -> CKShare {
+        guard let mirror else { throw CloudKitShareError.engineOff }
+        if let existing = currentShare() {
+            await addUnsharedRecords(to: existing)
+            return existing
+        }
+        let objects = allTopLevelObjects()
+        guard !objects.isEmpty else { throw CloudKitShareError.nothingToShare }
+        return try await withCheckedThrowingContinuation { continuation in
+            mirror.share(objects, to: nil) { _, share, _, error in
+                if let share {
+                    continuation.resume(returning: share)
+                } else {
+                    continuation.resume(throwing: error ?? CloudKitShareError.shareFailed)
+                }
+            }
+        }
+    }
+
+    /// Adds records created AFTER the invite was sent into the existing share, so the second device keeps
+    /// seeing everything. Idempotent: already-shared records are skipped. Owner-only (a participant
+    /// doesn't own the share). Best-effort — runs on launch / when the Collaborate screen opens.
+    @MainActor
+    static func addUnsharedRecords(to share: CKShare) async {
+        guard let mirror, !SharingState.isParticipant else { return }
+        let objects = allTopLevelObjects()
+        guard !objects.isEmpty,
+              let existing = try? mirror.fetchShares(matching: objects.map(\.objectID)) else { return }
+        let unshared = objects.filter { existing[$0.objectID] == nil }
+        guard !unshared.isEmpty else { return }
+        await withCheckedContinuation { continuation in
+            mirror.share(unshared, to: share) { _, _, _, _ in continuation.resume() }
+        }
+    }
+
+    /// Owner-side launch hook: if the business is already shared, fold in any newly-created records.
+    @MainActor
+    static func syncSharedRecordsIfNeeded() async {
+        guard isEnabled, !SharingState.isParticipant, let share = currentShare() else { return }
+        await addUnsharedRecords(to: share)
+    }
+
+    /// Accepts an invite on the participant device, importing the shared business into the shared store.
+    static func acceptShare(_ metadata: CKShare.Metadata) {
+        guard let mirror, let sharedStore else { return }
+        mirror.acceptShareInvitations(from: [metadata], into: sharedStore) { _, error in
+            if let error {
+                print("⚠️ [sharing] accept failed: \(error)")
+            } else {
+                SharingState.markParticipant()   // next launch, the UI reads the shared store
+            }
+        }
     }
 }
 
