@@ -354,6 +354,8 @@ struct MyCompanyFormScreen: View {
     @State private var licenseNumber: String
     @State private var email: String
     @State private var phone: String
+    @State private var websiteURL: String
+    @State private var reviewsURL: String
     @State private var street1: String
     @State private var city: String
     @State private var state: String
@@ -392,7 +394,7 @@ struct MyCompanyFormScreen: View {
     @State private var w9FATCACode: String
     @State private var initialDigest: String?
     private var digest: String {
-        ([businessName, ownerFirstName, ownerLastName, licenseNumber, email, phone, street1, city, state,
+        ([businessName, ownerFirstName, ownerLastName, licenseNumber, email, phone, websiteURL, reviewsURL, street1, city, state,
           postalCode, estimateMessageSubject, messageIntro, messageClosing, invoiceMessageSubject,
           invoiceMessageIntro, invoiceMessageClosing, receiptMessageSubject, receiptMessageIntro,
           receiptMessageClosing, changeOrderMessageSubject, changeOrderMessageIntro, changeOrderMessageClosing,
@@ -414,6 +416,8 @@ struct MyCompanyFormScreen: View {
         _licenseNumber = State(initialValue: profile.licenseNumber)
         _email = State(initialValue: profile.email)
         _phone = State(initialValue: profile.phone)
+        _websiteURL = State(initialValue: profile.websiteURL)
+        _reviewsURL = State(initialValue: profile.reviewsURL)
         _street1 = State(initialValue: profile.address.street1)
         _city = State(initialValue: profile.address.city)
         _state = State(initialValue: profile.address.state)
@@ -507,6 +511,27 @@ struct MyCompanyFormScreen: View {
                     PhoneTextField(placeholder: "Phone", text: $phone)
                     requiredMark
                 }
+            }
+
+            Section {
+                TextField("Website (optional)", text: $websiteURL)
+                    .textContentType(.URL)
+                    #if !os(macOS)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
+                TextField("Reviews link (optional)", text: $reviewsURL)
+                    .textContentType(.URL)
+                    #if !os(macOS)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
+            } header: {
+                Text("Online")
+            } footer: {
+                Text("Your reviews link is added to every payment receipt you send — customers can tap it to leave a review. Paste any review URL (Google, Yelp, etc.).")
             }
 
             Section("Address") {
@@ -741,6 +766,8 @@ struct MyCompanyFormScreen: View {
         profile.licenseNumber = licenseNumber.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.email = email.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.phone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.websiteURL = websiteURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        profile.reviewsURL = reviewsURL.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.street1 = street1.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.city = city.trimmingCharacters(in: .whitespacesAndNewlines)
         profile.address.state = state.trimmingCharacters(in: .whitespacesAndNewlines)

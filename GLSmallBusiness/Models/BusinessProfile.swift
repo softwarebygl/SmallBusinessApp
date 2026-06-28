@@ -76,6 +76,10 @@ final class BusinessProfile {
     var ownerLastName: String = ""
     var phone: String = ""
     var email: String = ""
+    /// Optional public website, and a "leave a review" link. The review link is surfaced on every payment
+    /// receipt (PDF + email/text) so customers can rate the business in one tap. Additive/optional.
+    var websiteURL: String = ""
+    var reviewsURL: String = ""
     var licenseNumber: String = ""
     var address: Address = Address()
     /// The light/default logo. Used on estimates, emails, and the app's light appearance.
@@ -216,6 +220,19 @@ extension BusinessProfile {
             .filter { !$0.isEmpty }
             .joined(separator: " ")
     }
+
+    /// A user-entered URL made click-ready: trimmed, with `https://` prepended when it has no scheme (so
+    /// a pasted "g.page/…" still becomes a working link). Nil when blank or unparseable.
+    static func clickableURL(_ raw: String) -> URL? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let lower = trimmed.lowercased()
+        let withScheme = (lower.hasPrefix("http://") || lower.hasPrefix("https://")) ? trimmed : "https://\(trimmed)"
+        return URL(string: withScheme)
+    }
+
+    var websiteLink: URL? { Self.clickableURL(websiteURL) }
+    var reviewsLink: URL? { Self.clickableURL(reviewsURL) }
 
     /// Has a business name and at least one way to be reached (phone OR email) — a phone-only sole
     /// proprietor who texts everything is a complete, valid setup.

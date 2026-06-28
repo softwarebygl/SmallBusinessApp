@@ -31,6 +31,9 @@ struct PaymentReceiptPDFDocument: View {
             parties
             receivedBlock
             summary
+            if let business, business.reviewsLink != nil {
+                reviewCTA(business.reviewsURL)
+            }
             Spacer(minLength: 0)
             Text(paidInFull
                  ? "Thank you — this invoice is now paid in full. We appreciate your business."
@@ -151,6 +154,23 @@ struct PaymentReceiptPDFDocument: View {
         .font(.subheadline)
     }
 
+    /// A prominent "leave us a review" call-out. The PDF text isn't tappable, but it's shown big and
+    /// centered so the customer can't miss the link; the email/text versions make it one-tap clickable.
+    private func reviewCTA(_ reviewsURL: String) -> some View {
+        VStack(spacing: 5) {
+            Text("★  Enjoyed working with us?").font(.headline).foregroundStyle(gold)
+            Text("Leave us a quick review:").font(.subheadline).foregroundStyle(.secondary)
+            Text(reviewsURL.trimmingCharacters(in: .whitespacesAndNewlines))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(gold)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 12).fill(gold.opacity(0.10)))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(gold.opacity(0.5)))
+    }
+
     private func formattedAddress(_ a: Address) -> String {
         let cityLine = [a.city, a.state].filter { !$0.isEmpty }.joined(separator: ", ")
         let cityZip = [cityLine, a.postalCode].filter { !$0.isEmpty }.joined(separator: " ")
@@ -223,7 +243,7 @@ enum PaymentReceiptMessage {
 
         \(lines.joined(separator: "\n"))
 
-        \(closing(business: business))\(signoff)
+        \(closing(business: business))\(reviewPlain(business: business))\(signoff)
         """
     }
 
@@ -257,6 +277,7 @@ enum PaymentReceiptMessage {
         <p style="margin:0 0 16px;">\(htmlText(intro(paidInFull: paidInFull, business: business)))</p>
         \(EmailHTML.summaryBox(rows))
         <p style="margin:0 0 16px;">\(htmlText(closing(business: business)))</p>
+        \(reviewHTML(business: business))
         <p style="margin:20px 0 0;">\(signature)</p>
         """
         return EmailHTML.page(inner)
@@ -281,5 +302,23 @@ enum PaymentReceiptMessage {
     /// Escapes user-entered prose for HTML and preserves their line breaks as `<br>`.
     private static func htmlText(_ string: String) -> String {
         esc(string).replacingOccurrences(of: "\n", with: "<br>")
+    }
+
+    /// A review ask for the plain-text (SMS) body — empty when no reviews link is set. SMS clients
+    /// auto-link the URL, so it's tappable.
+    private static func reviewPlain(business: BusinessProfile?) -> String {
+        guard let url = business?.reviewsLink else { return "" }
+        return "\n\nEnjoyed the work? Please leave us a quick review: \(url.absoluteString)"
+    }
+
+    /// A prominent, tappable review button for the HTML email — empty when no reviews link is set.
+    private static func reviewHTML(business: BusinessProfile?) -> String {
+        guard let url = business?.reviewsLink else { return "" }
+        let href = esc(url.absoluteString)
+        return """
+        <p style="margin:0 0 18px;text-align:center;">
+          <a href="\(href)" style="display:inline-block;background-color:#9C7A2E;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">★ Leave us a review</a>
+        </p>
+        """
     }
 }
