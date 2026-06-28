@@ -44,4 +44,17 @@ build 5). The rejection is fixed in code; the rest is owner-only (App Store Conn
 - [ ] **Archive a Release build (1.0, build 5)** and submit. Bump the build number for any re-upload.
 - [ ] On your own device: **delete + reinstall once** (new data models), then clear the stray
       no-customer invoice via **Menu → All Invoices** if still present.
-- [ ] Verify https://evolvedbygl.github.io/privacy/ and /terms/ are live and reachable.
+- [ ] Verify https://softwarebygl.com/my-business/privacy and /my-business/terms are live and reachable.
+
+## CloudKit Sharing (two different Apple IDs share one business) — BLOCKED, revisit later
+Scaffolding is committed on branch `updates-to-version-one` (gated OFF behind a DEBUG flag, **no schema
+change**, does not affect the shipping app). It does **not work yet** and is blocked by an Apple-framework
+wall — see memory `project_cloudkit_sharing_blocker` and `AccessControl/CloudKitSyncEngine.swift`:
+- Sharing the whole business in one invite needs every record under ONE connected CloudKit root.
+- A single root `@Model` (everything links to it) **crashes SwiftData on save** on iOS 26.5.
+- Without a root, records are disjoint graphs (customers don't relate to each other; BusinessProfile/
+  UserProfile have no relationships) → `share()` mints MANY CKShares → a participant gets only a slice.
+- [ ] **Revisit when a newer iOS/Xcode is out** — retry the single-root approach (the code is kept).
+- [ ] **OR decide on a custom backend** (a small server both Apple IDs log into) — the only path fully
+      under our control; a separate project, needs a go-ahead.
+- [ ] Interim no-code option that works today: put the **same Apple ID** on both phones.

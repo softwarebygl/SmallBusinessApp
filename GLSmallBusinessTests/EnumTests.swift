@@ -51,6 +51,27 @@ struct EnumTests {
         #expect(UnitOfMeasure.squareFoot.abbreviation == "sq ft")
     }
 
+    @Test func newPaymentMethodsExistWithStableRawValues() {
+        // Raw values are what CloudKit persists — they must be exactly these strings.
+        #expect(PaymentMethod.venmo.rawValue == "venmo")
+        #expect(PaymentMethod.cashApp.rawValue == "cashApp")
+        #expect(PaymentMethod.venmo.label == "Venmo")
+        #expect(PaymentMethod.cashApp.label == "Cash App")
+        #expect(PaymentMethod.allCases.contains(.venmo))
+        #expect(PaymentMethod.allCases.contains(.cashApp))
+    }
+
+    @Test func newUnitsExistWithStableRawValues() {
+        #expect(UnitOfMeasure.item.rawValue == "item")
+        #expect(UnitOfMeasure.labor.rawValue == "labor")
+        #expect(!UnitOfMeasure.item.label.isEmpty)
+        #expect(!UnitOfMeasure.item.abbreviation.isEmpty)
+        #expect(!UnitOfMeasure.labor.label.isEmpty)
+        #expect(!UnitOfMeasure.labor.abbreviation.isEmpty)
+        #expect(UnitOfMeasure.allCases.contains(.item))
+        #expect(UnitOfMeasure.allCases.contains(.labor))
+    }
+
     @Test func adjustmentAndStatusLabels() {
         for a in AdjustmentType.allCases { #expect(!a.label.isEmpty) }
         for s in EstimateStatus.allCases { #expect(!s.label.isEmpty) }
