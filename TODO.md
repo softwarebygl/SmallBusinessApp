@@ -31,6 +31,11 @@ build 5). The rejection is fixed in code; the rest is owner-only (App Store Conn
       `Employee` and `Subcontractor`. All additive/optional (still schema V1), but they MUST be in production
       or sync drops them for real users. (The workdays / one-job-at-a-time settings are device-local `@AppStorage`
       — not CloudKit, no deploy.)
+      **NEW (updates-to-version-one branch — per-line-item discounts):** `discountType` + `discountValue`
+      fields on BOTH `EstimateLineItem` and `InvoiceLineItem`. Additive/optional, but must be deployed to
+      Production too or per-line discounts silently won't sync. (Everything else this session — phone/TIN
+      formatting, the unsaved-changes guard, payment methods, units, receipt photo/job — added NO new
+      CloudKit fields. CloudKit sharing is gated OFF with no schema change.)
 - [ ] **2.1(b): Submit the In-App Purchase products for review** — submit the two subscriptions
       (monthly / annual) in App Store Connect and attach the App Review screenshot. The binary
       references them but they were never submitted.
