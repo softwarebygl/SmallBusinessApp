@@ -19,6 +19,10 @@ private struct InvoiceLineItemDraft: Identifiable, Equatable {
     var isTaxable = false
     var discountType: AdjustmentType = .none
     var discountValue = 0.0
+    /// Change-order line items are billed at FULL price (the whole-invoice discount doesn't apply) and
+    /// taxed at the full rate, so the invoice matches the signed change order. This flag MUST round-trip
+    /// through the form, or editing an invoice would silently re-discount those lines (see Invoice.totals).
+    var fromChangeOrder = false
 
     init() {}
 
@@ -32,6 +36,7 @@ private struct InvoiceLineItemDraft: Identifiable, Equatable {
         isTaxable = item.isTaxable
         discountType = item.discountType
         discountValue = item.discountValue
+        fromChangeOrder = item.fromChangeOrder
     }
 
     init(from item: EstimateLineItem) {
@@ -253,14 +258,29 @@ struct InvoiceFormScreen: View {
         _groups = State(initialValue: drafts.isEmpty ? [InvoiceGroupDraft()] : drafts)
     }
 
+    /// Mirrors `Invoice.totals`: the overall discount applies only to ORIGINAL work; change-order line
+    /// items are billed at full price and full tax on top, so the preview matches the saved invoice (and
+    /// the signed change order) exactly.
     private var totals: EstimateTotals {
-        EstimateTotals(
-            lines: groups.flatMap(\.lines).map { ($0.lineTotal, $0.isTaxable) },
+        let allLines = groups.flatMap(\.lines)
+        let original = allLines.filter { !$0.fromChangeOrder }
+        let base = EstimateTotals(
+            lines: original.map { ($0.lineTotal, $0.isTaxable) },
             taxRatePercent: taxRatePercent,
             discountType: discountType,
             discountValue: discountValue,
             depositType: .none,
             depositValue: 0
+        )
+        let coItems = allLines.filter { $0.fromChangeOrder }
+        guard !coItems.isEmpty else { return base }
+        let coSubtotal = coItems.reduce(0) { $0 + $1.lineTotal }
+        let coTax = coItems.filter(\.isTaxable).reduce(0) { $0 + $1.lineTotal } * (taxRatePercent / 100)
+        return EstimateTotals(
+            subtotal: base.subtotal + coSubtotal,
+            discount: base.discount,
+            tax: base.tax + coTax,
+            total: base.total + coSubtotal + coTax
         )
     }
 
@@ -654,6 +674,7 @@ struct InvoiceFormScreen: View {
                     discountType: draft.discountType,
                     discountValue: draft.discountValue
                 )
+                item.fromChangeOrder = draft.fromChangeOrder
                 item.group = group
                 modelContext.insert(item)
             }

@@ -115,12 +115,21 @@ nonisolated enum CloudKitSyncEngine {
     }
 }
 
-// MARK: - Sharing (CKShare, root-free)
+// MARK: - Sharing (CKShare, root-free) — ⚠️ KNOWN LIMITATION (see note)
 //
-// Whole-business sharing WITHOUT a synthetic root object: CloudKit's `share([objects], to:)` accepts a
-// list of records and shares each one PLUS everything reachable from it through relationships. Passing
-// every top-level record (its children come along automatically) covers the whole business in one
-// CKShare — and needs zero data-model change, so the app's schema stays exactly as it ships today.
+// Root-free sharing: CloudKit's `share([objects], to:)` shares each passed record plus everything
+// reachable from it through relationships, with NO data-model change (so the schema ships unchanged).
+//
+// ⚠️ LIMITATION found in review: this app's records form MANY disjoint object graphs — customers don't
+// relate to each other, and `BusinessProfile`/`UserProfile` have no relationships at all — so
+// `share(allObjects, to: nil)` mints SEVERAL CKShares, not one. `UICloudSharingController` invites to a
+// single share, so a participant accepting it would receive only one slice of the business. Sharing the
+// WHOLE business in one invite requires every record to hang off ONE shared root — but a root `@Model`
+// with relationships to all top-level types crashes SwiftData on save on this SDK (iOS 26.5); see project
+// memory `project_cloudkit_sharing_blocker`. So whole-business sharing is effectively BLOCKED pending that
+// SwiftData issue being resolved (or a custom backend). The scaffolding here (engine, accept hook, invite
+// UI) is kept, gated OFF and never on in Release, as the foundation for that future fix — it does not
+// affect the shipping app.
 
 nonisolated enum CloudKitShareError: Error { case engineOff, nothingToShare, shareFailed }
 
@@ -145,7 +154,10 @@ extension CloudKitSyncEngine {
         guard let mirror else { return nil }
         let ids = allTopLevelObjects().map(\.objectID)
         guard !ids.isEmpty, let shares = try? mirror.fetchShares(matching: ids) else { return nil }
-        return shares.values.first
+        // fetchShares can return more than one CKShare (records form disjoint graphs — see the note above).
+        // Dictionary order is unstable across launches, so pick deterministically by record name rather
+        // than `.values.first`, so the owner UI manages the same share each time.
+        return shares.values.min { $0.recordID.recordName < $1.recordID.recordName }
     }
 
     /// Mints (or returns the already-minted) CKShare covering the whole business, then makes sure every
