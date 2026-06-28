@@ -77,6 +77,24 @@ final class SessionChangesUITests: GLUITestCase {
         XCTAssertTrue(picker.exists, "#6: each line item should have a discount control.")
     }
 
+    // Tax ID (SSN/EIN) — same atomic-formatting fix as phone: typing 9 digits at once must keep them
+    // all (a dropped SSN/EIN digit would silently produce a wrong tax ID on the 1099).
+    func testTaxIdFieldFormatsWithoutDroppingDigits() {
+        app.tabBars.buttons["Subcontractors"].tap()
+        app.buttons["More"].tap()
+        app.buttons["New subcontractor"].tap()
+        XCTAssertTrue(app.navigationBars["New Subcontractor"].waitForExistence(timeout: 5))
+
+        let tin = app.textFields["tinField"]
+        var swipes = 0
+        while !tin.exists && swipes < 6 { app.swipeUp(); swipes += 1 }
+        XCTAssertTrue(tin.exists, "The W-9 Tax ID field should be present.")
+        tin.tap()
+        tin.typeText("987654321")   // distinct from the SSN placeholder so the assert is meaningful
+        XCTAssertEqual(tin.value as? String, "987-65-4321",
+                       "Typing 9 digits should format as an SSN with no digit dropped.")
+    }
+
     // #2 + #3 — the receipt form (created from scratch) has a Job picker and a photo-upload option.
     func testReceiptFormHasJobPickerAndPhotoUpload() {
         app.tabBars.buttons["Customers"].tap()

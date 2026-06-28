@@ -93,12 +93,15 @@ struct SubcontractorFormScreen: View {
             Section("Name") {
                 TextField("First name", text: $firstName)
                     .textContentType(.givenName)
+                    .textInputAutocapitalization(.words)
                 TextField("Last name", text: $lastName)
                     .textContentType(.familyName)
+                    .textInputAutocapitalization(.words)
             }
             Section("Business") {
                 TextField("Business name (optional)", text: $businessName)
                     .textContentType(.organizationName)
+                    .textInputAutocapitalization(.words)
             }
             Section("Contact") {
                 TextField("Email", text: $email)

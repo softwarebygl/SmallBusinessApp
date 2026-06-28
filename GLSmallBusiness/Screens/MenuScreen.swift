@@ -479,6 +479,7 @@ struct MyCompanyFormScreen: View {
                 HStack {
                     TextField("Business name", text: $businessName)
                         .textContentType(.organizationName)
+                        .textInputAutocapitalization(.words)
                     requiredMark
                 }
                 TextField("License number", text: $licenseNumber)
@@ -488,8 +489,10 @@ struct MyCompanyFormScreen: View {
             Section("Contact") {
                 TextField("Owner first name", text: $ownerFirstName)
                     .textContentType(.givenName)
+                    .textInputAutocapitalization(.words)
                 TextField("Owner last name", text: $ownerLastName)
                     .textContentType(.familyName)
+                    .textInputAutocapitalization(.words)
                 HStack {
                     TextField("Email", text: $email)
                         .textContentType(.emailAddress)

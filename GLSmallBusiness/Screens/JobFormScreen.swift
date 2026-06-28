@@ -157,8 +157,12 @@ struct JobFormScreen: View {
             Section {
                 AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postal)
                 TextField("Street", text: $street1)
+                    .textContentType(.streetAddressLine1)
                 TextField("City", text: $city)
+                    .textContentType(.addressCity)
                 TextField("State", text: $state)
+                    .textContentType(.addressState)
+                    .textInputAutocapitalization(.characters)
                 TextField("ZIP", text: $postal).keyboardType(.numbersAndPunctuation)
             } header: {
                 Text("Service address")

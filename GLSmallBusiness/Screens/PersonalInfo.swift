@@ -269,8 +269,10 @@ struct MyPersonalInfoFormScreen: View {
             Section("Name") {
                 TextField("First name", text: $firstName)
                     .textContentType(.givenName)
+                    .textInputAutocapitalization(.words)
                 TextField("Last name", text: $lastName)
                     .textContentType(.familyName)
+                    .textInputAutocapitalization(.words)
             }
             Section("Contact") {
                 TextField("Email", text: $email)
