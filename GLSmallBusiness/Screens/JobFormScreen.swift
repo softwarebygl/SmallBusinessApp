@@ -133,6 +133,12 @@ struct JobFormScreen: View {
         }
     }
 
+    @State private var initialDigest: String?
+    private var digest: String {
+        "\(String(describing: pickedCustomer?.persistentModelID))|\(title)|\(startDate)|\(durationDays)|\(isAllDay)|\(startTime)|\(durationMinutes)|\(notes)|\(hasPrice)|\(agreedPrice)|\(street1)|\(city)|\(state)|\(postal)|\(String(describing: recurrence))|\(recurWeekdayMask)|\(String(describing: recurEndKind))|\(recurEndDate)|\(recurCount)"
+    }
+    private var isDirty: Bool { initialDigest.map { $0 != digest } ?? false }
+
     var body: some View {
         Form {
             if isFromScratch {
@@ -222,6 +228,8 @@ struct JobFormScreen: View {
             }
         }
         .glFormBackground()
+        .onAppear { if initialDigest == nil { initialDigest = digest } }
+        .discardChangesGuard(isDirty: isDirty)
         .navigationTitle(editingJob == nil ? "New Job" : "Edit Job")
         .toolbarTitleDisplayMode(.inline)
         .toolbar {

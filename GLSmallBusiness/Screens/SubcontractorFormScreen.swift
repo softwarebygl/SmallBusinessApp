@@ -70,6 +70,12 @@ struct SubcontractorFormScreen: View {
         !trim(firstName).isEmpty || !trim(lastName).isEmpty || !trim(businessName).isEmpty
     }
 
+    @State private var initialDigest: String?
+    private var digest: String {
+        "\(firstName)|\(lastName)|\(businessName)|\(email)|\(phone)|\(street1)|\(street2)|\(city)|\(state)|\(postalCode)|\(isActive)|\(notes)|\(hourlyRate)|\(w9TINType?.rawValue ?? "")|\(w9TIN)"
+    }
+    private var isDirty: Bool { initialDigest.map { $0 != digest } ?? false }
+
     var body: some View {
         Form {
             if editing == nil {
@@ -155,6 +161,8 @@ struct SubcontractorFormScreen: View {
             }
         }
         .glFormBackground()
+        .onAppear { if initialDigest == nil { initialDigest = digest } }
+        .discardChangesGuard(isDirty: isDirty)
         .sheet(isPresented: $showingContactPicker) {
             ContactPickerView { contact in
                 let draft = ContactsBridge.draft(from: contact)

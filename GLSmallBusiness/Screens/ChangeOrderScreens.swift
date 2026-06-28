@@ -22,6 +22,7 @@ struct ChangeOrderFormScreen: View {
     @State private var title: String
     @State private var note: String
     @State private var items: [DraftItem]
+    @State private var initialDigest: String?
 
     struct DraftItem: Identifiable {
         let id = UUID()
@@ -49,6 +50,13 @@ struct ChangeOrderFormScreen: View {
             _items = State(initialValue: [DraftItem()])
         }
     }
+
+    private var digest: String {
+        "\(title)|\(note)|" + items.map {
+            "\($0.name)|\($0.quantity)|\($0.unit.rawValue)|\($0.unitPrice)|\($0.isCredit)|\($0.isTaxable)"
+        }.joined(separator: ";")
+    }
+    private var isDirty: Bool { initialDigest.map { $0 != digest } ?? false }
 
     private var changeTotal: Double {
         let subtotal = items.reduce(0) { $0 + $1.lineTotal }
@@ -91,6 +99,8 @@ struct ChangeOrderFormScreen: View {
             }
         }
         .glFormBackground()
+        .onAppear { if initialDigest == nil { initialDigest = digest } }
+        .discardChangesGuard(isDirty: isDirty)
         .navigationTitle(editing == nil ? "New Change Order" : "Edit Change Order")
         .toolbarTitleDisplayMode(.inline)
         .toolbar {

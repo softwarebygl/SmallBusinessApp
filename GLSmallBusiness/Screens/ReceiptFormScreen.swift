@@ -80,6 +80,12 @@ struct ReceiptFormScreen: View {
         return allJobs.filter { $0.customer?.persistentModelID == selectedCustomerID }
     }
 
+    @State private var initialDigest: String?
+    private var digest: String {
+        "\(String(describing: selectedCustomerID))|\(String(describing: selectedJobID))|\(vendor)|\(category)|\(notes)|\(date)|\(total)|\(scanData?.count ?? 0)"
+    }
+    private var isDirty: Bool { initialDigest.map { $0 != digest } ?? false }
+
     var body: some View {
         Form {
             // Receipt photo — scan with the camera (passed in) OR upload an existing image here.
@@ -154,6 +160,8 @@ struct ReceiptFormScreen: View {
             }
         }
         .glFormBackground()
+        .onAppear { if initialDigest == nil { initialDigest = digest } }
+        .discardChangesGuard(isDirty: isDirty)
         .navigationTitle(editingReceipt == nil ? "New Receipt" : "Edit Receipt")
         .toolbarTitleDisplayMode(.inline)
         .toolbar {

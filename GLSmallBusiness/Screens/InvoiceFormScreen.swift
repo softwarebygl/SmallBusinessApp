@@ -59,6 +59,26 @@ private struct InvoiceGroupDraft: Identifiable, Equatable {
     var subtotal: Double { lines.reduce(0) { $0 + $1.lineTotal } }
 }
 
+/// Snapshot of everything the form edits, for unsaved-changes detection.
+private struct InvoiceSnapshot: Equatable {
+    var jobTitle: String
+    var status: InvoiceStatus
+    var paymentTerms: PaymentTerms
+    var dueDate: Date
+    var taxRatePercent: Double
+    var discountType: AdjustmentType
+    var discountValue: Double
+    var customerNotes: String
+    var terms: String
+    var serviceStreet: String
+    var serviceCity: String
+    var serviceState: String
+    var servicePostal: String
+    var amountDueNow: Double
+    var amountDueDetail: String
+    var groups: [InvoiceGroupDraft]
+}
+
 struct InvoiceFormScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -104,6 +124,7 @@ struct InvoiceFormScreen: View {
     @State private var amountDueNow: Double
     @State private var amountDueDetail: String
     @State private var groups: [InvoiceGroupDraft]
+    @State private var initialSnapshot: InvoiceSnapshot?
 
     init(customer: Customer) {
         self.customer = customer
@@ -193,6 +214,15 @@ struct InvoiceFormScreen: View {
     private var canSave: Bool {
         !jobTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
+
+    private var currentSnapshot: InvoiceSnapshot {
+        InvoiceSnapshot(jobTitle: jobTitle, status: status, paymentTerms: paymentTerms, dueDate: dueDate,
+                        taxRatePercent: taxRatePercent, discountType: discountType, discountValue: discountValue,
+                        customerNotes: customerNotes, terms: terms, serviceStreet: serviceStreet,
+                        serviceCity: serviceCity, serviceState: serviceState, servicePostal: servicePostal,
+                        amountDueNow: amountDueNow, amountDueDetail: amountDueDetail, groups: groups)
+    }
+    private var isDirty: Bool { initialSnapshot.map { $0 != currentSnapshot } ?? false }
 
     var body: some View {
         Form {
@@ -286,6 +316,8 @@ struct InvoiceFormScreen: View {
                 SaveOnceButton(disabled: !canSave, action: save)
             }
         }
+        .onAppear { if initialSnapshot == nil { initialSnapshot = currentSnapshot } }
+        .discardChangesGuard(isDirty: isDirty)
     }
 
     private func groupSection(_ group: Binding<InvoiceGroupDraft>) -> some View {

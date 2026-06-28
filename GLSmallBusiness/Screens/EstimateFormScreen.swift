@@ -59,6 +59,26 @@ private struct GroupDraft: Identifiable, Equatable {
     var subtotal: Double { lines.reduce(0) { $0 + $1.lineTotal } }
 }
 
+/// Snapshot of everything the form edits, for unsaved-changes detection. Equatable so the form can
+/// compare the current state against the snapshot taken when it appeared.
+private struct EstimateSnapshot: Equatable {
+    var jobTitle: String
+    var status: EstimateStatus
+    var validUntil: Date
+    var taxRatePercent: Double
+    var discountType: AdjustmentType
+    var discountValue: Double
+    var depositType: AdjustmentType
+    var depositValue: Double
+    var customerNotes: String
+    var terms: String
+    var serviceStreet: String
+    var serviceCity: String
+    var serviceState: String
+    var servicePostal: String
+    var groups: [GroupDraft]
+}
+
 struct EstimateFormScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -98,6 +118,7 @@ struct EstimateFormScreen: View {
     @State private var serviceState: String
     @State private var servicePostal: String
     @State private var groups: [GroupDraft]
+    @State private var initialSnapshot: EstimateSnapshot?
 
     init(customer: Customer) {
         self.customer = customer
@@ -154,6 +175,15 @@ struct EstimateFormScreen: View {
     private var canSave: Bool {
         !jobTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
+
+    private var currentSnapshot: EstimateSnapshot {
+        EstimateSnapshot(jobTitle: jobTitle, status: status, validUntil: validUntil,
+                         taxRatePercent: taxRatePercent, discountType: discountType, discountValue: discountValue,
+                         depositType: depositType, depositValue: depositValue, customerNotes: customerNotes,
+                         terms: terms, serviceStreet: serviceStreet, serviceCity: serviceCity,
+                         serviceState: serviceState, servicePostal: servicePostal, groups: groups)
+    }
+    private var isDirty: Bool { initialSnapshot.map { $0 != currentSnapshot } ?? false }
 
     var body: some View {
         Form {
@@ -226,6 +256,8 @@ struct EstimateFormScreen: View {
                 SaveOnceButton(disabled: !canSave, action: save)
             }
         }
+        .onAppear { if initialSnapshot == nil { initialSnapshot = currentSnapshot } }
+        .discardChangesGuard(isDirty: isDirty)
     }
 
     private func groupSection(_ group: Binding<GroupDraft>) -> some View {

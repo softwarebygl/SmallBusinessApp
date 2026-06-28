@@ -53,6 +53,13 @@ struct CustomerFormScreen: View {
             || !trim(businessName).isEmpty
     }
 
+    @State private var initialDigest: String?
+    private var digest: String {
+        [firstName, middleName, lastName, businessName, email, phoneNumber, officePhone,
+         street1, street2, city, state, postalCode].joined(separator: "|")
+    }
+    private var isDirty: Bool { initialDigest.map { $0 != digest } ?? false }
+
     var body: some View {
         Form {
             if editing == nil {
@@ -122,6 +129,8 @@ struct CustomerFormScreen: View {
             }
         }
         .glFormBackground()
+        .onAppear { if initialDigest == nil { initialDigest = digest } }
+        .discardChangesGuard(isDirty: isDirty)
         .sheet(isPresented: $showingContactPicker) {
             ContactPickerView { contact in
                 fill(from: ContactsBridge.draft(from: contact))

@@ -390,6 +390,19 @@ struct MyCompanyFormScreen: View {
     @State private var w9TIN: String
     @State private var w9ExemptPayeeCode: String
     @State private var w9FATCACode: String
+    @State private var initialDigest: String?
+    private var digest: String {
+        ([businessName, ownerFirstName, ownerLastName, licenseNumber, email, phone, street1, city, state,
+          postalCode, estimateMessageSubject, messageIntro, messageClosing, invoiceMessageSubject,
+          invoiceMessageIntro, invoiceMessageClosing, receiptMessageSubject, receiptMessageIntro,
+          receiptMessageClosing, changeOrderMessageSubject, changeOrderMessageIntro, changeOrderMessageClosing,
+          packageMessageSubject, packageMessageIntro, packageMessageClosing, warrantyText,
+          completionMessageSubject, completionMessageIntro, completionMessageClosing, w9Name,
+          w9LLCClassification, w9OtherClassification, w9TIN, w9ExemptPayeeCode, w9FATCACode]
+         + [w9Classification?.rawValue ?? "", w9TINType?.rawValue ?? "",
+            String(logoData?.count ?? 0), String(logoDataDark?.count ?? 0)]).joined(separator: "|")
+    }
+    private var isDirty: Bool { initialDigest.map { $0 != digest } ?? false }
     @State private var tinSaveFailed = false
     @State private var photoLoadFailed = false
 
@@ -598,6 +611,8 @@ struct MyCompanyFormScreen: View {
             }
         }
         .glFormBackground()
+        .onAppear { if initialDigest == nil { initialDigest = digest } }
+        .discardChangesGuard(isDirty: isDirty)
         .navigationTitle("My Business Details")
         .toolbarTitleDisplayMode(.inline)
         .toolbar {

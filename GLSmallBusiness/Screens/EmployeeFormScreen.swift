@@ -54,6 +54,12 @@ struct EmployeeFormScreen: View {
 
     private var isValid: Bool { !trim(firstName).isEmpty || !trim(lastName).isEmpty }
 
+    @State private var initialDigest: String?
+    private var digest: String {
+        "\(firstName)|\(lastName)|\(email)|\(phone)|\(payType.rawValue)|\(hourlyRate)|\(annualSalary)|\(payFrequency.rawValue)|\(anchorPayday)|\(hireDate)|\(isActive)|\(notes)"
+    }
+    private var isDirty: Bool { initialDigest.map { $0 != digest } ?? false }
+
     var body: some View {
         Form {
             if editing == nil {
@@ -127,6 +133,8 @@ struct EmployeeFormScreen: View {
             }
         }
         .glFormBackground()
+        .onAppear { if initialDigest == nil { initialDigest = digest } }
+        .discardChangesGuard(isDirty: isDirty)
         .sheet(isPresented: $showingContactPicker) {
             ContactPickerView { contact in
                 let draft = ContactsBridge.draft(from: contact)

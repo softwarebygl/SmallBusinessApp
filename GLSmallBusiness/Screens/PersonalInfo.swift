@@ -194,6 +194,9 @@ struct MyPersonalInfoFormScreen: View {
     @State private var email: String
     @State private var phone: String
     @State private var photoData: Data?
+    @State private var initialDigest: String?
+    private var digest: String { "\(firstName)|\(lastName)|\(email)|\(phone)|\(photoData?.count ?? 0)" }
+    private var isDirty: Bool { initialDigest.map { $0 != digest } ?? false }
     @State private var photoItem: PhotosPickerItem?
     @State private var photoToCrop: PendingPhoto?
     @State private var photoLoadFailed = false
@@ -286,6 +289,8 @@ struct MyPersonalInfoFormScreen: View {
             }
         }
         .glFormBackground()
+        .onAppear { if initialDigest == nil { initialDigest = digest } }
+        .discardChangesGuard(isDirty: isDirty)
         .navigationTitle("My Personal Info")
         .toolbarTitleDisplayMode(.inline)
         .toolbar {
