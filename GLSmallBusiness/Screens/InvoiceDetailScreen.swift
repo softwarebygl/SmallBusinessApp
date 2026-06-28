@@ -361,6 +361,7 @@ struct InvoiceDetailScreen: View {
                 Text("·")
                 Text(item.kind.label)
                 if !item.isTaxable { Text("· non-taxable") }
+                if item.lineDiscount > 0 { Text("· −\(item.lineDiscount.formatted(.currency(code: "USD"))) off") }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -374,7 +375,11 @@ struct InvoiceDetailScreen: View {
             if invoice.discountAmount > 0 { totalRow(String(localized: "Discount"), -invoice.discountAmount) }
             if invoice.taxAmount > 0 { totalRow(String(localized: "Tax") + " (\(invoice.taxRatePercent.formatted())%)", invoice.taxAmount) }
             Divider()
-            totalRow(String(localized: "Total"), invoice.total, bold: true)
+            totalRow(String(localized: "Total"), invoice.total, bold: invoice.approvedChangeOrderTotal == 0)
+            if invoice.approvedChangeOrderTotal != 0 {
+                totalRow(String(localized: "Change orders"), invoice.approvedChangeOrderTotal)
+                totalRow(String(localized: "Revised total"), invoice.revisedTotal, bold: true)
+            }
             if invoice.amountPaid > 0 {
                 totalRow(String(localized: "Paid"), -invoice.amountPaid)
             }

@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-private struct LineItemDraft: Identifiable {
+private struct LineItemDraft: Identifiable, Equatable {
     let id = UUID()
     var name = ""
     var details = ""
@@ -17,6 +17,8 @@ private struct LineItemDraft: Identifiable {
     var unitPrice = 0.0
     var kind: LineItemKind = .labor
     var isTaxable = false
+    var discountType: AdjustmentType = .none
+    var discountValue = 0.0
 
     init() {}
 
@@ -28,12 +30,16 @@ private struct LineItemDraft: Identifiable {
         unitPrice = item.unitPrice
         kind = item.kind
         isTaxable = item.isTaxable
+        discountType = item.discountType
+        discountValue = item.discountValue
     }
 
-    var lineTotal: Double { quantity * unitPrice }
+    var grossLineTotal: Double { quantity * unitPrice }
+    var lineDiscount: Double { LineDiscount.amount(type: discountType, value: discountValue, gross: grossLineTotal) }
+    var lineTotal: Double { max(0, grossLineTotal - lineDiscount) }
 }
 
-private struct GroupDraft: Identifiable {
+private struct GroupDraft: Identifiable, Equatable {
     let id = UUID()
     var name = ""
     var note = ""
@@ -303,12 +309,32 @@ struct EstimateFormScreen: View {
             Toggle("Taxable", isOn: line.isTaxable)
 
             HStack {
+                Picker("Discount", selection: line.discountType) {
+                    Text("No discount").tag(AdjustmentType.none)
+                    Text("% off").tag(AdjustmentType.percentage)
+                    Text("$ off").tag(AdjustmentType.fixed)
+                }
+                .pickerStyle(.menu)
+                Spacer()
+                if line.discountType.wrappedValue != .none {
+                    AutoClearNumberField(placeholder: "0", value: line.discountValue, style: .number, clearsAt: 0)
+                        .multilineTextAlignment(.trailing)
+                        .frame(maxWidth: 90)
+                }
+            }
+
+            HStack {
                 Button(role: .destructive, action: onRemove) {
                     Label("Remove", systemImage: "trash")
                         .font(.footnote)
                 }
                 .buttonStyle(.borderless)
                 Spacer()
+                if line.wrappedValue.lineDiscount > 0 {
+                    Text("−\(line.wrappedValue.lineDiscount.formatted(.currency(code: "USD")))")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
                 Text("Line total: \(line.wrappedValue.lineTotal.formatted(.currency(code: "USD")))")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -478,7 +504,9 @@ struct EstimateFormScreen: View {
                     unitPrice: draft.unitPrice,
                     kind: draft.kind,
                     isTaxable: draft.isTaxable,
-                    sortIndex: index
+                    sortIndex: index,
+                    discountType: draft.discountType,
+                    discountValue: draft.discountValue
                 )
                 item.group = group
                 modelContext.insert(item)

@@ -283,6 +283,7 @@ struct EstimateDetailScreen: View {
                 Text("·")
                 Text(item.kind.label)
                 if !item.isTaxable { Text("· non-taxable") }
+                if item.lineDiscount > 0 { Text("· −\(item.lineDiscount.formatted(.currency(code: "USD"))) off") }
             }
             .font(.caption)
             .foregroundStyle(.secondary)

@@ -94,6 +94,18 @@ nonisolated enum AdjustmentType: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+/// Per-line discount math — the same %, fixed, or none rules as the whole-document discount, applied to a
+/// single line's gross. Shared by the estimate/invoice line-item models and their form drafts.
+nonisolated enum LineDiscount {
+    static func amount(type: AdjustmentType, value: Double, gross: Double) -> Double {
+        switch type {
+        case .none: return 0
+        case .percentage: return gross * (value / 100)
+        case .fixed: return min(value, gross)
+        }
+    }
+}
+
 // MARK: - Money math (single source of truth, shared by the model and the form preview)
 
 nonisolated struct EstimateTotals {
@@ -339,6 +351,10 @@ final class EstimateLineItem {
     var kind: LineItemKind = LineItemKind.labor
     var isTaxable: Bool = false
     var sortIndex: Int = 0
+    /// Optional per-line discount, applied on top of any whole-estimate discount. Additive + defaulted,
+    /// so it folds into V1 CloudKit-safely.
+    var discountType: AdjustmentType = AdjustmentType.none
+    var discountValue: Double = 0
 
     var group: EstimateGroup?
 
@@ -350,7 +366,9 @@ final class EstimateLineItem {
         unitPrice: Double = 0,
         kind: LineItemKind = .labor,
         isTaxable: Bool = false,
-        sortIndex: Int = 0
+        sortIndex: Int = 0,
+        discountType: AdjustmentType = .none,
+        discountValue: Double = 0
     ) {
         self.name = name
         self.details = details
@@ -360,9 +378,14 @@ final class EstimateLineItem {
         self.kind = kind
         self.isTaxable = isTaxable
         self.sortIndex = sortIndex
+        self.discountType = discountType
+        self.discountValue = discountValue
     }
 
-    var lineTotal: Double {
-        quantity * unitPrice
-    }
+    /// Price before the per-line discount (quantity × unit price).
+    var grossLineTotal: Double { quantity * unitPrice }
+    /// The per-line discount in dollars (0 when none), never more than the gross.
+    var lineDiscount: Double { LineDiscount.amount(type: discountType, value: discountValue, gross: grossLineTotal) }
+    /// Price after the per-line discount — the figure that flows into the document subtotal and tax.
+    var lineTotal: Double { max(0, grossLineTotal - lineDiscount) }
 }

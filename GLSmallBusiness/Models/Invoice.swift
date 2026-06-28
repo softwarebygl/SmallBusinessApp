@@ -347,7 +347,9 @@ extension Invoice {
                     unitPrice: item.unitPrice,
                     kind: item.kind,
                     isTaxable: item.isTaxable,
-                    sortIndex: item.sortIndex
+                    sortIndex: item.sortIndex,
+                    discountType: item.discountType,
+                    discountValue: item.discountValue
                 )
                 invoiceItem.group = invoiceGroup
                 context.insert(invoiceItem)
@@ -408,6 +410,9 @@ final class InvoiceLineItem {
     /// True for line items pushed in from a change order. They're charged at full price — the invoice's
     /// overall discount does NOT apply to them — so the invoice matches the signed change order exactly.
     var fromChangeOrder: Bool = false
+    /// Optional per-line discount, applied on top of any whole-invoice discount. Additive + defaulted.
+    var discountType: AdjustmentType = AdjustmentType.none
+    var discountValue: Double = 0
 
     var group: InvoiceGroup?
 
@@ -419,7 +424,9 @@ final class InvoiceLineItem {
         unitPrice: Double = 0,
         kind: LineItemKind = .labor,
         isTaxable: Bool = false,
-        sortIndex: Int = 0
+        sortIndex: Int = 0,
+        discountType: AdjustmentType = .none,
+        discountValue: Double = 0
     ) {
         self.name = name
         self.details = details
@@ -429,11 +436,16 @@ final class InvoiceLineItem {
         self.kind = kind
         self.isTaxable = isTaxable
         self.sortIndex = sortIndex
+        self.discountType = discountType
+        self.discountValue = discountValue
     }
 
-    var lineTotal: Double {
-        quantity * unitPrice
-    }
+    /// Price before the per-line discount (quantity × unit price).
+    var grossLineTotal: Double { quantity * unitPrice }
+    /// The per-line discount in dollars (0 when none), never more than the gross.
+    var lineDiscount: Double { LineDiscount.amount(type: discountType, value: discountValue, gross: grossLineTotal) }
+    /// Price after the per-line discount — the figure that flows into the document subtotal and tax.
+    var lineTotal: Double { max(0, grossLineTotal - lineDiscount) }
 }
 
 // MARK: - Payment

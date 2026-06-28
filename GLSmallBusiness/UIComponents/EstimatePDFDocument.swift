@@ -127,6 +127,10 @@ struct EstimatePDFDocument: View {
                         }
                         Text("\(item.quantity.formatted()) \(item.unit.abbreviation) × \(item.unitPrice.formatted(.currency(code: "USD")))")
                             .font(.caption2).foregroundStyle(.secondary)
+                        if item.lineDiscount > 0 {
+                            Text("Discount −\(item.lineDiscount.formatted(.currency(code: "USD")))")
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
                     }
                     Spacer()
                     Text(item.lineTotal.formatted(.currency(code: "USD"))).font(.subheadline)
