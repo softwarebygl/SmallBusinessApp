@@ -158,20 +158,6 @@ struct SettingsScreen: View {
                 InfoLabel("Subscription", info: "Manage or restore your subscription, or redeem an App Store code.")
             }
 
-            // CloudKit Sharing — only while the sync engine is on, so Release users never see a half-wired
-            // row (CloudKitSyncEngine.isEnabled is always false in Release).
-            if CloudKitSyncEngine.isEnabled {
-                Section {
-                    NavigationLink {
-                        CollaborationScreen()
-                    } label: {
-                        Label("Connect a device or person", systemImage: "person.crop.circle.badge.plus")
-                    }
-                } header: {
-                    InfoLabel("Sharing", info: "Invite a second Apple ID — your own other phone or a trusted person — to see and edit the same business data live.")
-                }
-            }
-
             Section {
                 Link(destination: termsURL) {
                     Label("Terms of Use", systemImage: "doc.text")

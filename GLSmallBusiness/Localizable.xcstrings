@@ -202,6 +202,9 @@
         }
       }
     },
+    "· −%@ off" : {
+
+    },
     "· added" : {
 
     },
@@ -287,6 +290,9 @@
           }
         }
       }
+    },
+    "% off" : {
+
     },
     "%@ – %@" : {
       "localizations" : {
@@ -679,6 +685,15 @@
       }
     },
     "−" : {
+
+    },
+    "−%@" : {
+
+    },
+    "★  Enjoyed working with us?" : {
+
+    },
+    "$ off" : {
 
     },
     "$0" : {
@@ -2605,6 +2620,9 @@
         }
       }
     },
+    "Cash App" : {
+
+    },
     "Category" : {
       "localizations" : {
         "ca" : {
@@ -2695,6 +2713,9 @@
 
     },
     "Change order message" : {
+
+    },
+    "Change orders" : {
 
     },
     "Change Orders" : {
@@ -4030,6 +4051,12 @@
         }
       }
     },
+    "Discard Changes" : {
+
+    },
+    "Discard changes?" : {
+
+    },
     "Discount" : {
       "localizations" : {
         "ca" : {
@@ -4069,6 +4096,9 @@
           }
         }
       }
+    },
+    "Discount −%@" : {
+
     },
     "Document" : {
 
@@ -4404,6 +4434,9 @@
           }
         }
       }
+    },
+    "Earlier on this job" : {
+
     },
     "Edit" : {
       "localizations" : {
@@ -5965,6 +5998,9 @@
     "Intro" : {
 
     },
+    "Invite a device or person" : {
+
+    },
     "Invoice" : {
       "localizations" : {
         "ca" : {
@@ -6149,6 +6185,12 @@
     "It looks like this %@ was deleted — possibly on another device. Head back to the list." : {
 
     },
+    "item" : {
+
+    },
+    "Item" : {
+
+    },
     "Item name" : {
       "localizations" : {
         "ca" : {
@@ -6330,7 +6372,13 @@
     "Jobs across all your customers will appear here." : {
 
     },
+    "Keep Editing" : {
+
+    },
     "Label (optional)" : {
+
+    },
+    "labor" : {
 
     },
     "Labor" : {
@@ -6413,7 +6461,11 @@
         }
       }
     },
+    "Leave as Business for general expenses, or assign this receipt to a customer and, optionally, a specific job." : {
+
+    },
     "Leave as Business for general expenses, or assign this receipt to a customer's job." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ca" : {
           "stringUnit" : {
@@ -6454,6 +6506,9 @@
       }
     },
     "Leave off to track it as owed. It won't count toward the 1099 until you mark it paid." : {
+
+    },
+    "Leave us a quick review:" : {
 
     },
     "Left to invoice" : {
@@ -7960,6 +8015,9 @@
         }
       }
     },
+    "No discount" : {
+
+    },
     "No Employees" : {
 
     },
@@ -8515,9 +8573,6 @@
     "Office" : {
 
     },
-    "Office number (optional)" : {
-
-    },
     "OK" : {
       "localizations" : {
         "ca" : {
@@ -8568,6 +8623,9 @@
 
     },
     "Ongoing — recurring work" : {
+
+    },
+    "Online" : {
 
     },
     "Open change order" : {
@@ -9658,6 +9716,9 @@
     "Receipt message" : {
 
     },
+    "Receipt Photo" : {
+
+    },
     "Receipts" : {
       "localizations" : {
         "ca" : {
@@ -10023,6 +10084,12 @@
         }
       }
     },
+    "Remove photo" : {
+
+    },
+    "Remove Photo" : {
+
+    },
     "Remove this change order." : {
 
     },
@@ -10048,6 +10115,9 @@
 
     },
     "Replace file" : {
+
+    },
+    "Replace photo" : {
 
     },
     "Reports" : {
@@ -10180,6 +10250,9 @@
 
     },
     "Review the package above, then tap Share to send everything as one PDF." : {
+
+    },
+    "Reviews link (optional)" : {
 
     },
     "Revised total" : {
@@ -10358,6 +10431,9 @@
           }
         }
       }
+    },
+    "Scan with the camera or upload an existing image. The vendor, date, and total are read from it automatically." : {
+
     },
     "Scanned text" : {
       "localizations" : {
@@ -10976,6 +11052,9 @@
           }
         }
       }
+    },
+    "Shared with %@." : {
+
     },
     "Sharing sends two files for %@ — this tax summary and a receipts CSV listing every expense. Hand them to your accountant or keep them for your records." : {
 
@@ -12714,6 +12793,9 @@
     "Upload a new PDF or image." : {
 
     },
+    "Upload a photo of the receipt" : {
+
+    },
     "Upload COI" : {
 
     },
@@ -12926,6 +13008,9 @@
         }
       }
     },
+    "Venmo" : {
+
+    },
     "View All" : {
 
     },
@@ -12951,6 +13036,9 @@
 
     },
     "Warranty" : {
+
+    },
+    "Website (optional)" : {
 
     },
     "Weekly" : {
@@ -13242,6 +13330,9 @@
         }
       }
     },
+    "You have unsaved changes. If you go back now, nothing you entered will be saved." : {
+
+    },
     "You’re not signed in to iCloud, so your business info is saved on this device only — it won’t back up or sync to your other devices. You can turn that on anytime by signing in to iCloud in the Settings app." : {
 
     },
@@ -13295,6 +13386,9 @@
 
     },
     "Your other details were saved, but your Tax ID wasn’t. Make sure your device is unlocked, then tap Save again." : {
+
+    },
+    "Your reviews link is added to every payment receipt you send — customers can tap it to leave a review. Paste any review URL (Google, Yelp, etc.)." : {
 
     },
     "Your signature" : {

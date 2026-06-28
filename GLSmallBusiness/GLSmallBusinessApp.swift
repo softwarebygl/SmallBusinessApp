@@ -44,12 +44,6 @@ struct GLSmallBusinessApp: App {
     private var appColorScheme: AppColorScheme { AppColorScheme(rawValue: appColorSchemeRaw) ?? .system }
     @Environment(\.scenePhase) private var scenePhase
 
-    #if DEBUG
-    /// Installs the CloudKit share-acceptance delegate (DEBUG-only, like the sharing engine). A Release
-    /// build has no app delegate at all, so its scene lifecycle is unchanged. See ShareAcceptance.swift.
-    @UIApplicationDelegateAdaptor(ShareAppDelegate.self) private var shareDelegate
-    #endif
-
     /// Private-CloudKit-backed store. With `.automatic`, CloudKit sync turns on once the
     /// iCloud capability is enabled; until then (or with no iCloud account) it stays local.
     let sharedModelContainer: ModelContainer = {
@@ -61,14 +55,7 @@ struct GLSmallBusinessApp: App {
         // force-create every record type/field so nothing is missing before you Deploy to Production.
         // No-op when the model is unchanged. Runs synchronously to completion before the live store
         // loads. (Production still requires a manual ‘Deploy Schema Changes’ in CloudKit Dashboard.)
-        CloudKitSyncEngine.initializeCloudKitSchemaIfNeeded()
-
-        // In-progress CloudKit SHARING engine (NSPersistentCloudKitContainer). Off unless explicitly
-        // enabled for testing; on failure it falls through to the proven `.automatic` path below.
-        if CloudKitSyncEngine.isEnabled {
-            if let shared = try? CloudKitSyncEngine.makeContainer(schema: schema) { return shared }
-            print("⚠️ CloudKit sharing engine failed to start — using the standard .automatic store.")
-        }
+        CloudKitSchemaInit.runIfNeeded()
         #endif
         do {
             let cloud = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
@@ -127,9 +114,6 @@ struct GLSmallBusinessApp: App {
                 .overlay {
                     if scenePhase != .active { PrivacyScreen() }
                 }
-                // Owner-side: if the business is already shared, fold any records added since the invite
-                // into the share. No-op unless the sharing engine is on (Release: always off).
-                .task { await CloudKitSyncEngine.syncSharedRecordsIfNeeded() }
         }
         .modelContainer(sharedModelContainer)
     }

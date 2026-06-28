@@ -36,7 +36,7 @@ build 5). The rejection is fixed in code; the rest is owner-only (App Store Conn
       `InvoiceLineItem` (per-line discounts); `websiteURL` + `reviewsURL` on `BusinessProfile` (website +
       the customer-review link surfaced on payment receipts). Everything else this session (phone/TIN
       formatting, the unsaved-changes guard, payment methods, units, receipt photo/job) added NO new
-      CloudKit fields; CloudKit sharing is gated OFF with no schema change.
+      CloudKit fields.
 - [ ] **2.1(b): Submit the In-App Purchase products for review** — submit the two subscriptions
       (monthly / annual) in App Store Connect and attach the App Review screenshot. The binary
       references them but they were never submitted.
@@ -51,16 +51,3 @@ build 5). The rejection is fixed in code; the rest is owner-only (App Store Conn
 - [ ] On your own device: **delete + reinstall once** (new data models), then clear the stray
       no-customer invoice via **Menu → All Invoices** if still present.
 - [ ] Verify https://softwarebygl.com/my-business/privacy and /my-business/terms are live and reachable.
-
-## CloudKit Sharing (two different Apple IDs share one business) — BLOCKED, revisit later
-Scaffolding is committed on branch `updates-to-version-one` (gated OFF behind a DEBUG flag, **no schema
-change**, does not affect the shipping app). It does **not work yet** and is blocked by an Apple-framework
-wall — see memory `project_cloudkit_sharing_blocker` and `AccessControl/CloudKitSyncEngine.swift`:
-- Sharing the whole business in one invite needs every record under ONE connected CloudKit root.
-- A single root `@Model` (everything links to it) **crashes SwiftData on save** on iOS 26.5.
-- Without a root, records are disjoint graphs (customers don't relate to each other; BusinessProfile/
-  UserProfile have no relationships) → `share()` mints MANY CKShares → a participant gets only a slice.
-- [ ] **Revisit when a newer iOS/Xcode is out** — retry the single-root approach (the code is kept).
-- [ ] **OR decide on a custom backend** (a small server both Apple IDs log into) — the only path fully
-      under our control; a separate project, needs a go-ahead.
-- [ ] Interim no-code option that works today: put the **same Apple ID** on both phones.
