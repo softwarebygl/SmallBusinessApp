@@ -136,6 +136,13 @@ struct SubcontractorDetailScreen: View {
             }
             .buttonStyle(.plain)
 
+            if subcontractor.profileImageData != nil {
+                Button("Remove Photo", role: .destructive) {
+                    subcontractor.profileImageData = nil
+                }
+                .font(.subheadline)
+            }
+
             // Title (listDisplayName) is the person; show the business under it so "Boyd Electric"
             // stays visible. Skipped when the business is itself the title (no person on file).
             if !subcontractor.businessName.isEmpty && !subcontractor.fullName.isEmpty {

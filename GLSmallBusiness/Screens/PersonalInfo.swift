@@ -282,6 +282,7 @@ struct MyPersonalInfoFormScreen: View {
                     #if !os(macOS)
                     .keyboardType(.phonePad)
                     #endif
+                    .phoneNumberFormatted($phone)
             }
         }
         .glFormBackground()

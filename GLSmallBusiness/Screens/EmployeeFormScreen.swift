@@ -89,6 +89,7 @@ struct EmployeeFormScreen: View {
                     #if !os(macOS)
                     .keyboardType(.phonePad)
                     #endif
+                    .phoneNumberFormatted($phone)
             }
 
             Section("Pay") {

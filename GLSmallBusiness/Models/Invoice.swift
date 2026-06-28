@@ -57,7 +57,7 @@ nonisolated enum PaymentTerms: String, Codable, CaseIterable, Identifiable {
 }
 
 nonisolated enum PaymentMethod: String, Codable, CaseIterable, Identifiable {
-    case cash, check, card, transfer, other
+    case cash, check, card, transfer, venmo, cashApp, other
 
     var id: String { rawValue }
 
@@ -67,6 +67,8 @@ nonisolated enum PaymentMethod: String, Codable, CaseIterable, Identifiable {
         case .check: String(localized: "Check")
         case .card: String(localized: "Card")
         case .transfer: String(localized: "Bank transfer")
+        case .venmo: String(localized: "Venmo")
+        case .cashApp: String(localized: "Cash App")
         case .other: String(localized: "Other")
         }
     }

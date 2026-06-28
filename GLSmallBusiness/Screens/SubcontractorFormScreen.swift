@@ -107,6 +107,7 @@ struct SubcontractorFormScreen: View {
                     #if !os(macOS)
                     .keyboardType(.phonePad)
                     #endif
+                    .phoneNumberFormatted($phone)
             }
             Section("Address") {
                 AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)

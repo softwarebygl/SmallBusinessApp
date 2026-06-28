@@ -126,6 +126,13 @@ struct CustomerDetailScreen: View {
             }
             .buttonStyle(.plain)
 
+            if customer.profileImageData != nil {
+                Button("Remove Photo", role: .destructive) {
+                    customer.profileImageData = nil
+                }
+                .font(.subheadline)
+            }
+
             Text("Customer since \(customer.createdAt.formatted(date: .abbreviated, time: .omitted))")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

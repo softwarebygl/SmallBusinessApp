@@ -493,6 +493,7 @@ struct MyCompanyFormScreen: View {
                         #if !os(macOS)
                         .keyboardType(.phonePad)
                         #endif
+                        .phoneNumberFormatted($phone)
                     requiredMark
                 }
             }

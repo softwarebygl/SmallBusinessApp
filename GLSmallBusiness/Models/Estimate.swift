@@ -44,7 +44,7 @@ nonisolated enum LineItemKind: String, Codable, CaseIterable, Identifiable {
 }
 
 nonisolated enum UnitOfMeasure: String, Codable, CaseIterable, Identifiable {
-    case squareFoot, linearFoot, squareYard, hour, day, each, lumpSum, job
+    case squareFoot, linearFoot, squareYard, hour, day, each, item, labor, lumpSum, job
 
     var id: String { rawValue }
 
@@ -56,6 +56,8 @@ nonisolated enum UnitOfMeasure: String, Codable, CaseIterable, Identifiable {
         case .hour: String(localized: "hr")
         case .day: String(localized: "day")
         case .each: String(localized: "ea")
+        case .item: String(localized: "item")
+        case .labor: String(localized: "labor")
         case .lumpSum: String(localized: "lump")
         case .job: String(localized: "job")
         }
@@ -69,6 +71,8 @@ nonisolated enum UnitOfMeasure: String, Codable, CaseIterable, Identifiable {
         case .hour: String(localized: "Hours")
         case .day: String(localized: "Days")
         case .each: String(localized: "Each")
+        case .item: String(localized: "Item")
+        case .labor: String(localized: "Labor")
         case .lumpSum: String(localized: "Lump sum")
         case .job: String(localized: "Job")
         }

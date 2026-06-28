@@ -143,6 +143,13 @@ struct EmployeeDetailScreen: View {
             }
             .buttonStyle(.plain)
 
+            if employee.profileImageData != nil {
+                Button("Remove Photo", role: .destructive) {
+                    employee.profileImageData = nil
+                }
+                .font(.subheadline)
+            }
+
             Text(paySummary)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

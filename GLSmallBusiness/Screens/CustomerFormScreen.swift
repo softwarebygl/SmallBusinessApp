@@ -95,11 +95,13 @@ struct CustomerFormScreen: View {
                     #if !os(macOS)
                     .keyboardType(.phonePad)
                     #endif
+                    .phoneNumberFormatted($phoneNumber)
                 TextField("Office number (optional)", text: $officePhone)
                     .textContentType(.telephoneNumber)
                     #if !os(macOS)
                     .keyboardType(.phonePad)
                     #endif
+                    .phoneNumberFormatted($officePhone)
             }
             Section("Address") {
                 AddressSearchButton(street1: $street1, city: $city, state: $state, postalCode: $postalCode)
