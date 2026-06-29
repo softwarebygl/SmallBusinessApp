@@ -5998,9 +5998,6 @@
     "Intro" : {
 
     },
-    "Invite a device or person" : {
-
-    },
     "Invoice" : {
       "localizations" : {
         "ca" : {
@@ -11052,9 +11049,6 @@
           }
         }
       }
-    },
-    "Shared with %@." : {
-
     },
     "Sharing sends two files for %@ — this tax summary and a receipts CSV listing every expense. Hand them to your accountant or keep them for your records." : {
 
