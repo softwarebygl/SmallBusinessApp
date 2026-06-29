@@ -58,7 +58,7 @@ SUBSCRIPTION DETAILS
 • My Business Pro — $9.99/month or $89.99/year, charged to your Apple ID at purchase.
 • Subscriptions renew automatically unless turned off at least 24 hours before the period ends.
 • Manage or cancel anytime in your App Store account settings.
-• Terms of Use: https://evolvedbygl.github.io/terms/
+• Terms of Use: https://softwarebygl.com/my-business/terms
 
 ## Keywords (≤ 100 chars, comma-separated)
 estimate,invoice,contractor,receipt,invoicing,billing,quote,small business,tradesman,flooring,tile
@@ -69,10 +69,10 @@ https://evolvedbygl.com  ⟶ DECIDE (confirm this works, or use a dedicated supp
 ## Marketing URL (optional)
 https://evolvedbygl.com
 
-## Privacy Policy URL  ⚠️ REQUIRED
-⟶ DECIDE / TODO: App Store requires a hosted privacy-policy web page. You don't have one yet.
-   (I can draft the policy text for you to host — the app collects no data for the developer;
-   data lives in the user's private iCloud, and the camera is used on-device for receipts.)
+## Privacy Policy URL  ✅
+**https://softwarebygl.com/my-business/privacy**
+Paste into App Store Connect → App Information → Privacy Policy URL. Terms of Use live at
+https://softwarebygl.com/my-business/terms (linked from the app's paywall and Settings).
 
 ---
 

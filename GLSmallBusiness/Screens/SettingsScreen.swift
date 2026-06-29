@@ -71,8 +71,8 @@ struct SettingsScreen: View {
     @State private var showingPaywall = false
     @State private var subscriptionAlert: String?   // result of a restore / redeem; nil = no alert
 
-    private let privacyURL = URL(string: "https://evolvedbygl.github.io/privacy/")!
-    private let termsURL   = URL(string: "https://evolvedbygl.github.io/terms/")!
+    private let privacyURL = URL(string: "https://softwarebygl.com/my-business/privacy")!
+    private let termsURL   = URL(string: "https://softwarebygl.com/my-business/terms")!
 
     private var appearance: Binding<AppColorScheme> {
         Binding(

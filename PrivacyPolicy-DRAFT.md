@@ -1,10 +1,12 @@
-# Privacy Policy — GL Business
+# Privacy Policy — My Business
 
-**DRAFT — review before publishing.** App Store requires this to be hosted at a public URL
-(e.g. evolvedbygl.com/privacy). It's written to match how the app actually works: it collects
+**PUBLISHED.** The live, canonical version is hosted at
+**https://softwarebygl.com/my-business/privacy**
+(source: `softwarebygl-website/app/my-business/privacy/page.tsx`). Edit there, not here — this
+file is kept only as a plain-text reference. It matches how the app actually works: it collects
 nothing for us, and your data stays in your own iCloud.
 
-_Last updated: [set the date when you publish]_
+_Last updated: June 27, 2026_
 
 ## The short version
 GL Business does **not** collect, transmit, sell, or have access to your personal or business

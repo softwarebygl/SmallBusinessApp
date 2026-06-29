@@ -24,8 +24,8 @@ struct PaywallSheet: View {
     @State private var retrying = false
     @State private var restoring = false
 
-    private let privacyURL = URL(string: "https://evolvedbygl.github.io/privacy/")!
-    private let termsURL   = URL(string: "https://evolvedbygl.github.io/terms/")!
+    private let privacyURL = URL(string: "https://softwarebygl.com/my-business/privacy")!
+    private let termsURL   = URL(string: "https://softwarebygl.com/my-business/terms")!
 
     var body: some View {
         VStack(spacing: 0) {
