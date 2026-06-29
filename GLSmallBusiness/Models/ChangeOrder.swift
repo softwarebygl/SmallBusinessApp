@@ -60,6 +60,28 @@ extension ChangeOrder {
         (lineItems ?? []).sorted { $0.sortIndex < $1.sortIndex }
     }
 
+    /// Pushes this change order's items onto its invoice as a new line-item group (charged at full price,
+    /// flagged `fromChangeOrder` so the invoice's overall discount won't re-rate them) and marks it applied
+    /// so its amount is counted exactly once. No-op unless it's approved and not already applied.
+    func addItemsToInvoice(using context: ModelContext) {
+        guard let invoice, status == .approved, !appliedToInvoice else { return }
+        let groupName = title.isEmpty ? number : "\(number): \(title)"
+        let group = InvoiceGroup(name: groupName, sortIndex: (invoice.sortedGroups.last?.sortIndex ?? 0) + 1)
+        group.invoice = invoice
+        context.insert(group)
+        for (index, item) in sortedLineItems.enumerated() {
+            let li = InvoiceLineItem(
+                name: item.name, details: item.details, quantity: item.quantity,
+                unit: item.unit, unitPrice: item.unitPrice, kind: .labor,
+                isTaxable: item.isTaxable, sortIndex: index
+            )
+            li.fromChangeOrder = true
+            li.group = group
+            context.insert(li)
+        }
+        appliedToInvoice = true
+    }
+
     /// Sum of line totals — negative when the change removes scope (a credit).
     var subtotal: Double { sortedLineItems.reduce(0) { $0 + $1.lineTotal } }
 

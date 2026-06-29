@@ -51,6 +51,15 @@ struct GLSmallBusinessApp: App {
         // customers' data safely. See GLSchema.swift for the rules before changing any @Model.
         let schema = Schema(versionedSchema: GLCurrentSchema.self)
         #if DEBUG
+        // UI tests that need a deterministic, pristine dataset launch with -uiTestChangeOrder → use a
+        // throwaway in-memory store so the demo seed runs fresh every launch (the persistent demo store is
+        // idempotent and wouldn't pick up test-only fixtures), and the real store is never touched.
+        if ProcessInfo.processInfo.arguments.contains("-uiTestChangeOrder"),
+           let memory = try? ModelContainer(
+               for: schema,
+               configurations: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)) {
+            return memory
+        }
         // Auto-maintain the CloudKit DEVELOPMENT schema: if the data model changed since the last run,
         // force-create every record type/field so nothing is missing before you Deploy to Production.
         // No-op when the model is unchanged. Runs synchronously to completion before the live store

@@ -242,6 +242,33 @@ enum DemoSeed {
                                    data: demoDocData("City Permit — Backsplash Install"), job: job4)
         [photoBefore, photoAfter, permit].forEach(context.insert)
 
+        // UI-test-only fixture (gated by a launch arg so it never shows in normal demo / screenshot runs):
+        // a round-number invoice — $1,000 work, $300 paid — with one APPROVED, not-yet-added change order
+        // of +$200, so the change-order/balance UI test can assert exact figures ($700 before, $900 after).
+        if ProcessInfo.processInfo.arguments.contains("-uiTestChangeOrder") {
+            let coInv = Invoice(number: "INV-0099", jobTitle: "Fence repair", createdAt: .now,
+                                status: .sent, customer: c1)
+            context.insert(coInv)
+            let coGroup = InvoiceGroup(name: "Labor", sortIndex: 0); coGroup.invoice = coInv
+            context.insert(coGroup)
+            let coLine = InvoiceLineItem(name: "Fence repair", quantity: 1, unit: .job,
+                                         unitPrice: 1000, kind: .labor, isTaxable: false, sortIndex: 0)
+            coLine.group = coGroup
+            context.insert(coLine)
+            let coPay = InvoicePayment(amount: 300, date: .now, method: .check, note: "Deposit")
+            coPay.invoice = coInv
+            context.insert(coPay)
+            coInv.amountDueNow = 0
+            let co = ChangeOrder(number: "CO-0001", title: "Added gate", createdAt: .now)
+            co.status = .approved
+            co.invoice = coInv
+            context.insert(co)
+            let coItem = ChangeOrderLineItem(name: "Added gate", quantity: 1, unit: .job,
+                                             unitPrice: 200, isTaxable: false, sortIndex: 0)
+            coItem.changeOrder = co
+            context.insert(coItem)
+        }
+
         context.saveChanges()
     }
 

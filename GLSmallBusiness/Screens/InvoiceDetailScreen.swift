@@ -375,11 +375,7 @@ struct InvoiceDetailScreen: View {
             if invoice.discountAmount > 0 { totalRow(String(localized: "Discount"), -invoice.discountAmount) }
             if invoice.taxAmount > 0 { totalRow(String(localized: "Tax") + " (\(invoice.taxRatePercent.formatted())%)", invoice.taxAmount) }
             Divider()
-            totalRow(String(localized: "Total"), invoice.total, bold: invoice.approvedChangeOrderTotal == 0)
-            if invoice.approvedChangeOrderTotal != 0 {
-                totalRow(String(localized: "Change orders"), invoice.approvedChangeOrderTotal)
-                totalRow(String(localized: "Revised total"), invoice.revisedTotal, bold: true)
-            }
+            totalRow(String(localized: "Total"), invoice.total, bold: true)
             if invoice.amountPaid > 0 {
                 totalRow(String(localized: "Paid"), -invoice.amountPaid)
             }
@@ -486,14 +482,11 @@ struct InvoiceDetailScreen: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else {
-                if invoice.approvedChangeOrderTotal != 0 {
-                    HStack {
-                        Text("Revised total").foregroundStyle(.secondary)
-                        Spacer()
-                        Text(invoice.revisedTotal.formatted(.currency(code: "USD"))).fontWeight(.semibold)
-                    }
-                    .font(.subheadline)
-                    Divider()
+                let hasUnapplied = orders.contains { $0.status == .approved && !$0.appliedToInvoice }
+                if hasUnapplied {
+                    Text("Approved change orders aren't billed until you add them here.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
                 ForEach(orders) { changeOrder in
                     HStack(alignment: .firstTextBaseline) {
@@ -514,6 +507,18 @@ struct InvoiceDetailScreen: View {
                             .fontWeight(.medium)
                     }
                     .font(.subheadline)
+                    if changeOrder.status == .approved && !changeOrder.appliedToInvoice {
+                        Button {
+                            changeOrder.addItemsToInvoice(using: modelContext)
+                            regeneratePDF()
+                        } label: {
+                            Label("Add to invoice", systemImage: "plus.circle")
+                                .font(.subheadline)
+                        }
+                        .buttonStyle(.borderless)
+                        .tint(gold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                     if changeOrder.id != orders.last?.id {
                         Divider()
                     }

@@ -271,9 +271,11 @@ extension Invoice {
     var revisedTotal: Double { total + approvedChangeOrderTotal }
 
     var balanceDue: Double {
-        // Use the REVISED total so approved-but-not-yet-applied change orders count as owed — otherwise
-        // an invoice can read "Paid" / $0 while a signed change order still has money outstanding.
-        max(0, revisedTotal - amountPaid)
+        // Based on the itemized total only — a change order is not billed (and not owed on this invoice)
+        // until its items are added to the invoice. The invoice screen prompts you to add approved change
+        // orders so signed work isn't forgotten; `revisedTotal` is the informational "what it'll be worth
+        // once added" figure, not the billed balance.
+        max(0, total - amountPaid)
     }
 
     /// Whether a specific milestone amount (rather than the whole balance) is being requested now.

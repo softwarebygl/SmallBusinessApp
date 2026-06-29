@@ -313,22 +313,7 @@ struct ChangeOrderDetailSheet: View {
     }
 
     private func addToInvoice() {
-        guard let invoice else { return }
-        let name = changeOrder.title.isEmpty ? changeOrder.number : "\(changeOrder.number): \(changeOrder.title)"
-        let group = InvoiceGroup(name: name, sortIndex: (invoice.sortedGroups.last?.sortIndex ?? 0) + 1)
-        group.invoice = invoice
-        modelContext.insert(group)
-        for (index, item) in changeOrder.sortedLineItems.enumerated() {
-            let li = InvoiceLineItem(
-                name: item.name, details: item.details, quantity: item.quantity,
-                unit: item.unit, unitPrice: item.unitPrice, kind: .labor,
-                isTaxable: item.isTaxable, sortIndex: index
-            )
-            li.fromChangeOrder = true   // charged at full price; the invoice discount won't re-rate it
-            li.group = group
-            modelContext.insert(li)
-        }
-        changeOrder.appliedToInvoice = true
+        changeOrder.addItemsToInvoice(using: modelContext)
     }
 
     @ViewBuilder

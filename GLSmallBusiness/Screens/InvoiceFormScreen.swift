@@ -180,6 +180,7 @@ struct InvoiceFormScreen: View {
     @State private var amountDueDetail: String
     @State private var groups: [InvoiceGroupDraft]
     @State private var initialSnapshot: InvoiceSnapshot?
+    @State private var showingRecordPayment = false
 
     init(customer: Customer) {
         self.customer = customer
@@ -387,6 +388,19 @@ struct InvoiceFormScreen: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 SaveOnceButton(disabled: !canSave, action: save)
+            }
+            if let editingInvoice {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingRecordPayment = true } label: {
+                        Label("Record payment", systemImage: "dollarsign.circle")
+                    }
+                    .accessibilityLabel("Record payment")
+                }
+            }
+        }
+        .sheet(isPresented: $showingRecordPayment) {
+            if let editingInvoice {
+                RecordPaymentSheet(invoice: editingInvoice).glAppearance(colorScheme)
             }
         }
         .onAppear { if initialSnapshot == nil { initialSnapshot = currentSnapshot } }

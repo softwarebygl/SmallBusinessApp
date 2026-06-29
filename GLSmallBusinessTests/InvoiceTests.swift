@@ -5,6 +5,7 @@
 
 import Testing
 import Foundation
+import SwiftData
 @testable import GLSmallBusiness
 
 @MainActor
@@ -94,6 +95,38 @@ struct InvoiceTests {
         let inv = TS.invoice(lines: [(1000, false)])
         TS.changeOrder(inv, status: .pending, lines: [(100, false)])
         #expect(close(inv.approvedChangeOrderTotal, 0))
+    }
+
+    // MARK: - balanceDue is itemized-only (the change-order balance fix)
+
+    @Test func approvedNotAppliedChangeOrderDoesNotChangeBalanceDue() {
+        // An approved-but-not-yet-applied change order shows in `revisedTotal` (informational) but is NOT
+        // billed: the balance due stays the itemized `total - amountPaid`, not the revised figure.
+        let inv = TS.invoice(lines: [(1000, false)])
+        TS.changeOrder(inv, status: .approved, applied: false, lines: [(100, false)])
+        #expect(close(inv.balanceDue, 1000))            // NOT 1100
+        #expect(close(inv.revisedTotal, 1100))          // still surfaced for display
+        #expect(close(inv.approvedChangeOrderTotal, 100))
+    }
+
+    @Test func addingChangeOrderItemsBillsItExactlyOnce() throws {
+        // Once the items are pushed onto the invoice, `total` grows by the change order amount, the balance
+        // reflects it once, the CO is marked applied, and it stops counting toward approvedChangeOrderTotal.
+        let container = try TestStore.makeContainer()
+        let ctx = ModelContext(container)
+
+        let inv = TS.invoice(lines: [(1000, false)])
+        let co = TS.changeOrder(inv, status: .approved, applied: false, lines: [(100, false)])
+        ctx.insert(inv)
+
+        let totalBefore = inv.total
+        co.addItemsToInvoice(using: ctx)
+
+        #expect(co.appliedToInvoice)
+        #expect(close(inv.total, totalBefore + 100))
+        #expect(close(inv.balanceDue, inv.total - inv.amountPaid))
+        #expect(close(inv.approvedChangeOrderTotal, 0))   // no longer pending-to-add
+        #expect(close(inv.revisedTotal, inv.total))       // and not double-counted
     }
 
     @Test func nextNumberIncrementsHighest() {
