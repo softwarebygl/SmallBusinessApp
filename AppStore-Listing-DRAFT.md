@@ -55,7 +55,7 @@ limits, subscribe to My Business Pro for unlimited everything. Anything you’ve
 always stays viewable and exportable — even without a subscription.
 
 SUBSCRIPTION DETAILS
-• My Business Pro — $9.99/month or $89.99/year, charged to your Apple ID at purchase.
+• My Business Pro — $12.99/month or $89.99/year, charged to your Apple ID at purchase.
 • Subscriptions renew automatically unless turned off at least 24 hours before the period ends.
 • Manage or cancel anytime in your App Store account settings.
 • Terms of Use: https://softwarebygl.com/my-business/terms
@@ -80,7 +80,7 @@ https://softwarebygl.com/my-business/terms (linked from the app's paywall and Se
 
 - **Primary category:** Business  ·  **Secondary:** Productivity
 - **Price:** Free to download. Monetized by the **My Business Pro** auto-renewable subscription
-  ($9.99/mo · $89.99/yr) that lifts the free-tier caps. (Do NOT set the app itself to "Paid.")
+  ($12.99/mo · $89.99/yr) that lifts the free-tier caps. (Do NOT set the app itself to "Paid.")
   ⚠️ The free/paid split MUST be disclosed in the description — see the "FREE TO START" +
   "SUBSCRIPTION DETAILS" sections above. That disclosure is what resolves the 2.3.2 rejection.
   Also remove the old 2-week / 1-month **introductory (free trial) offers** in App Store Connect

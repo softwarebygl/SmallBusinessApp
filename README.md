@@ -219,7 +219,7 @@ no migration needed until the first post-launch change).
   capped free tier (resolves the App Store 2.3.2 metadata rejection).**
   - **The model:** everyone gets the full app free up to per-type caps (`FreeTier`): 10 customers,
     2 employees, 2 subcontractors, 15 each of estimates / invoices / jobs / receipts. Creating one
-    past a cap opens `PaywallSheet`. A **My Business Pro** subscription ($9.99/mo · $89.99/yr) lifts
+    past a cap opens `PaywallSheet`. A **My Business Pro** subscription ($12.99/mo · $89.99/yr) lifts
     every cap. Replaces the old "subscribe at the door" gate — `AppGate` no longer blocks entry; it
     just keeps the live entitlement (`SubscriptionManager.isSubscribed` / `.statusKnown`) updated.
   - **One rule, everywhere:** `AccessGate.canCreate(_:cap:in:subscription:)` = subscribed OR global
