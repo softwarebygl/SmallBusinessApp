@@ -17,8 +17,10 @@ import UIKit
 
 @MainActor
 enum PaginatedPDF {
-    static let pageWidth: CGFloat = 612     // US Letter at 72 dpi
-    static let pageHeight: CGFloat = 792
+    // `nonisolated` so they can serve as a default-argument value (evaluated in a nonisolated context)
+    // and be read from nonisolated callers — they're plain immutable layout constants, safe to share.
+    nonisolated static let pageWidth: CGFloat = 612     // US Letter at 72 dpi
+    nonisolated static let pageHeight: CGFloat = 792
 
     /// Renders `content` (already laid out to `width`) into a multi-page Letter PDF at `url`.
     /// Returns `url` on success, or `nil` if the view couldn't be rendered.
