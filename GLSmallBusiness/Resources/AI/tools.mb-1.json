@@ -1,0 +1,3389 @@
+{
+  "toolset": "mb-1",
+  "areas": {
+    "money": "Create and edit change orders, add them to invoices, inspect and classify bank transactions, manage merchant categorization rules, and inspect or update recurring subscriptions.",
+    "expenses": "Add and edit receipts, and add any photo, file, scan or phone contact to the right place: receipts, jobs, invoices, certificates, logos, people.",
+    "catalog": "Add and edit items on the price sheet.",
+    "team": "Manage employees, hours, paychecks, subcontractors and their work and payments.",
+    "settings": "Business details, message wording, work hours, app settings, projects, documents, contacts and the developer."
+  },
+  "tools": [
+    {
+      "name": "find",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Search the business's records and return short matches with ids; every id other actions need comes from find or get. Use it before any change to get the right id, and to answer list questions (e.g. unpaid invoices, this week's jobs, price sheet items). If two records fit the person's words, ask which one.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Kind of record to search. payment = money received on an invoice; time_entry = an employee's hours or bonus; paycheck = pay recorded for an employee; sub_payment = a subcontractor's logged work or charge; attachment = a photo or document on a job or invoice; document = an extra document kept for a customer's contractor package.",
+            "enum": [
+              "customer",
+              "estimate",
+              "contract",
+              "invoice",
+              "change_order",
+              "job",
+              "receipt",
+              "price_item",
+              "employee",
+              "subcontractor",
+              "project",
+              "payment",
+              "time_entry",
+              "paycheck",
+              "sub_payment",
+              "attachment",
+              "document"
+            ]
+          },
+          "query": {
+            "type": "string",
+            "description": "Words to match: name, number (EST-0012, INV-0003, CO-0001), title, vendor, category or phone."
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Only records for this customer id."
+          },
+          "job_id": {
+            "type": "string",
+            "description": "Only records for this job id."
+          },
+          "person_id": {
+            "type": "string",
+            "description": "Only records for this employee or subcontractor id: hours, paychecks or subcontractor work."
+          },
+          "status": {
+            "type": "string",
+            "description": "Status filter that fits the kind. Estimate: draft, sent, accepted, declined, expired. Invoice: draft, sent, unpaid, partiallyPaid, paid, overdue. Change order: pending, approved, declined. Job: scheduled, inProgress, completed. Employee or subcontractor: active, inactive. Hours or subcontractor work: owed, paid.",
+            "enum": [
+              "draft",
+              "sent",
+              "accepted",
+              "declined",
+              "expired",
+              "unpaid",
+              "partiallyPaid",
+              "paid",
+              "overdue",
+              "pending",
+              "approved",
+              "scheduled",
+              "inProgress",
+              "completed",
+              "active",
+              "inactive",
+              "owed"
+            ]
+          },
+          "date_from": {
+            "type": "string",
+            "description": "Start of the date range, date YYYY-MM-DD."
+          },
+          "date_to": {
+            "type": "string",
+            "description": "End of the date range, inclusive, date YYYY-MM-DD."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Most results to return, 1-50. Default 10.",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      }
+    },
+    {
+      "name": "get",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Read one record in full: fields, totals, balances, lines, payments and linked records. Long documents come in pages of lines. Use kind business, work_schedule or app_settings without an id to read those.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Kind of record; the same kinds as find, plus business, work_schedule, app_settings, gold_life_id, and device_info.",
+            "enum": [
+              "customer",
+              "estimate",
+              "contract",
+              "invoice",
+              "change_order",
+              "job",
+              "receipt",
+              "price_item",
+              "employee",
+              "subcontractor",
+              "project",
+              "payment",
+              "time_entry",
+              "paycheck",
+              "sub_payment",
+              "attachment",
+              "document",
+              "business",
+              "work_schedule",
+              "app_settings",
+              "gold_life_id",
+              "device_info"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Record id; not needed for business, work_schedule or app_settings."
+          },
+          "page": {
+            "type": "integer",
+            "description": "Page of lines for long documents, starting at 1.",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      }
+    },
+    {
+      "name": "report",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Answer summary questions from live numbers: money in and out for a period, who owes me, what I owe (payroll and subcontractors), the schedule for a range, next openings, documents expiring soon, estimate pipeline, profit on a job (approximate), whether card payments are set up, card payment status of an invoice, and backup status. Never compute these yourself.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Which report.",
+            "enum": [
+              "money_summary",
+              "owed_to_me",
+              "i_owe",
+              "schedule",
+              "openings",
+              "expiring_documents",
+              "estimate_pipeline",
+              "job_profit",
+              "payments_setup",
+              "card_payment_status",
+              "backup_status"
+            ]
+          },
+          "date_from": {
+            "type": "string",
+            "description": "Start of the period, date YYYY-MM-DD."
+          },
+          "date_to": {
+            "type": "string",
+            "description": "End of the period, inclusive, date YYYY-MM-DD."
+          },
+          "id": {
+            "type": "string",
+            "description": "Job id for job_profit, or invoice id for card_payment_status."
+          },
+          "query": {
+            "type": "string",
+            "description": "Optional words to narrow, e.g. an expense category or vendor like tile."
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      }
+    },
+    {
+      "name": "help",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Look up how the app works, what a setting does, what's new in this version, or the app version. Use it for how-to questions instead of guessing.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "The person's question in their words."
+          },
+          "section": {
+            "type": "string",
+            "description": "how_to for app help, whats_new for recent changes, about for version details.",
+            "enum": [
+              "how_to",
+              "whats_new",
+              "about"
+            ]
+          }
+        },
+        "required": [
+          "question"
+        ]
+      }
+    },
+    {
+      "name": "save_customer",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Create a customer (no id) or change one (with id). Only the sent fields change. Find the customer first; never create a duplicate of someone who exists. Never create a customer named 'me', 'myself', or from phrases like 'for me', which refer to the business owner, not a customer.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the customer to change; omit to create."
+          },
+          "first_name": {
+            "type": "string",
+            "description": "First name."
+          },
+          "middle_name": {
+            "type": "string",
+            "description": "Middle name."
+          },
+          "last_name": {
+            "type": "string",
+            "description": "Last name."
+          },
+          "business_name": {
+            "type": "string",
+            "description": "Company name, if any."
+          },
+          "email": {
+            "type": "string",
+            "description": "Email address."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Mobile phone, used for texts."
+          },
+          "office_phone": {
+            "type": "string",
+            "description": "Office phone."
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address; only sent parts change.",
+            "properties": {
+              "street1": {
+                "type": "string",
+                "description": "Street."
+              },
+              "street2": {
+                "type": "string",
+                "description": "Unit or suite."
+              },
+              "city": {
+                "type": "string",
+                "description": "City."
+              },
+              "state": {
+                "type": "string",
+                "description": "State."
+              },
+              "postal_code": {
+                "type": "string",
+                "description": "ZIP."
+              }
+            }
+          },
+          "service_address": {
+            "type": "object",
+            "description": "Customer service address; only sent parts change.",
+            "properties": {
+              "street1": {
+                "type": "string",
+                "description": "Street."
+              },
+              "street2": {
+                "type": "string",
+                "description": "Unit or suite."
+              },
+              "city": {
+                "type": "string",
+                "description": "City."
+              },
+              "state": {
+                "type": "string",
+                "description": "State."
+              },
+              "postal_code": {
+                "type": "string",
+                "description": "ZIP."
+              }
+            }
+          },
+          "same_as_billing_address": {
+            "type": "boolean",
+            "description": "Service address is same as billing address."
+          }
+        }
+      }
+    },
+    {
+      "name": "create_estimate",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Create one draft estimate for a customer. For several estimates, call it once per estimate. Look up prices on the price sheet (find kind price_item) instead of guessing; if a price is unknown, ask. combine_totals false makes each group a separate option the customer picks from.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Customer id."
+          },
+          "job_title": {
+            "type": "string",
+            "description": "Short job title, e.g. Master bath tile."
+          },
+          "groups": {
+            "type": "array",
+            "description": "Groups of lines. One group is normal; several with combine_totals false are options.",
+            "items": {
+              "type": "object",
+              "description": "A group of lines. In options mode each group is one choice.",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Group or option name, e.g. Master bath."
+                },
+                "note": {
+                  "type": "string",
+                  "description": "Note shown under the group."
+                },
+                "lines": {
+                  "type": "array",
+                  "description": "Lines in this group.",
+                  "items": {
+                    "type": "object",
+                    "description": "A line.",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Name, e.g. Tile install."
+                      },
+                      "details": {
+                        "type": "string",
+                        "description": "Description."
+                      },
+                      "quantity": {
+                        "type": "number",
+                        "description": "Quantity.",
+                        "minimum": 0
+                      },
+                      "unit": {
+                        "type": "string",
+                        "description": "Unit.",
+                        "enum": [
+                          "squareFoot",
+                          "linearFoot",
+                          "squareYard",
+                          "hour",
+                          "day",
+                          "each",
+                          "item",
+                          "labor",
+                          "lumpSum",
+                          "job"
+                        ]
+                      },
+                      "unit_price": {
+                        "type": "number",
+                        "description": "Dollars per unit; omit with price_item_id to use the sheet price.",
+                        "minimum": 0
+                      },
+                      "kind": {
+                        "type": "string",
+                        "description": "Material is taxable by default.",
+                        "enum": [
+                          "labor",
+                          "material"
+                        ]
+                      },
+                      "taxable": {
+                        "type": "boolean",
+                        "description": "Taxed."
+                      },
+                      "discount_type": {
+                        "type": "string",
+                        "description": "Discount type.",
+                        "enum": [
+                          "none",
+                          "percentage",
+                          "fixed"
+                        ]
+                      },
+                      "discount_value": {
+                        "type": "number",
+                        "description": "Percent (max 100) or dollars.",
+                        "minimum": 0
+                      },
+                      "price_item_id": {
+                        "type": "string",
+                        "description": "Price sheet item id to copy."
+                      }
+                    }
+                  },
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "lines"
+              ]
+            },
+            "minItems": 1
+          },
+          "combine_totals": {
+            "type": "boolean",
+            "description": "true (default) adds groups into one total; false shows each group as its own option."
+          },
+          "valid_until": {
+            "type": "string",
+            "description": "Last day the estimate is valid; default 30 days from today, date YYYY-MM-DD."
+          },
+          "service_address": {
+            "type": "object",
+            "description": "Job site address when different from the customer's; only sent parts change.",
+            "properties": {
+              "street1": {
+                "type": "string",
+                "description": "Street."
+              },
+              "street2": {
+                "type": "string",
+                "description": "Unit or suite."
+              },
+              "city": {
+                "type": "string",
+                "description": "City."
+              },
+              "state": {
+                "type": "string",
+                "description": "State."
+              },
+              "postal_code": {
+                "type": "string",
+                "description": "ZIP."
+              }
+            }
+          },
+          "tax_rate_percent": {
+            "type": "number",
+            "description": "Sales tax percent, 0-100.",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "discount_type": {
+            "type": "string",
+            "description": "Overall discount type.",
+            "enum": [
+              "none",
+              "percentage",
+              "fixed"
+            ]
+          },
+          "discount_value": {
+            "type": "number",
+            "description": "Overall discount: percent (max 100) or dollars.",
+            "minimum": 0
+          },
+          "deposit_type": {
+            "type": "string",
+            "description": "Deposit type.",
+            "enum": [
+              "none",
+              "percentage",
+              "fixed"
+            ]
+          },
+          "deposit_value": {
+            "type": "number",
+            "description": "Deposit: percent (max 100) or dollars.",
+            "minimum": 0
+          },
+          "customer_notes": {
+            "type": "string",
+            "description": "Notes for the customer."
+          },
+          "terms": {
+            "type": "string",
+            "description": "Terms text."
+          }
+        },
+        "required": [
+          "customer_id",
+          "job_title",
+          "groups"
+        ]
+      }
+    },
+    {
+      "name": "edit_estimate",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Change an existing estimate: fields, groups and lines. Use lines to add or change items (e.g. add grout to the bathroom one). Status changes go through set_status. Only the sent fields change.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Estimate id."
+          },
+          "job_title": {
+            "type": "string",
+            "description": "New job title."
+          },
+          "combine_totals": {
+            "type": "boolean",
+            "description": "true adds groups into one total; false shows each group as its own option."
+          },
+          "valid_until": {
+            "type": "string",
+            "description": "New last valid day, date YYYY-MM-DD."
+          },
+          "service_address": {
+            "type": "object",
+            "description": "Job site address; only sent parts change.",
+            "properties": {
+              "street1": {
+                "type": "string",
+                "description": "Street."
+              },
+              "street2": {
+                "type": "string",
+                "description": "Unit or suite."
+              },
+              "city": {
+                "type": "string",
+                "description": "City."
+              },
+              "state": {
+                "type": "string",
+                "description": "State."
+              },
+              "postal_code": {
+                "type": "string",
+                "description": "ZIP."
+              }
+            }
+          },
+          "tax_rate_percent": {
+            "type": "number",
+            "description": "Sales tax percent, 0-100.",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "discount_type": {
+            "type": "string",
+            "description": "Overall discount type.",
+            "enum": [
+              "none",
+              "percentage",
+              "fixed"
+            ]
+          },
+          "discount_value": {
+            "type": "number",
+            "description": "Overall discount: percent (max 100) or dollars.",
+            "minimum": 0
+          },
+          "deposit_type": {
+            "type": "string",
+            "description": "Deposit type.",
+            "enum": [
+              "none",
+              "percentage",
+              "fixed"
+            ]
+          },
+          "deposit_value": {
+            "type": "number",
+            "description": "Deposit: percent (max 100) or dollars.",
+            "minimum": 0
+          },
+          "customer_notes": {
+            "type": "string",
+            "description": "Notes for the customer."
+          },
+          "terms": {
+            "type": "string",
+            "description": "Terms text."
+          },
+          "lines": {
+            "type": "array",
+            "description": "Lines to add or change; only sent fields change.",
+            "items": {
+              "type": "object",
+              "description": "A line to add, or changes to an existing line.",
+              "properties": {
+                "line_id": {
+                  "type": "string",
+                  "description": "Id of the line to change; omit to add a line."
+                },
+                "group_id": {
+                  "type": "string",
+                  "description": "Group id to add the line to; default the last group."
+                },
+                "new_group": {
+                  "type": "string",
+                  "description": "Name of a new group (option) to add the line to."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name, e.g. Tile install."
+                },
+                "details": {
+                  "type": "string",
+                  "description": "Description."
+                },
+                "quantity": {
+                  "type": "number",
+                  "description": "Quantity.",
+                  "minimum": 0
+                },
+                "unit": {
+                  "type": "string",
+                  "description": "Unit.",
+                  "enum": [
+                    "squareFoot",
+                    "linearFoot",
+                    "squareYard",
+                    "hour",
+                    "day",
+                    "each",
+                    "item",
+                    "labor",
+                    "lumpSum",
+                    "job"
+                  ]
+                },
+                "unit_price": {
+                  "type": "number",
+                  "description": "Dollars per unit; omit with price_item_id to use the sheet price.",
+                  "minimum": 0
+                },
+                "kind": {
+                  "type": "string",
+                  "description": "Material is taxable by default.",
+                  "enum": [
+                    "labor",
+                    "material"
+                  ]
+                },
+                "taxable": {
+                  "type": "boolean",
+                  "description": "Taxed."
+                },
+                "discount_type": {
+                  "type": "string",
+                  "description": "Discount type.",
+                  "enum": [
+                    "none",
+                    "percentage",
+                    "fixed"
+                  ]
+                },
+                "discount_value": {
+                  "type": "number",
+                  "description": "Percent (max 100) or dollars.",
+                  "minimum": 0
+                },
+                "price_item_id": {
+                  "type": "string",
+                  "description": "Price sheet item id to copy."
+                }
+              }
+            }
+          },
+          "remove_line_ids": {
+            "type": "array",
+            "description": "Lines to remove.",
+            "items": {
+              "type": "string",
+              "description": "Line id."
+            }
+          },
+          "groups": {
+            "type": "array",
+            "description": "Groups to rename.",
+            "items": {
+              "type": "object",
+              "description": "A group to rename.",
+              "properties": {
+                "group_id": {
+                  "type": "string",
+                  "description": "Group id."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "New name."
+                },
+                "note": {
+                  "type": "string",
+                  "description": "New note."
+                }
+              },
+              "required": [
+                "group_id"
+              ]
+            }
+          },
+          "remove_group_ids": {
+            "type": "array",
+            "description": "Groups to remove with their lines.",
+            "items": {
+              "type": "string",
+              "description": "Group id."
+            }
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "create_contract",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Create one draft contract for a customer from scratch or convert from an existing estimate (from_estimate_id).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Customer id (required if not converting from estimate)."
+          },
+          "from_estimate_id": {
+            "type": "string",
+            "description": "Estimate id to convert into a contract."
+          },
+          "title": {
+            "type": "string",
+            "description": "Short contract title, e.g. Master bath renovation."
+          },
+          "number": {
+            "type": "string",
+            "description": "Contract number (auto-generated if omitted)."
+          },
+          "start_date": {
+            "type": "string",
+            "description": "Start date, YYYY-MM-DD."
+          },
+          "duration_days": {
+            "type": "integer",
+            "description": "Estimated duration in days.",
+            "minimum": 1
+          },
+          "is_all_day": {
+            "type": "boolean",
+            "description": "All day scheduling."
+          },
+          "start_time": {
+            "type": "string",
+            "description": "Start time, HH:mm."
+          },
+          "duration_minutes": {
+            "type": "integer",
+            "description": "Duration in minutes.",
+            "minimum": 1
+          },
+          "agreed_price": {
+            "type": "number",
+            "description": "Agreed fixed contract price.",
+            "minimum": 0
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes for the contract."
+          },
+          "terms": {
+            "type": "string",
+            "description": "Contract terms."
+          },
+          "service_address": {
+            "type": "object",
+            "description": "Job site service address.",
+            "properties": {
+              "street1": {
+                "type": "string"
+              },
+              "street2": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "postal_code": {
+                "type": "string"
+              }
+            }
+          },
+          "groups": {
+            "type": "array",
+            "description": "Groups of lines.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Group name."
+                },
+                "note": {
+                  "type": "string",
+                  "description": "Note."
+                },
+                "lines": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "details": {
+                        "type": "string"
+                      },
+                      "quantity": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "unit": {
+                        "type": "string"
+                      },
+                      "unit_price": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "labor",
+                          "material"
+                        ]
+                      },
+                      "taxable": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "edit_contract",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Update an existing contract's details, schedule, service address, notes, agreed price or status.",
+      "parameters": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Contract id to update."
+          },
+          "title": {
+            "type": "string",
+            "description": "Contract title."
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Customer id."
+          },
+          "start_date": {
+            "type": "string",
+            "description": "Start date, YYYY-MM-DD."
+          },
+          "duration_days": {
+            "type": "integer",
+            "description": "Estimated duration in days.",
+            "minimum": 1
+          },
+          "is_all_day": {
+            "type": "boolean",
+            "description": "All day scheduling."
+          },
+          "start_time": {
+            "type": "string",
+            "description": "Start time, HH:mm."
+          },
+          "duration_minutes": {
+            "type": "integer",
+            "description": "Duration in minutes.",
+            "minimum": 1
+          },
+          "agreed_price": {
+            "type": "number",
+            "description": "Agreed contract price.",
+            "minimum": 0
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "terms": {
+            "type": "string",
+            "description": "Terms."
+          },
+          "status": {
+            "type": "string",
+            "description": "Contract status.",
+            "enum": [
+              "draft",
+              "signed",
+              "inProgress",
+              "completed"
+            ]
+          },
+          "service_address": {
+            "type": "object",
+            "properties": {
+              "street1": {
+                "type": "string"
+              },
+              "street2": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "postal_code": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "invoice_from_contract",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Create a draw or progress invoice from a contract (full balance, percentage progress billing, or specific line items).",
+      "parameters": {
+        "type": "object",
+        "required": [
+          "contract_id"
+        ],
+        "properties": {
+          "contract_id": {
+            "type": "string",
+            "description": "Contract id."
+          },
+          "mode": {
+            "type": "string",
+            "description": "Invoicing mode.",
+            "enum": [
+              "full_balance",
+              "percentage",
+              "specific_line_items"
+            ]
+          },
+          "percentage": {
+            "type": "number",
+            "description": "Percentage for progress billing (1 to 100).",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "line_item_ids": {
+            "type": "array",
+            "description": "Specific line item ids or names when mode is specific_line_items.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "create_invoice",
+      "area": "core",
+      "confirm": "conditional",
+      "summary": "Create one invoice: standalone for a customer, from an estimate (copies its lines and deposit), or for a job (progress billing, optionally with the job's photos, documents and expenses). If the estimate was already invoiced, it returns that invoice instead; ask the person, then pass create_another. Asks first only if the invoice would start out paid.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Customer id for a standalone invoice."
+          },
+          "from_estimate_id": {
+            "type": "string",
+            "description": "Estimate id to convert."
+          },
+          "option_group_ids": {
+            "type": "array",
+            "description": "For an options estimate: the chosen option groups. Required when converting one.",
+            "items": {
+              "type": "string",
+              "description": "Group id."
+            }
+          },
+          "create_another": {
+            "type": "boolean",
+            "description": "true to make another invoice from an estimate that was already invoiced."
+          },
+          "job_id": {
+            "type": "string",
+            "description": "Job id this invoice bills."
+          },
+          "include_from_job": {
+            "type": "array",
+            "description": "Job photos, documents or receipts to attach.",
+            "items": {
+              "type": "string",
+              "description": "What to attach.",
+              "enum": [
+                "photos",
+                "documents",
+                "expenses"
+              ]
+            }
+          },
+          "job_title": {
+            "type": "string",
+            "description": "Short job title; defaults from the estimate or job."
+          },
+          "groups": {
+            "type": "array",
+            "description": "Groups of lines for a standalone invoice or extra lines.",
+            "items": {
+              "type": "object",
+              "description": "A group of lines. In options mode each group is one choice.",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Group or option name, e.g. Master bath."
+                },
+                "note": {
+                  "type": "string",
+                  "description": "Note shown under the group."
+                },
+                "lines": {
+                  "type": "array",
+                  "description": "Lines in this group.",
+                  "items": {
+                    "type": "object",
+                    "description": "A line.",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Name, e.g. Tile install."
+                      },
+                      "details": {
+                        "type": "string",
+                        "description": "Description."
+                      },
+                      "quantity": {
+                        "type": "number",
+                        "description": "Quantity.",
+                        "minimum": 0
+                      },
+                      "unit": {
+                        "type": "string",
+                        "description": "Unit.",
+                        "enum": [
+                          "squareFoot",
+                          "linearFoot",
+                          "squareYard",
+                          "hour",
+                          "day",
+                          "each",
+                          "item",
+                          "labor",
+                          "lumpSum",
+                          "job"
+                        ]
+                      },
+                      "unit_price": {
+                        "type": "number",
+                        "description": "Dollars per unit; omit with price_item_id to use the sheet price.",
+                        "minimum": 0
+                      },
+                      "kind": {
+                        "type": "string",
+                        "description": "Material is taxable by default.",
+                        "enum": [
+                          "labor",
+                          "material"
+                        ]
+                      },
+                      "taxable": {
+                        "type": "boolean",
+                        "description": "Taxed."
+                      },
+                      "discount_type": {
+                        "type": "string",
+                        "description": "Discount type.",
+                        "enum": [
+                          "none",
+                          "percentage",
+                          "fixed"
+                        ]
+                      },
+                      "discount_value": {
+                        "type": "number",
+                        "description": "Percent (max 100) or dollars.",
+                        "minimum": 0
+                      },
+                      "price_item_id": {
+                        "type": "string",
+                        "description": "Price sheet item id to copy."
+                      }
+                    }
+                  },
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "lines"
+              ]
+            }
+          },
+          "service_address": {
+            "type": "object",
+            "description": "Job site address; only sent parts change.",
+            "properties": {
+              "street1": {
+                "type": "string",
+                "description": "Street."
+              },
+              "street2": {
+                "type": "string",
+                "description": "Unit or suite."
+              },
+              "city": {
+                "type": "string",
+                "description": "City."
+              },
+              "state": {
+                "type": "string",
+                "description": "State."
+              },
+              "postal_code": {
+                "type": "string",
+                "description": "ZIP."
+              }
+            }
+          },
+          "payment_terms": {
+            "type": "string",
+            "description": "Terms; custom needs due_date.",
+            "enum": [
+              "dueOnReceipt",
+              "net15",
+              "net30",
+              "custom"
+            ]
+          },
+          "due_date": {
+            "type": "string",
+            "description": "Due date for custom terms, date YYYY-MM-DD."
+          },
+          "amount_due_now": {
+            "type": "number",
+            "description": "Deposit or milestone to ask the customer for now, dollars; 0 = the full balance. This is a request, not money received: record money received with record_payment.",
+            "minimum": 0
+          },
+          "amount_due_detail": {
+            "type": "string",
+            "description": "What it's for, e.g. Deposit to start."
+          },
+          "include_pay_button": {
+            "type": "boolean",
+            "description": "Card Pay button, when card payments are set up."
+          },
+          "include_zelle": {
+            "type": "boolean",
+            "description": "Include Zelle payment instructions on the invoice."
+          },
+          "auto_reminders_enabled": {
+            "type": "boolean",
+            "description": "Automatically send reminder emails as the invoice approaches and passes its due date."
+          },
+          "tax_rate_percent": {
+            "type": "number",
+            "description": "Sales tax percent, 0-100.",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "discount_type": {
+            "type": "string",
+            "description": "Overall discount type.",
+            "enum": [
+              "none",
+              "percentage",
+              "fixed"
+            ]
+          },
+          "discount_value": {
+            "type": "number",
+            "description": "Overall discount: percent (max 100) or dollars.",
+            "minimum": 0
+          },
+          "customer_notes": {
+            "type": "string",
+            "description": "Notes for the customer."
+          },
+          "terms": {
+            "type": "string",
+            "description": "Terms text."
+          }
+        }
+      }
+    },
+    {
+      "name": "edit_invoice",
+      "area": "core",
+      "confirm": "conditional",
+      "summary": "Change an existing invoice: fields, lines, payment terms, due date, amount due now and its detail, Pay button, tax, discount (e.g. knock 150 off = discount_type fixed, discount_value 150), notes, terms, and bring in the job's photos, documents or receipts. A paid invoice only takes changes to the amount due now, the Pay button and the job's attachments; for anything else offer a change order. Change order lines can't be edited here. Asks first if the change would make the invoice paid.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Invoice id."
+          },
+          "job_title": {
+            "type": "string",
+            "description": "New job title."
+          },
+          "service_address": {
+            "type": "object",
+            "description": "Job site address; only sent parts change.",
+            "properties": {
+              "street1": {
+                "type": "string",
+                "description": "Street."
+              },
+              "street2": {
+                "type": "string",
+                "description": "Unit or suite."
+              },
+              "city": {
+                "type": "string",
+                "description": "City."
+              },
+              "state": {
+                "type": "string",
+                "description": "State."
+              },
+              "postal_code": {
+                "type": "string",
+                "description": "ZIP."
+              }
+            }
+          },
+          "payment_terms": {
+            "type": "string",
+            "description": "Terms; custom needs due_date.",
+            "enum": [
+              "dueOnReceipt",
+              "net15",
+              "net30",
+              "custom"
+            ]
+          },
+          "due_date": {
+            "type": "string",
+            "description": "Due date for custom terms, date YYYY-MM-DD."
+          },
+          "amount_due_now": {
+            "type": "number",
+            "description": "Deposit or milestone to ask the customer for now, dollars; 0 = the full balance. This is a request, not money received: record money received with record_payment.",
+            "minimum": 0
+          },
+          "amount_due_detail": {
+            "type": "string",
+            "description": "What it's for, e.g. Deposit to start."
+          },
+          "include_pay_button": {
+            "type": "boolean",
+            "description": "Card Pay button, when card payments are set up."
+          },
+          "include_zelle": {
+            "type": "boolean",
+            "description": "Include Zelle payment instructions on the invoice."
+          },
+          "auto_reminders_enabled": {
+            "type": "boolean",
+            "description": "Automatically send reminder emails as the invoice approaches and passes its due date."
+          },
+          "include_from_job": {
+            "type": "array",
+            "description": "Photos, documents or receipts to bring in from the job this invoice bills.",
+            "items": {
+              "type": "string",
+              "description": "What to bring in.",
+              "enum": [
+                "photos",
+                "documents",
+                "expenses"
+              ]
+            }
+          },
+          "tax_rate_percent": {
+            "type": "number",
+            "description": "Sales tax percent, 0-100.",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "discount_type": {
+            "type": "string",
+            "description": "Overall discount type.",
+            "enum": [
+              "none",
+              "percentage",
+              "fixed"
+            ]
+          },
+          "discount_value": {
+            "type": "number",
+            "description": "Overall discount: percent (max 100) or dollars.",
+            "minimum": 0
+          },
+          "customer_notes": {
+            "type": "string",
+            "description": "Notes for the customer."
+          },
+          "terms": {
+            "type": "string",
+            "description": "Terms text."
+          },
+          "lines": {
+            "type": "array",
+            "description": "Lines to add or change; only sent fields change.",
+            "items": {
+              "type": "object",
+              "description": "A line to add, or changes to an existing line.",
+              "properties": {
+                "line_id": {
+                  "type": "string",
+                  "description": "Id of the line to change; omit to add a line."
+                },
+                "group_id": {
+                  "type": "string",
+                  "description": "Group id to add the line to; default the last group."
+                },
+                "new_group": {
+                  "type": "string",
+                  "description": "Name of a new group (option) to add the line to."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name, e.g. Tile install."
+                },
+                "details": {
+                  "type": "string",
+                  "description": "Description."
+                },
+                "quantity": {
+                  "type": "number",
+                  "description": "Quantity.",
+                  "minimum": 0
+                },
+                "unit": {
+                  "type": "string",
+                  "description": "Unit.",
+                  "enum": [
+                    "squareFoot",
+                    "linearFoot",
+                    "squareYard",
+                    "hour",
+                    "day",
+                    "each",
+                    "item",
+                    "labor",
+                    "lumpSum",
+                    "job"
+                  ]
+                },
+                "unit_price": {
+                  "type": "number",
+                  "description": "Dollars per unit; omit with price_item_id to use the sheet price.",
+                  "minimum": 0
+                },
+                "kind": {
+                  "type": "string",
+                  "description": "Material is taxable by default.",
+                  "enum": [
+                    "labor",
+                    "material"
+                  ]
+                },
+                "taxable": {
+                  "type": "boolean",
+                  "description": "Taxed."
+                },
+                "discount_type": {
+                  "type": "string",
+                  "description": "Discount type.",
+                  "enum": [
+                    "none",
+                    "percentage",
+                    "fixed"
+                  ]
+                },
+                "discount_value": {
+                  "type": "number",
+                  "description": "Percent (max 100) or dollars.",
+                  "minimum": 0
+                },
+                "price_item_id": {
+                  "type": "string",
+                  "description": "Price sheet item id to copy."
+                }
+              }
+            }
+          },
+          "remove_line_ids": {
+            "type": "array",
+            "description": "Lines to remove. Change order lines can't be removed here.",
+            "items": {
+              "type": "string",
+              "description": "Line id."
+            }
+          },
+          "groups": {
+            "type": "array",
+            "description": "Groups to rename.",
+            "items": {
+              "type": "object",
+              "description": "A group to rename.",
+              "properties": {
+                "group_id": {
+                  "type": "string",
+                  "description": "Group id."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "New name."
+                },
+                "note": {
+                  "type": "string",
+                  "description": "New note."
+                }
+              },
+              "required": [
+                "group_id"
+              ]
+            }
+          },
+          "remove_group_ids": {
+            "type": "array",
+            "description": "Groups to remove with their lines.",
+            "items": {
+              "type": "string",
+              "description": "Group id."
+            }
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "set_status",
+      "area": "core",
+      "confirm": "conditional",
+      "summary": "Set the status of an estimate (draft, sent, accepted, declined), contract (draft, signed, inProgress, completed), invoice (draft, sent), change order (pending, approved, declined) or job (scheduled, inProgress, completed). E.g. Maria said yes = estimate accepted. Paid, overdue and expired follow from the numbers and dates: to mark an invoice paid, record the payment. Approving a change order doesn't add it to the invoice; that's apply_change_order. Moving an added change order off approved takes its items back off the invoice. A paid invoice's status, and a change order already added to a paid invoice, stay as they are; offer a new change order instead. Asks first if marking an invoice sent would make it paid.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Kind of record.",
+            "enum": [
+              "estimate",
+              "contract",
+              "invoice",
+              "change_order",
+              "job"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Record id."
+          },
+          "status": {
+            "type": "string",
+            "description": "New status; must fit the kind.",
+            "enum": [
+              "draft",
+              "sent",
+              "accepted",
+              "declined",
+              "signed",
+              "pending",
+              "approved",
+              "scheduled",
+              "inProgress",
+              "completed"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "status"
+        ]
+      }
+    },
+    {
+      "name": "save_job",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Book a job (no id) or change one (with id), including moving it to another day (e.g. move Friday's job to Monday = save_job with its id and the new start_date). A new job needs a customer or a source estimate or invoice. Overlaps are booked anyway and returned so you can mention them. Status changes go through set_status.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the job to change; omit to book a new one."
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Customer id for a new job; can't be changed later."
+          },
+          "from_estimate_id": {
+            "type": "string",
+            "description": "Accepted estimate id this job comes from."
+          },
+          "from_invoice_id": {
+            "type": "string",
+            "description": "Invoice id this job comes from."
+          },
+          "title": {
+            "type": "string",
+            "description": "Job title."
+          },
+          "start_date": {
+            "type": "string",
+            "description": "First day, date YYYY-MM-DD."
+          },
+          "all_day": {
+            "type": "boolean",
+            "description": "true for whole workdays (default); false for a timed visit."
+          },
+          "duration_days": {
+            "type": "integer",
+            "description": "Length in workdays for all-day jobs, 1-60.",
+            "minimum": 1,
+            "maximum": 60
+          },
+          "start_time": {
+            "type": "string",
+            "description": "Start time of a timed visit, ISO 8601 date-time with offset."
+          },
+          "duration_minutes": {
+            "type": "integer",
+            "description": "Length of a timed visit in minutes, 30-600.",
+            "minimum": 30,
+            "maximum": 600
+          },
+          "repeats": {
+            "type": "string",
+            "description": "How often it repeats; none for a one-off.",
+            "enum": [
+              "none",
+              "weekly",
+              "biweekly",
+              "monthly"
+            ]
+          },
+          "repeat_weekdays": {
+            "type": "array",
+            "description": "Days it repeats on for weekly or biweekly; default the start day.",
+            "items": {
+              "type": "string",
+              "description": "A weekday.",
+              "enum": [
+                "sunday",
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday"
+              ]
+            }
+          },
+          "repeat_until": {
+            "type": "string",
+            "description": "Last day of the series, date YYYY-MM-DD."
+          },
+          "repeat_count": {
+            "type": "integer",
+            "description": "Number of visits in the series, 1-365; 0 means no limit.",
+            "minimum": 0,
+            "maximum": 365
+          },
+          "agreed_price": {
+            "type": "number",
+            "description": "Agreed job price in dollars; null clears it.",
+            "minimum": 0,
+            "nullable": true
+          },
+          "project_id": {
+            "type": "string",
+            "description": "Project id to put the job in; null takes it out.",
+            "nullable": true
+          },
+          "service_address": {
+            "type": "object",
+            "description": "Job site address; only sent parts change.",
+            "properties": {
+              "street1": {
+                "type": "string",
+                "description": "Street."
+              },
+              "street2": {
+                "type": "string",
+                "description": "Unit or suite."
+              },
+              "city": {
+                "type": "string",
+                "description": "City."
+              },
+              "state": {
+                "type": "string",
+                "description": "State."
+              },
+              "postal_code": {
+                "type": "string",
+                "description": "ZIP."
+              }
+            }
+          },
+          "notes": {
+            "type": "string",
+            "description": "Job notes."
+          }
+        }
+      }
+    },
+    {
+      "name": "record_payment",
+      "area": "core",
+      "confirm": "always",
+      "summary": "Record money received on one invoice (e.g. she paid 500 cash). The app asks the person to confirm. It refuses more than the balance: offer to split across the customer's open invoices, one call each. Payments can't be edited or deleted; to correct one, offer a credit change order.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "description": "Invoice id."
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount received in dollars, more than 0.",
+            "minimum": 0
+          },
+          "method": {
+            "type": "string",
+            "description": "How they paid.",
+            "enum": [
+              "cash",
+              "check",
+              "card",
+              "transfer",
+              "zelle",
+              "venmo",
+              "cashApp",
+              "appleCash",
+              "paypal",
+              "googlePay",
+              "square",
+              "stripe",
+              "other"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "description": "Day received; default today, date YYYY-MM-DD."
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional note, e.g. check number."
+          }
+        },
+        "required": [
+          "invoice_id",
+          "amount",
+          "method"
+        ]
+      }
+    },
+    {
+      "name": "delete",
+      "area": "core",
+      "confirm": "always",
+      "summary": "Delete up to 25 records. The app asks the person to confirm and names what goes with them (deleting a customer also deletes their estimates, invoices and receipts). A customer is deleted in a call of its own, one per call, and the person types the client's name to confirm. Paid invoices and customers with paid invoices can't be deleted. Payments can't be deleted either: offer a credit change order. Photos and documents on jobs and invoices are kind attachment.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "description": "Records to delete.",
+            "items": {
+              "type": "object",
+              "description": "A record to delete.",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "description": "Kind of record.",
+                  "enum": [
+                    "customer",
+                    "estimate",
+                    "contract",
+                    "invoice",
+                    "change_order",
+                    "job",
+                    "receipt",
+                    "price_item",
+                    "employee",
+                    "subcontractor",
+                    "project",
+                    "time_entry",
+                    "paycheck",
+                    "sub_payment",
+                    "attachment",
+                    "document"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "description": "Record id."
+                }
+              },
+              "required": [
+                "kind",
+                "id"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 25
+          }
+        },
+        "required": [
+          "records"
+        ]
+      }
+    },
+    {
+      "name": "open",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Show a record, a list or a screen in the app, e.g. open Maria's invoice, show my subcontractors, the calendar, work hours, settings or the price sheet. Also use it to hand the person a screen for something only they can do, like entering a tax ID. Open subscription only when the person asks about their plan.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Record kind or screen to show.",
+            "enum": [
+              "customer",
+              "estimate",
+              "invoice",
+              "change_order",
+              "job",
+              "receipt",
+              "price_item",
+              "employee",
+              "subcontractor",
+              "project",
+              "payment",
+              "time_entry",
+              "paycheck",
+              "sub_payment",
+              "attachment",
+              "document",
+              "business",
+              "work_schedule",
+              "settings",
+              "document_messages",
+              "price_sheet",
+              "stats",
+              "compliance_docs",
+              "stripe_setup",
+              "zelle_setup",
+              "how_to",
+              "whats_new",
+              "about",
+              "calendar",
+              "privacy_policy",
+              "terms_of_use",
+              "subscription",
+              "money",
+              "subscriptions",
+              "connected_banks"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Record id when target is a record kind; omit it to show the list of that kind."
+          }
+        },
+        "required": [
+          "target"
+        ]
+      }
+    },
+    {
+      "name": "send",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Open a ready-to-send email, text or share sheet for an estimate, invoice, change order, payment receipt, contractor package, completion package or review request. The person taps Send; the result says sent, cancelled or failed. Mark an estimate or invoice sent with set_status only after a sent result or when the person says so.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "document": {
+            "type": "string",
+            "description": "What to send.",
+            "enum": [
+              "estimate",
+              "invoice",
+              "change_order",
+              "payment_receipt",
+              "contractor_package",
+              "completion_package",
+              "review_request"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Id of the estimate, invoice or change order; the payment for a payment_receipt; the customer for a contractor_package or review_request; the job for a completion_package."
+          },
+          "channel": {
+            "type": "string",
+            "description": "How to send it.",
+            "enum": [
+              "email",
+              "text",
+              "share"
+            ]
+          },
+          "package_parts": {
+            "type": "array",
+            "description": "For a contractor_package only: what to include besides the insurance certificate; omit for the app's usual choice. The W-9 and signature may ask for Face ID.",
+            "items": {
+              "type": "string",
+              "description": "A part of the package.",
+              "enum": [
+                "w9",
+                "w9_signature",
+                "wc_certificate",
+                "wc_exemption",
+                "license",
+                "extra_documents"
+              ]
+            }
+          },
+          "recipients": {
+            "type": "array",
+            "description": "Optional recipients instead of the customer's own, e.g. her husband's email.",
+            "items": {
+              "type": "string",
+              "description": "An email address or phone number."
+            },
+            "maxItems": 10
+          }
+        },
+        "required": [
+          "document",
+          "id",
+          "channel"
+        ]
+      }
+    },
+    {
+      "name": "undo_last_request",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Undo the changes made for the person's previous request (take it back, undo that). Deletes and recorded money can't be undone.",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "load_tools",
+      "area": "core",
+      "confirm": "never",
+      "summary": "Load more actions (up to 2 areas at once). money: create and edit change orders, add or remove them on invoices. expenses: add or edit receipts, and add any photo, file, scan or phone contact to a receipt, job, invoice, certificate, logo or person. catalog: add or edit price sheet items. team: employees, hours and bonuses, paychecks, subcontractors, their work and payments. settings: business details, message templates, work hours and days off, app language and look, projects, document expiry dates, removing stored documents, photos and logos, sharing the W-9, 1099s, wage and year-end reports, certificates and PDFs, saving to phone contacts, messaging the developer. Load before saying the app can't do something.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "areas": {
+            "type": "array",
+            "description": "Areas to load.",
+            "items": {
+              "type": "string",
+              "description": "An area.",
+              "enum": [
+                "money",
+                "expenses",
+                "catalog",
+                "team",
+                "settings"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 2
+          }
+        },
+        "required": [
+          "areas"
+        ]
+      }
+    },
+    {
+      "name": "save_change_order",
+      "area": "money",
+      "confirm": "conditional",
+      "summary": "Create a change order on an invoice (no id; needs invoice_id and items) or change one (with id). This is how paid invoices get extra work or credits: use is_credit for money back. items replaces the whole item list. A change order already billed on a paid invoice can't be changed. Asks first when the invoice is paid.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the change order to change; omit to create."
+          },
+          "invoice_id": {
+            "type": "string",
+            "description": "Invoice id for a new change order."
+          },
+          "title": {
+            "type": "string",
+            "description": "Short title, e.g. Extra shower niche."
+          },
+          "note": {
+            "type": "string",
+            "description": "Note for the customer."
+          },
+          "items": {
+            "type": "array",
+            "description": "All items of the change order.",
+            "items": {
+              "type": "object",
+              "description": "A change order item.",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Item name."
+                },
+                "details": {
+                  "type": "string",
+                  "description": "Longer description."
+                },
+                "quantity": {
+                  "type": "number",
+                  "description": "Quantity.",
+                  "minimum": 0
+                },
+                "unit": {
+                  "type": "string",
+                  "description": "Unit of measure; default job.",
+                  "enum": [
+                    "squareFoot",
+                    "linearFoot",
+                    "squareYard",
+                    "hour",
+                    "day",
+                    "each",
+                    "item",
+                    "labor",
+                    "lumpSum",
+                    "job"
+                  ]
+                },
+                "unit_price": {
+                  "type": "number",
+                  "description": "Price per unit in dollars, always positive.",
+                  "minimum": 0
+                },
+                "is_credit": {
+                  "type": "boolean",
+                  "description": "true when this item gives money back."
+                },
+                "taxable": {
+                  "type": "boolean",
+                  "description": "Whether sales tax applies."
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "apply_change_order",
+      "area": "money",
+      "confirm": "conditional",
+      "summary": "Add an approved change order's items to its invoice so they are billed. Approve it first with set_status. Asks first if this would make the invoice paid.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Change order id."
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "save_receipt",
+      "area": "expenses",
+      "confirm": "never",
+      "summary": "Add an expense receipt (no id) or change one (with id): vendor, date, total, category, notes, and the customer or job it belongs to. To add a photo or scan, use pick_media.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the receipt to change; omit to create."
+          },
+          "vendor": {
+            "type": "string",
+            "description": "Store or vendor, e.g. Floor & Decor."
+          },
+          "date": {
+            "type": "string",
+            "description": "Purchase date, date YYYY-MM-DD."
+          },
+          "total": {
+            "type": "number",
+            "description": "Total in dollars.",
+            "minimum": 0
+          },
+          "category": {
+            "type": "string",
+            "description": "Category, e.g. Materials or Fuel."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Customer id it's for; null means the business itself.",
+            "nullable": true
+          },
+          "job_id": {
+            "type": "string",
+            "description": "Job id it's for; null removes the job.",
+            "nullable": true
+          },
+          "remove_photo": {
+            "type": "boolean",
+            "description": "true to remove the receipt's photo or scan."
+          }
+        }
+      }
+    },
+    {
+      "name": "pick_media",
+      "area": "expenses",
+      "confirm": "never",
+      "summary": "Let the person take a photo, scan, pick a file or pick a phone contact, and put it in the exact place: a new or existing receipt, job photos or documents, invoice photos or documents, certificates and licenses, a customer's package documents, a project agreement, a logo (a photo or a file, which the person crops), a person's photo, or a new customer, employee or subcontractor from a contact. A subcontractor's W-9 is only added on the subcontractor's own screen: offer open subcontractor instead. You never see the picked content; the result says added or cancelled.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "What to pick. contact only fits the new_ targets.",
+            "enum": [
+              "photo",
+              "file",
+              "scan",
+              "contact"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "description": "Where it goes.",
+            "enum": [
+              "new_receipt",
+              "receipt",
+              "job_photos",
+              "job_documents",
+              "invoice_photos",
+              "invoice_documents",
+              "customer_coi",
+              "customer_wc_coi",
+              "package_documents",
+              "subcontractor_coi",
+              "subcontractor_w9",
+              "wc_exemption",
+              "license",
+              "reference_coi",
+              "project_agreement",
+              "business_logo",
+              "business_logo_dark",
+              "customer_photo",
+              "employee_photo",
+              "subcontractor_photo",
+              "new_customer",
+              "new_employee",
+              "new_subcontractor"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Id of the receipt, job, invoice, customer, employee, subcontractor or project it goes on; not needed for the business's own documents, logos or new_ targets."
+          }
+        },
+        "required": [
+          "kind",
+          "target"
+        ]
+      }
+    },
+    {
+      "name": "save_price_item",
+      "area": "catalog",
+      "confirm": "never",
+      "summary": "Add a price sheet item (no id; needs a name) or change one (with id). For bulk changes (e.g. raise all tile prices 5%), find the items and call once per item with the new price.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the item to change; omit to create."
+          },
+          "name": {
+            "type": "string",
+            "description": "Item name."
+          },
+          "category": {
+            "type": "string",
+            "description": "Category, e.g. Tile, Prep, Plumbing."
+          },
+          "details": {
+            "type": "string",
+            "description": "Description."
+          },
+          "default_quantity": {
+            "type": "number",
+            "description": "Default quantity.",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit of measure.",
+            "enum": [
+              "squareFoot",
+              "linearFoot",
+              "squareYard",
+              "hour",
+              "day",
+              "each",
+              "item",
+              "labor",
+              "lumpSum",
+              "job"
+            ]
+          },
+          "unit_price": {
+            "type": "number",
+            "description": "Price per unit in dollars.",
+            "minimum": 0
+          },
+          "kind": {
+            "type": "string",
+            "description": "labor or material.",
+            "enum": [
+              "labor",
+              "material"
+            ]
+          },
+          "taxable": {
+            "type": "boolean",
+            "description": "Whether sales tax applies."
+          },
+          "discount_type": {
+            "type": "string",
+            "description": "Discount type.",
+            "enum": [
+              "none",
+              "percentage",
+              "fixed"
+            ]
+          },
+          "discount_value": {
+            "type": "number",
+            "description": "Discount: percent (max 100) or dollars.",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "save_employee",
+      "area": "team",
+      "confirm": "never",
+      "summary": "Add an employee (no id; needs a first or last name) or change one (with id): contact details, pay type and rate or salary, pay frequency, next payday, hire date, active, notes.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the employee to change; omit to create."
+          },
+          "first_name": {
+            "type": "string",
+            "description": "First name."
+          },
+          "last_name": {
+            "type": "string",
+            "description": "Last name."
+          },
+          "email": {
+            "type": "string",
+            "description": "Email."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone."
+          },
+          "pay_type": {
+            "type": "string",
+            "description": "hourly or salary.",
+            "enum": [
+              "hourly",
+              "salary"
+            ]
+          },
+          "hourly_rate": {
+            "type": "number",
+            "description": "Hourly rate in dollars.",
+            "minimum": 0
+          },
+          "annual_salary": {
+            "type": "number",
+            "description": "Yearly salary in dollars.",
+            "minimum": 0
+          },
+          "pay_frequency": {
+            "type": "string",
+            "description": "How often they're paid.",
+            "enum": [
+              "weekly",
+              "biweekly",
+              "semimonthly",
+              "monthly"
+            ]
+          },
+          "next_payday": {
+            "type": "string",
+            "description": "Next payday, date YYYY-MM-DD."
+          },
+          "hire_date": {
+            "type": "string",
+            "description": "Hire date, date YYYY-MM-DD."
+          },
+          "active": {
+            "type": "boolean",
+            "description": "false for someone who no longer works here."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          }
+        }
+      }
+    },
+    {
+      "name": "log_time",
+      "area": "team",
+      "confirm": "never",
+      "summary": "Log or change an employee's work: hours on a day, a start-to-end range, a flat dollar amount, or a bonus. A new entry needs employee_id and mode. Leave rate out to use their saved rate. Tag the customer when the work was for one.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the entry to change; omit to log a new one."
+          },
+          "employee_id": {
+            "type": "string",
+            "description": "Employee id for a new entry."
+          },
+          "mode": {
+            "type": "string",
+            "description": "hours: hours on a date; range: start and end; dollars or bonus: flat amount.",
+            "enum": [
+              "hours",
+              "range",
+              "dollars",
+              "bonus"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "description": "Work day for hours, dollars or bonus, date YYYY-MM-DD."
+          },
+          "hours": {
+            "type": "number",
+            "description": "Hours worked.",
+            "minimum": 0,
+            "maximum": 24
+          },
+          "start": {
+            "type": "string",
+            "description": "Range start, ISO 8601 date-time with offset."
+          },
+          "end": {
+            "type": "string",
+            "description": "Range end, ISO 8601 date-time with offset."
+          },
+          "amount": {
+            "type": "number",
+            "description": "Dollar amount for dollars or bonus.",
+            "minimum": 0
+          },
+          "rate": {
+            "type": "number",
+            "description": "Hourly rate for this entry.",
+            "minimum": 0
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Customer id the work was for; null clears it.",
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "description": "Note."
+          }
+        }
+      }
+    },
+    {
+      "name": "pay_employee",
+      "area": "team",
+      "confirm": "always",
+      "summary": "Record a paycheck for an employee. It pays their unpaid hours and bonuses oldest first; amount defaults to everything owed and method to the last paycheck's method. The app asks the person to confirm.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "employee_id": {
+            "type": "string",
+            "description": "Employee id."
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount paid in dollars; default what's owed.",
+            "minimum": 0
+          },
+          "bonus": {
+            "type": "number",
+            "description": "Extra bonus added to this paycheck in dollars.",
+            "minimum": 0
+          },
+          "method": {
+            "type": "string",
+            "description": "How they were paid.",
+            "enum": [
+              "cash",
+              "check",
+              "card",
+              "transfer",
+              "zelle",
+              "venmo",
+              "cashApp",
+              "appleCash",
+              "paypal",
+              "googlePay",
+              "square",
+              "stripe",
+              "other"
+            ]
+          },
+          "pay_date": {
+            "type": "string",
+            "description": "Pay day; default today, date YYYY-MM-DD."
+          },
+          "note": {
+            "type": "string",
+            "description": "Note."
+          }
+        },
+        "required": [
+          "employee_id"
+        ]
+      }
+    },
+    {
+      "name": "edit_paycheck",
+      "area": "team",
+      "confirm": "always",
+      "summary": "Fix a recorded paycheck's date, amount, method or note. It doesn't re-settle hours. The app asks the person to confirm.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Paycheck id."
+          },
+          "pay_date": {
+            "type": "string",
+            "description": "Pay day, date YYYY-MM-DD."
+          },
+          "gross_amount": {
+            "type": "number",
+            "description": "Amount paid in dollars.",
+            "minimum": 0
+          },
+          "method": {
+            "type": "string",
+            "description": "How they were paid.",
+            "enum": [
+              "cash",
+              "check",
+              "card",
+              "transfer",
+              "zelle",
+              "venmo",
+              "cashApp",
+              "appleCash",
+              "paypal",
+              "googlePay",
+              "square",
+              "stripe",
+              "other"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "description": "Note."
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "save_subcontractor",
+      "area": "team",
+      "confirm": "never",
+      "summary": "Add a subcontractor (no id) or change one (with id): names, company, contact details, address, default hourly rate, active, notes. Tax IDs aren't entered here: offer to open the subcontractor so the person can add it.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the subcontractor to change; omit to create."
+          },
+          "first_name": {
+            "type": "string",
+            "description": "First name."
+          },
+          "last_name": {
+            "type": "string",
+            "description": "Last name."
+          },
+          "business_name": {
+            "type": "string",
+            "description": "Company name."
+          },
+          "email": {
+            "type": "string",
+            "description": "Email."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone."
+          },
+          "hourly_rate": {
+            "type": "number",
+            "description": "Default hourly rate in dollars; null clears it.",
+            "minimum": 0,
+            "nullable": true
+          },
+          "address": {
+            "type": "object",
+            "description": "Address; only sent parts change.",
+            "properties": {
+              "street1": {
+                "type": "string",
+                "description": "Street."
+              },
+              "street2": {
+                "type": "string",
+                "description": "Unit or suite."
+              },
+              "city": {
+                "type": "string",
+                "description": "City."
+              },
+              "state": {
+                "type": "string",
+                "description": "State."
+              },
+              "postal_code": {
+                "type": "string",
+                "description": "ZIP."
+              }
+            }
+          },
+          "active": {
+            "type": "boolean",
+            "description": "false for someone you no longer use."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          }
+        }
+      }
+    },
+    {
+      "name": "log_sub_work",
+      "area": "team",
+      "confirm": "conditional",
+      "summary": "Log or change a subcontractor's work or charge: hours, a start-to-end range, or a dollar amount, optionally for a customer. A new entry needs subcontractor_id and mode. paid true records it as paid (e.g. I paid the tile guy 300 today) and the app asks the person to confirm; paid false leaves it owed, or marks an existing entry unpaid again.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the entry to change; omit to log a new one."
+          },
+          "subcontractor_id": {
+            "type": "string",
+            "description": "Subcontractor id for a new entry."
+          },
+          "mode": {
+            "type": "string",
+            "description": "hours and range need a rate; dollars is a flat amount.",
+            "enum": [
+              "hours",
+              "range",
+              "dollars"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "description": "Work day, date YYYY-MM-DD."
+          },
+          "hours": {
+            "type": "number",
+            "description": "Hours worked.",
+            "minimum": 0,
+            "maximum": 24
+          },
+          "start": {
+            "type": "string",
+            "description": "Range start, ISO 8601 date-time with offset."
+          },
+          "end": {
+            "type": "string",
+            "description": "Range end, ISO 8601 date-time with offset."
+          },
+          "amount": {
+            "type": "number",
+            "description": "Dollar amount for dollars mode.",
+            "minimum": 0
+          },
+          "rate": {
+            "type": "number",
+            "description": "Hourly rate for this entry; default their saved rate.",
+            "minimum": 0
+          },
+          "detail": {
+            "type": "string",
+            "description": "What it was for."
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Customer id the work was for; null clears it.",
+            "nullable": true
+          },
+          "paid": {
+            "type": "boolean",
+            "description": "true if already paid."
+          },
+          "paid_date": {
+            "type": "string",
+            "description": "Day paid; default today, date YYYY-MM-DD."
+          },
+          "method": {
+            "type": "string",
+            "description": "How they were paid.",
+            "enum": [
+              "cash",
+              "check",
+              "card",
+              "transfer",
+              "zelle",
+              "venmo",
+              "cashApp",
+              "appleCash",
+              "paypal",
+              "googlePay",
+              "square",
+              "stripe",
+              "other"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "pay_subcontractor",
+      "area": "team",
+      "confirm": "always",
+      "summary": "Pay a subcontractor for work already logged as owed, oldest first; amount defaults to everything owed. For new work paid on the spot, use log_sub_work with paid true. The app asks the person to confirm.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "subcontractor_id": {
+            "type": "string",
+            "description": "Subcontractor id."
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount paid in dollars; default what's owed.",
+            "minimum": 0
+          },
+          "method": {
+            "type": "string",
+            "description": "How they were paid.",
+            "enum": [
+              "cash",
+              "check",
+              "card",
+              "transfer",
+              "zelle",
+              "venmo",
+              "cashApp",
+              "appleCash",
+              "paypal",
+              "googlePay",
+              "square",
+              "stripe",
+              "other"
+            ]
+          },
+          "paid_date": {
+            "type": "string",
+            "description": "Day paid; default today, date YYYY-MM-DD."
+          }
+        },
+        "required": [
+          "subcontractor_id"
+        ]
+      }
+    },
+    {
+      "name": "update_business",
+      "area": "settings",
+      "confirm": "conditional",
+      "summary": "Change the business details printed on documents: name, phone, email, website, reviews link, license number, address, warranty text, and the email and text wording per document. Changes to contact details, message wording or the reviews link are confirmed by the person. Tax details (W-9, tax ID) and the owner's name aren't changed here: offer to open the business details so the person can do it.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "business_name": {
+            "type": "string",
+            "description": "Business name."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Business phone."
+          },
+          "email": {
+            "type": "string",
+            "description": "Business email."
+          },
+          "website_url": {
+            "type": "string",
+            "description": "Website address."
+          },
+          "reviews_url": {
+            "type": "string",
+            "description": "Link where customers leave reviews."
+          },
+          "review_link_on_receipts": {
+            "type": "boolean",
+            "description": "Add the reviews link to payment receipts."
+          },
+          "license_number": {
+            "type": "string",
+            "description": "Contractor license number."
+          },
+          "address": {
+            "type": "object",
+            "description": "Business address; only sent parts change.",
+            "properties": {
+              "street1": {
+                "type": "string",
+                "description": "Street."
+              },
+              "street2": {
+                "type": "string",
+                "description": "Unit or suite."
+              },
+              "city": {
+                "type": "string",
+                "description": "City."
+              },
+              "state": {
+                "type": "string",
+                "description": "State."
+              },
+              "postal_code": {
+                "type": "string",
+                "description": "ZIP."
+              }
+            }
+          },
+          "warranty_text": {
+            "type": "string",
+            "description": "Warranty text on completion packages."
+          },
+          "zelle_tag": {
+            "type": "string",
+            "description": "Business Zelle handle / tag."
+          },
+          "zelle_email": {
+            "type": "string",
+            "description": "Business Zelle email."
+          },
+          "zelle_phone": {
+            "type": "string",
+            "description": "Business Zelle phone number."
+          },
+          "zelle_default_on": {
+            "type": "boolean",
+            "description": "Whether Zelle is enabled by default on newly created invoices."
+          },
+          "messages": {
+            "type": "array",
+            "description": "Message wording to change.",
+            "items": {
+              "type": "object",
+              "description": "Wording for one document.",
+              "properties": {
+                "document": {
+                  "type": "string",
+                  "description": "Which document's message.",
+                  "enum": [
+                    "estimate",
+                    "invoice",
+                    "receipt",
+                    "change_order",
+                    "contractor_package",
+                    "completion_package"
+                  ]
+                },
+                "subject": {
+                  "type": "string",
+                  "description": "Email subject; empty string restores the default."
+                },
+                "intro": {
+                  "type": "string",
+                  "description": "Opening text; empty string restores the default."
+                },
+                "closing": {
+                  "type": "string",
+                  "description": "Closing text; empty string restores the default."
+                }
+              },
+              "required": [
+                "document"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "update_work_schedule",
+      "area": "settings",
+      "confirm": "never",
+      "summary": "Change work hours and days off: weekday hours, holidays taken off, time off ranges, other days off, and one-day overrides. Only the sent parts change.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "weekdays": {
+            "type": "array",
+            "description": "Weekday hours to change.",
+            "items": {
+              "type": "object",
+              "description": "Hours for one weekday.",
+              "properties": {
+                "day": {
+                  "type": "string",
+                  "description": "Weekday.",
+                  "enum": [
+                    "sunday",
+                    "monday",
+                    "tuesday",
+                    "wednesday",
+                    "thursday",
+                    "friday",
+                    "saturday"
+                  ]
+                },
+                "works": {
+                  "type": "boolean",
+                  "description": "Whether this is a workday."
+                },
+                "start": {
+                  "type": "string",
+                  "description": "Start time, 24-hour HH:mm."
+                },
+                "end": {
+                  "type": "string",
+                  "description": "End time, 24-hour HH:mm."
+                }
+              },
+              "required": [
+                "day"
+              ]
+            },
+            "maxItems": 7
+          },
+          "holidays": {
+            "type": "array",
+            "description": "Holidays to switch on or off.",
+            "items": {
+              "type": "object",
+              "description": "A holiday setting.",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Holiday.",
+                  "enum": [
+                    "us.new-years-day",
+                    "us.mlk-day",
+                    "us.presidents-day",
+                    "us.memorial-day",
+                    "us.juneteenth",
+                    "us.independence-day",
+                    "us.labor-day",
+                    "us.columbus-day",
+                    "us.veterans-day",
+                    "us.thanksgiving",
+                    "us.christmas",
+                    "us.christmas-eve",
+                    "us.black-friday",
+                    "us.new-years-eve",
+                    "us.valentines",
+                    "us.st-patricks",
+                    "us.good-friday",
+                    "us.easter",
+                    "us.mothers-day",
+                    "us.fathers-day",
+                    "us.halloween"
+                  ]
+                },
+                "off": {
+                  "type": "boolean",
+                  "description": "true to take the day off."
+                }
+              },
+              "required": [
+                "id",
+                "off"
+              ]
+            }
+          },
+          "add_time_off": {
+            "type": "array",
+            "description": "Time off (vacations) to add.",
+            "items": {
+              "type": "object",
+              "description": "A time off range.",
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "description": "First day off, date YYYY-MM-DD."
+                },
+                "end": {
+                  "type": "string",
+                  "description": "Last day off, date YYYY-MM-DD."
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ]
+            }
+          },
+          "add_days_off": {
+            "type": "array",
+            "description": "Other days off to add.",
+            "items": {
+              "type": "object",
+              "description": "Another day off.",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "description": "Day off, date YYYY-MM-DD."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Name, e.g. Kid's graduation."
+                },
+                "repeats_yearly": {
+                  "type": "boolean",
+                  "description": "true to repeat every year."
+                }
+              },
+              "required": [
+                "date"
+              ]
+            }
+          },
+          "add_overrides": {
+            "type": "array",
+            "description": "One-day overrides to add.",
+            "items": {
+              "type": "object",
+              "description": "A one-day override.",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "description": "Day, date YYYY-MM-DD."
+                },
+                "kind": {
+                  "type": "string",
+                  "description": "Close that day or set custom hours.",
+                  "enum": [
+                    "day_off",
+                    "custom_hours"
+                  ]
+                },
+                "start": {
+                  "type": "string",
+                  "description": "Start time for custom_hours, 24-hour HH:mm."
+                },
+                "end": {
+                  "type": "string",
+                  "description": "End time for custom_hours, 24-hour HH:mm."
+                }
+              },
+              "required": [
+                "date",
+                "kind"
+              ]
+            }
+          },
+          "remove_ids": {
+            "type": "array",
+            "description": "Time off, days off or overrides to remove.",
+            "items": {
+              "type": "string",
+              "description": "Id of a time off, day off or override entry."
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "update_app_settings",
+      "area": "settings",
+      "confirm": "never",
+      "summary": "Change app settings: this app's language and look, booking one job at a time, logos and address on documents and emails, the extra email line, and the card Pay button default. Gold Life ID account and security settings (like the Face ID lock) aren't changed here: offer to open settings so the person can do it.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "App language; goldLife follows the Gold Life ID setting.",
+            "enum": [
+              "goldLife",
+              "system",
+              "en",
+              "es"
+            ]
+          },
+          "appearance": {
+            "type": "string",
+            "description": "App look; goldLife follows the Gold Life ID setting.",
+            "enum": [
+              "goldLife",
+              "system",
+              "light",
+              "dark"
+            ]
+          },
+          "book_one_job_at_a_time": {
+            "type": "boolean",
+            "description": "Warn when a new job overlaps a booked one."
+          },
+          "logo_on_documents": {
+            "type": "boolean",
+            "description": "Show the logo on documents and texts."
+          },
+          "logo_in_emails": {
+            "type": "boolean",
+            "description": "Show the logo and signature in emails."
+          },
+          "email_extra_line": {
+            "type": "string",
+            "description": "Extra line added to emails."
+          },
+          "address_on_documents": {
+            "type": "boolean",
+            "description": "Show the business address on documents."
+          },
+          "logo_in_app": {
+            "type": "boolean",
+            "description": "Use the business logo inside the app."
+          },
+          "pay_button_by_default": {
+            "type": "boolean",
+            "description": "Turn the card Pay button on for new invoices."
+          }
+        }
+      }
+    },
+    {
+      "name": "save_project",
+      "area": "settings",
+      "confirm": "never",
+      "summary": "Create a project (no id) that groups jobs, or rename one and add or remove its jobs (with id).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the project to change; omit to create."
+          },
+          "name": {
+            "type": "string",
+            "description": "Project name."
+          },
+          "customer_id": {
+            "type": "string",
+            "description": "Customer id for a new project."
+          },
+          "add_job_ids": {
+            "type": "array",
+            "description": "Jobs to add.",
+            "items": {
+              "type": "string",
+              "description": "Job id."
+            }
+          },
+          "remove_job_ids": {
+            "type": "array",
+            "description": "Jobs to take out; the jobs are kept.",
+            "items": {
+              "type": "string",
+              "description": "Job id."
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "set_document",
+      "area": "settings",
+      "confirm": "conditional",
+      "summary": "Set or clear the expiry date of a certificate, exemption or license, or remove a stored document, photo or logo. Removing asks the person first. Package, job and invoice documents can only be removed (the same as delete with kind document or attachment). A subcontractor's W-9 is only changed on the subcontractor's own screen: offer open subcontractor instead. To add or replace a file or photo, use pick_media.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "document": {
+            "type": "string",
+            "description": "Which document.",
+            "enum": [
+              "customer_coi",
+              "customer_wc_coi",
+              "subcontractor_coi",
+              "subcontractor_w9",
+              "wc_exemption",
+              "license",
+              "reference_coi",
+              "package_document",
+              "project_agreement",
+              "job_document",
+              "invoice_document",
+              "business_logo",
+              "business_logo_dark",
+              "customer_photo",
+              "employee_photo",
+              "subcontractor_photo"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "description": "What to do. Expiry dates fit the certificates, the exemption and the license; everything else only takes remove.",
+            "enum": [
+              "set_expiry",
+              "clear_expiry",
+              "remove"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Customer, employee, subcontractor or project id; the document's own id for package_document, job_document and invoice_document; not needed for the business's own documents and logos."
+          },
+          "expires_on": {
+            "type": "string",
+            "description": "Expiry date for set_expiry, date YYYY-MM-DD."
+          }
+        },
+        "required": [
+          "document",
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "share_document",
+      "area": "settings",
+      "confirm": "never",
+      "summary": "Show a document with its share button: the business W-9, a subcontractor's 1099-NEC, the yearly 1099 report, the employee wage report, the year-end income and expense report, all compliance documents or one stored certificate or document, or a PDF preview of an estimate, invoice or change order. The app may ask for Face ID. You never see the contents. A subcontractor's W-9 is only shared from the subcontractor's own screen: offer open subcontractor instead. To email or text an estimate, invoice or change order to the customer, use send.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "document": {
+            "type": "string",
+            "description": "Which document.",
+            "enum": [
+              "w9",
+              "form_1099_nec",
+              "subcontractor_1099_report",
+              "wage_report",
+              "year_end_report",
+              "compliance_docs",
+              "customer_coi",
+              "customer_wc_coi",
+              "subcontractor_coi",
+              "subcontractor_w9",
+              "wc_exemption",
+              "license",
+              "reference_coi",
+              "package_document",
+              "job_document",
+              "invoice_document",
+              "estimate_pdf",
+              "invoice_pdf",
+              "change_order_pdf"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Subcontractor id for form_1099_nec, subcontractor_w9 or subcontractor_coi; customer id for customer_coi or customer_wc_coi; the document's own id for package_document, job_document or invoice_document; estimate, invoice or change order id for a PDF. Not needed for the business's own documents."
+          },
+          "year": {
+            "type": "integer",
+            "description": "Tax year for 1099, wage and year-end reports.",
+            "minimum": 2000,
+            "maximum": 2100
+          }
+        },
+        "required": [
+          "document"
+        ]
+      }
+    },
+    {
+      "name": "save_to_contacts",
+      "area": "settings",
+      "confirm": "never",
+      "summary": "Open a new phone contact card for a customer, employee or subcontractor. The person taps Done to save it.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "Kind of record.",
+            "enum": [
+              "customer",
+              "employee",
+              "subcontractor"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "Record id."
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ]
+      }
+    },
+    {
+      "name": "contact_developer",
+      "area": "settings",
+      "confirm": "never",
+      "summary": "Open an email to the app's developer to report a problem or share an idea. The person taps Send.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Draft message in the person's words."
+          }
+        }
+      }
+    },
+    {
+      "name": "list_bank_transactions",
+      "area": "money",
+      "confirm": "never",
+      "summary": "List connected bank transactions, with optional filtering by account, query string, or classification (business vs personal).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "Optional Plaid account ID to filter transactions."
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "all",
+              "business",
+              "personal"
+            ],
+            "description": "Filter by effective classification."
+          },
+          "query": {
+            "type": "string",
+            "description": "Search term matching merchant name, transaction description, or date."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Max transactions to return (default 50, max 100)."
+          }
+        }
+      }
+    },
+    {
+      "name": "classify_transaction",
+      "area": "money",
+      "confirm": "never",
+      "summary": "Classify a connected bank transaction as Business or Personal.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "description": "The UUID string of the transaction to classify."
+          },
+          "is_business": {
+            "type": "boolean",
+            "description": "True for Business, False for Personal."
+          }
+        },
+        "required": [
+          "transaction_id",
+          "is_business"
+        ]
+      }
+    },
+    {
+      "name": "set_merchant_rule",
+      "area": "money",
+      "confirm": "never",
+      "summary": "Create, update, or remove an automatic merchant categorization rule (Business vs Personal) and retroactively apply it to matching bank transactions.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "merchant": {
+            "type": "string",
+            "description": "Merchant name or pattern (e.g. Home Depot, Netflix)."
+          },
+          "is_business": {
+            "type": "boolean",
+            "description": "True to always mark this merchant as Business, False for Personal. Required unless remove is true."
+          },
+          "remove": {
+            "type": "boolean",
+            "description": "Set true to delete the automatic rule for this merchant."
+          }
+        },
+        "required": [
+          "merchant"
+        ]
+      }
+    },
+    {
+      "name": "list_subscriptions",
+      "area": "money",
+      "confirm": "never",
+      "summary": "List recurring bank subscriptions with calculated monthly and annual burn and direct cancellation URLs, optionally filtered by account or classification.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "Optional Plaid account ID to filter subscriptions."
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "all",
+              "business",
+              "personal"
+            ],
+            "description": "Filter by classification."
+          },
+          "include_inactive": {
+            "type": "boolean",
+            "description": "Whether to include hidden/inactive subscriptions (default false)."
+          }
+        }
+      }
+    },
+    {
+      "name": "update_subscription",
+      "area": "money",
+      "confirm": "never",
+      "summary": "Update a recurring subscription's Business/Personal classification or active tracking status, and return its direct cancellation URL.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "subscription_id": {
+            "type": "string",
+            "description": "The UUID string of the recurring subscription."
+          },
+          "is_business": {
+            "type": "boolean",
+            "description": "True for Business, False for Personal."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "True to track in active recurring burn, False to hide from active subscriptions."
+          }
+        },
+        "required": [
+          "subscription_id"
+        ]
+      }
+    }
+  ]
+}

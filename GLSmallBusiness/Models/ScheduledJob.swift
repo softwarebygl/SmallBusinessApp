@@ -1,0 +1,734 @@
+//
+//  ScheduledJob.swift
+//  GLSmallBusiness
+//
+//  Created by Gold Life LLC on 6/21/26.
+//
+//  A ScheduledJob is the app's first-class Job: the schedulable blueprint of a piece of work. It can be
+//  created from scratch (a verbal price / standing approval) or from an accepted estimate or an invoice,
+//  which it then links back to. It carries a snapshot of the title + customer, an optional Customer
+//  link, a status, and (once finished) a completion date. The SchedulingEngine answers the next
+//  available date and the open gaps between booked work, computed over the owner's chosen workdays.
+//
+
+import Foundation
+import SwiftData
+
+// MARK: - Scheduling preferences (device-local, like the appearance settings)
+
+// Pure prefs + calendar math; safe off any actor (SchedulingEngine, already nonisolated, calls in).
+nonisolated enum SchedulingPrefs {
+    static let workdaysMaskKey = "mb.scheduleWorkdaysMask"
+    static let oneJobAtATimeKey = "mb.scheduleOneJobAtATime"
+
+    /// Bit `weekday-1` set = that weekday is a workday (Calendar weekdays are 1=Sun … 7=Sat).
+    /// Default is Mon–Fri (weekdays 2–6).
+    static let defaultWorkdaysMask = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5)   // 62
+
+    static func isWorkday(_ date: Date, mask: Int, calendar: Calendar = .current) -> Bool {
+        // A mask of 0 would mean "no workdays" and stall every walk — treat it as the default.
+        let m = mask == 0 ? defaultWorkdaysMask : mask
+        let weekday = calendar.component(.weekday, from: date)
+        return m & (1 << (weekday - 1)) != 0
+    }
+}
+
+// MARK: - Job status
+
+/// The lifecycle of a job. Marking `.completed` stamps `completedAt`, which starts the warranty clock
+/// and (in a later phase) unlocks the completion package. Stored as a raw string for CloudKit-safe
+/// additive migration.
+nonisolated enum JobStatus: String, CaseIterable, Identifiable, Sendable {
+    case scheduled
+    case inProgress
+    case completed
+
+    var id: String { rawValue }
+
+    @MainActor
+    var label: String {
+        switch self {
+        case .scheduled: mbLoc("Scheduled")
+        case .inProgress: mbLoc("In progress")
+        case .completed: mbLoc("Completed")
+        }
+    }
+}
+
+// MARK: - Recurrence
+
+/// How a recurring job repeats. An empty frequency (nil) means a one-off job.
+nonisolated enum RecurrenceFrequency: String, CaseIterable, Identifiable, Sendable {
+    case weekly
+    case biweekly
+    case monthly
+
+    var id: String { rawValue }
+
+    @MainActor
+    var label: String {
+        switch self {
+        case .weekly: mbLoc("Weekly")
+        case .biweekly: mbLoc("Every 2 weeks")
+        case .monthly: mbLoc("Monthly")
+        }
+    }
+
+    /// Weeks between occurrences for the weekday-based frequencies.
+    var weekInterval: Int { self == .biweekly ? 2 : 1 }
+}
+
+// MARK: - ScheduledJob (the Job)
+
+@Model
+final class ScheduledJob {
+
+    // MARK: Sync identity (platform Phase 0 — additive into GLSchemaV1)
+    /// Stable identity for the coming server sync. Optional, NOT `= UUID()`: a SwiftData
+    /// attribute default is captured once in schema metadata, so migration would give
+    /// every existing record the SAME uuid. SyncIdentityBackfill mints these uniquely.
+    /// `.preserveValueOnDeletion` keeps the uuid in the DELETE tombstone. Without it the
+    /// tombstone is empty, the syncID dies with the row, and the server can never be told
+    /// the record went away — i.e. deletes do not sync at all (GLSYNC-SPEC.md §2a).
+    @Attribute(.preserveValueOnDeletion) var syncID: UUID?
+    /// Last local edit, stamped by `saveChanges`. Autosaved edits are not stamped yet —
+    /// the GLSync client owns real change capture when it lands (migration Phase 3).
+    var updatedAt: Date?
+    var title: String = ""
+    var customerName: String = ""
+    var startDate: Date = Date.now
+    /// Number of workdays the job occupies (weekends/off-days are skipped per the workdays setting).
+    var durationDays: Int = 1
+    var notes: String = ""
+    var createdAt: Date = Date.now
+
+    /// Lifecycle (scheduled / in progress / completed). Read/write via `status`.
+    var statusRaw: String = JobStatus.scheduled.rawValue
+    /// Set when the job is marked complete — the app's canonical completion date (starts the warranty).
+    var completedAt: Date?
+
+    /// Where the work happens. Auto-filled from the customer (or source doc) but editable.
+    /// ⚠️ DORMANT-LEGACY, WRITE-FORBIDDEN (2026-09-01, the build-62 SIGTRAP — same class
+    /// as UserProfile.address, build 48). A history UPDATE row naming a composite
+    /// sub-attribute whose keypath crosses ANY Optional (`Address.street2: String?`)
+    /// fatals uncatchably inside `fetchHistory`. Kept only so old stores keep opening;
+    /// `AddressFlatsBackfill` forward-copies it once at mount. Swift-renamed so the
+    /// public name stays on the flats façade; `originalName` pins the stored column.
+    /// Nothing may ever assign it — reads are safe, writes poison history.
+    @Attribute(originalName: "serviceAddress") var legacyServiceAddress: Address = Address()
+    /// The flattened columns behind the `serviceAddress` façade (the write path since
+    /// 2026-09-01). Primitive strings, so their history rows always resolve.
+    var serviceAddressStreet1: String = ""
+    var serviceAddressStreet2: String = ""
+    var serviceAddressCity: String = ""
+    var serviceAddressState: String = ""
+    var serviceAddressPostalCode: String = ""
+    /// A single agreed amount for from-scratch jobs that have no line-item breakdown. Optional.
+    var agreedPrice: Double?
+
+    /// All-day (project work, day-based via `durationDays`) vs timed (service work, a window on
+    /// `startDate`). Defaults to all-day — every legacy booking is day-based. When timed, `startTime`
+    /// and `durationMinutes` define the window; the scheduling engine reads those instead of `durationDays`.
+    var isAllDay: Bool = true
+    var startTime: Date?
+    var durationMinutes: Int?
+
+    // Recurrence — an empty frequency means a one-off job. For weekly/biweekly, `recurrenceWeekdayMask`
+    // picks the weekday(s) (bit `weekday-1`; 0 = use the start weekday). The series ends never (count 0,
+    // no end date), on `recurrenceEndDate`, or after `recurrenceCount` visits.
+    var recurrenceFrequencyRaw: String = ""
+    var recurrenceWeekdayMask: Int = 0
+    var recurrenceEndDate: Date?
+    var recurrenceCount: Int = 0
+
+    /// The customer this job is for. Optional + nullify on delete so the `customerName` snapshot below
+    /// keeps the booking intact even if the customer is removed (matching the estimate/invoice convention).
+    var customer: Customer?
+
+    // Source — optional. Set when the job was created from an accepted estimate or an invoice (and nil
+    // for a from-scratch job). Nullify on delete so the booking survives even if the source doc is removed.
+    var estimate: Estimate?
+    var invoice: Invoice?
+    var contract: Contract?
+
+    /// The optional Project this job is grouped under (invisible until used).
+    var project: Project?
+
+    /// Invoices that BILL this job — deposit + draws + final for progress billing. Distinct from the
+    /// `invoice` SOURCE link above. Nullify on delete so removing a job keeps its (financial) invoices.
+    @Relationship(deleteRule: .nullify, inverse: \Invoice.job)
+    var billingInvoices: [Invoice]?
+
+    /// Receipts attached to this job (in addition to their customer). Nullify on delete — receipts are
+    /// financial records that survive the job.
+    @Relationship(deleteRule: .nullify, inverse: \Receipt.job)
+    var receipts: [Receipt]?
+
+    /// Proof-of-work photos and additional documents. Cascade on delete — these belong to the job.
+    @Relationship(deleteRule: .cascade, inverse: \JobAttachment.job)
+    var attachments: [JobAttachment]?
+
+    /// Set only on an occurrence copy (`occurrenceCopy(on:)`): the stored series it was made from.
+    /// Never persisted, never synced — a copy is never inserted.
+    @Transient var occurrenceSourceID: PersistentIdentifier? = nil
+
+    init(title: String = "", customerName: String = "", startDate: Date = .now,
+         durationDays: Int = 1, notes: String = "", estimate: Estimate? = nil, invoice: Invoice? = nil,
+         customer: Customer? = nil, serviceAddress: Address = Address(), agreedPrice: Double? = nil,
+         status: JobStatus = .scheduled) {
+        self.title = title
+        self.customerName = customerName
+        self.startDate = startDate
+        self.durationDays = max(1, durationDays)
+        self.notes = notes
+        self.estimate = estimate
+        self.invoice = invoice
+        self.customer = customer
+        self.serviceAddress = serviceAddress
+        self.agreedPrice = agreedPrice
+        self.statusRaw = status.rawValue
+    }
+}
+
+// Progress-billing math (touches Invoice/Estimate models, so main-actor — used from views).
+extension ScheduledJob {
+    /// Non-draft invoices that bill this job (drafts don't count toward billed/collected).
+    var activeBillingInvoices: [Invoice] {
+        liveRows(billingInvoices).filter { $0.status != .draft }
+    }
+    // Sums of amounts each invoice already shows (whole cents, law 60) — exact, never a stray cent.
+    var invoicedTotal: Double { DomainMoney.roundedSum(activeBillingInvoices.map(\.total)) }
+    var amountPaid: Double { DomainMoney.roundedSum(activeBillingInvoices.map(\.amountPaid)) }
+    var balanceDue: Double { DomainMoney.roundedSum(activeBillingInvoices.map(\.balanceDue)) }
+
+    /// What the job is contracted for: the agreed price, else the linked estimate total, else whatever
+    /// has been invoiced (so an un-priced job's "fully billed" reduces to a zero-balance check).
+    var contractedValue: Double {
+        // `>= 0`, not `> 0`: agreedPrice is optional, so "no agreed price" is already
+        // nil and an explicit 0 is a real answer — a comped job. Treating that 0 as
+        // "unset" reported the linked estimate's total for a job the owner had
+        // deliberately zeroed, and then held the completion package hostage to
+        // invoicing money nobody owed.
+        if let price = agreedPrice, price >= 0 { return DomainMoney.roundedToCents(price) }
+        // Never an OPTIONS estimate's total: that is the sum of mutually exclusive
+        // alternatives, which inflated "Left to invoice" and held the completion
+        // package hostage to money nobody agreed to (QA 2026-09-01). With options,
+        // the real contracted value is whatever was invoiced (or an agreedPrice).
+        if let source = estimate, !source.isOptionsMode, source.total > 0 { return source.total }
+        return invoicedTotal
+    }
+    var remainingToInvoice: Double { DomainMoney.remaining(contractedValue, less: invoicedTotal) }
+
+    /// The completion-package gate: billed to 100% of the contracted value AND every invoice collected.
+    /// A $0 / fully-comped job satisfies the "billed" clause vacuously.
+    var isFullyBilledAndCollected: Bool {
+        (contractedValue <= 0.005 || invoicedTotal >= contractedValue - 0.005) && balanceDue <= 0.005
+    }
+}
+
+nonisolated extension ScheduledJob {
+    @MainActor
+    var displayTitle: String {
+        let t = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.isEmpty ? mbLoc("Job") : t
+    }
+
+    /// Typed accessor over the raw status string.
+    var status: JobStatus {
+        get { JobStatus(rawValue: statusRaw) ?? .scheduled }
+        set { statusRaw = newValue.rawValue }
+    }
+
+    /// The customer as every list shows it, the Customers list's "Last, First": the live
+    /// customer's name when the job has one (so a rename shows everywhere, and an older
+    /// "First Last" snapshot never mixes formats in one list), else the snapshot taken at booking.
+    var displayCustomerName: String {
+        if let live = liveRows(customer.map { [$0] }).first {
+            let name = Self.listName(first: live.firstName, last: live.lastName, business: live.businessName)
+            if !name.isEmpty { return name }
+        }
+        return customerName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// "Last, First" (else last, first or business alone) — the rule `Customer.listDisplayName`
+    /// uses, minus its "No name" placeholder (an empty answer here means "show the snapshot").
+    static func listName(first: String, last: String, business: String?) -> String {
+        let first = first.trimmingCharacters(in: .whitespacesAndNewlines)
+        let last = last.trimmingCharacters(in: .whitespacesAndNewlines)
+        let business = (business ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if !last.isEmpty, !first.isEmpty { return "\(last), \(first)" }
+        if !last.isEmpty { return last }
+        if !first.isEmpty { return first }
+        return business
+    }
+
+    /// True once the job is created from (or linked to) an estimate or invoice.
+    var hasSource: Bool { estimate != nil || invoice != nil }
+
+    /// Proof-of-work photos, newest first.
+    var photos: [JobAttachment] {
+        liveRows(attachments).filter { $0.kind == .photo }.sorted { $0.createdAt > $1.createdAt }
+    }
+    /// Additional documents, newest first.
+    var documents: [JobAttachment] {
+        liveRows(attachments).filter { $0.kind == .document }.sorted { $0.createdAt > $1.createdAt }
+    }
+    /// This job's receipts, newest first.
+    var sortedReceipts: [Receipt] {
+        liveRows(receipts).sorted { $0.date > $1.date }
+    }
+
+    /// For a timed job, "1:00 – 4:00 PM"; empty for an all-day job.
+    var timeText: String {
+        guard !isAllDay, let start = startTime, let minutes = durationMinutes, minutes > 0 else { return "" }
+        let end = start.addingTimeInterval(TimeInterval(minutes) * 60)   // Double math: no Int overflow
+        // In the app's language (law 25): "1:00 PM" stayed English in the Spanish app (QA F44).
+        let style = Date.FormatStyle(date: .omitted, time: .shortened).locale(MBLocalization.currentLocale)
+        return "\(start.formatted(style)) – \(end.formatted(style))"
+    }
+
+    var recurrenceFrequency: RecurrenceFrequency? {
+        get { RecurrenceFrequency(rawValue: recurrenceFrequencyRaw) }
+        set { recurrenceFrequencyRaw = newValue?.rawValue ?? "" }
+    }
+    var isRecurring: Bool { recurrenceFrequency != nil }
+
+    /// The occurrence START dates of this job within `range`, capped by the series' end date / count.
+    /// A one-off job returns just its start day (when it falls in range).
+    func occurrenceStartDates(in range: DateInterval, calendar: Calendar = .current) -> [Date] {
+        let start = calendar.startOfDay(for: startDate)
+        guard let frequency = recurrenceFrequency else {
+            return range.contains(start) ? [start] : []
+        }
+        // Clamped up to the start: a recurrence whose end date PRECEDES its start is
+        // contradictory data (the form can't produce it; an edited or synced record
+        // can). Read literally it yielded no occurrences at all, so the job dropped
+        // out of the calendar, the agenda and the availability math while its record
+        // still existed. It still happened once — on the day it starts.
+        let hardEnd = recurrenceEndDate.map { max(calendar.startOfDay(for: $0), start) }
+        let limit = recurrenceCount > 0 ? recurrenceCount : Int.max
+        var result: [Date] = []
+        var produced = 0
+
+        // Returns false to stop the whole walk (count reached, or past the end date / range horizon).
+        func consider(_ day: Date) -> Bool {
+            if produced >= limit { return false }
+            if let hardEnd, day > hardEnd { return false }
+            if day > range.end { return false }
+            if day >= start {
+                produced += 1
+                if range.contains(day) { result.append(day) }
+            }
+            return true
+        }
+
+        switch frequency {
+        case .weekly, .biweekly:
+            let weekdays = recurrenceWeekdays(start: start, calendar: calendar)
+            var weekStart = calendar.dateInterval(of: .weekOfYear, for: start)?.start ?? start
+            var guardCount = 0
+            outer: while guardCount < 540 {
+                let days = weekdays
+                    .compactMap { dateInWeek(weekStart, weekday: $0, calendar: calendar) }
+                    .map { calendar.startOfDay(for: $0) }
+                    .sorted()
+                for day in days {
+                    if !consider(day) { break outer }
+                }
+                guard let next = calendar.date(byAdding: .weekOfYear, value: frequency.weekInterval, to: weekStart)
+                else { break }
+                weekStart = next
+                guardCount += 1
+            }
+        case .monthly:
+            // Anchor every occurrence to the ORIGINAL start (start + N months). Calendar clamps each
+            // month from the original day-of-month (Jan 31 → Feb 28 → Mar 31 → Apr 30…). Chaining off
+            // the previous occurrence instead would let a "31st" job permanently drift to the 28th
+            // after the first short month.
+            var monthOffset = 0
+            while monthOffset < 480 {
+                guard let raw = calendar.date(byAdding: .month, value: monthOffset, to: start) else { break }
+                let occurrence = monthOffset == 0 ? raw : calendar.startOfDay(for: raw)
+                if !consider(occurrence) { break }
+                monthOffset += 1
+            }
+        }
+        return result.sorted()
+    }
+
+    private func recurrenceWeekdays(start: Date, calendar: Calendar) -> [Int] {
+        if recurrenceWeekdayMask != 0 {
+            return (1...7).filter { recurrenceWeekdayMask & (1 << ($0 - 1)) != 0 }
+        }
+        return [calendar.component(.weekday, from: start)]
+    }
+
+    private func dateInWeek(_ weekStart: Date, weekday: Int, calendar: Calendar) -> Date? {
+        let offset = (weekday - calendar.firstWeekday + 7) % 7
+        return calendar.date(byAdding: .day, value: offset, to: weekStart)
+    }
+
+    /// True for an open-ended series (repeats with no end date and no visit count).
+    var isOpenEndedRecurrence: Bool { isRecurring && recurrenceCount == 0 && recurrenceEndDate == nil }
+
+    /// A short human description of the recurrence, e.g. "Weekly · for 8 visits"; empty for a one-off.
+    @MainActor
+    var recurrenceSummary: String {
+        guard let frequency = recurrenceFrequency else { return "" }
+        var parts = [frequency.label]
+        if recurrenceCount > 0 {
+            parts.append(mbLoc("for \(recurrenceCount) visits"))
+        } else if let end = recurrenceEndDate {
+            parts.append(mbLoc("until \(end.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted).locale(MBLocalization.currentLocale)))"))
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    /// A throwaway one-off copy of this job placed on `date` — used to materialize recurrence
+    /// occurrences for the calendar/engine (occupancy + gaps). Not inserted into any context.
+    /// It carries the series' id (`occurrenceSourceID`) so a tap opens the stored job, and the
+    /// series' shown customer name (it has no customer link of its own: linking one would make
+    /// the throwaway reachable from a stored customer and insert it on the next save).
+    func occurrenceCopy(on date: Date, calendar: Calendar = .current) -> ScheduledJob {
+        let copy = ScheduledJob(title: title, customerName: displayCustomerName,
+                                startDate: calendar.startOfDay(for: date),
+                                durationDays: durationDays, notes: notes)
+        copy.occurrenceSourceID = persistentModelID
+        copy.isAllDay = isAllDay
+        copy.durationMinutes = durationMinutes
+        copy.serviceAddress = serviceAddress
+        if !isAllDay, let start = startTime {
+            let comps = calendar.dateComponents([.hour, .minute], from: start)
+            copy.startTime = calendar.date(bySettingHour: comps.hour ?? 9, minute: comps.minute ?? 0,
+                                           second: 0, of: copy.startDate)
+        }
+        return copy   // recurrence stays empty → a concrete one-off occurrence
+    }
+
+    /// The day-starts this job occupies: the first `durationDays` workdays on or after `startDate`.
+    func occupiedDays(mask: Int, calendar: Calendar = .current) -> [Date] {
+        var days: [Date] = []
+        var day = calendar.startOfDay(for: startDate)
+        var guardCount = 0
+        while days.count < max(1, durationDays), guardCount < 3650 {
+            if SchedulingPrefs.isWorkday(day, mask: mask, calendar: calendar) { days.append(day) }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+            guardCount += 1
+        }
+        return days
+    }
+
+    /// Last occupied day (for display), or the start day if none.
+    func endDay(mask: Int, calendar: Calendar = .current) -> Date {
+        occupiedDays(mask: mask, calendar: calendar).last ?? calendar.startOfDay(for: startDate)
+    }
+
+    /// The day-starts this job occupies, using the full WorkSchedule (skips weekends, holidays,
+    /// vacations, and blocked overrides). The schedule-aware counterpart of `occupiedDays(mask:)`.
+    func occupiedDays(schedule: WorkSchedule, calendar: Calendar = .current) -> [Date] {
+        var days: [Date] = []
+        var day = calendar.startOfDay(for: startDate)
+        var guardCount = 0
+        while days.count < max(1, durationDays), guardCount < 3650 {
+            if WorkCalendar.isWorkday(day, schedule: schedule, calendar: calendar) { days.append(day) }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+            guardCount += 1
+        }
+        return days
+    }
+
+    func endDay(schedule: WorkSchedule, calendar: Calendar = .current) -> Date {
+        occupiedDays(schedule: schedule, calendar: calendar).last ?? calendar.startOfDay(for: startDate)
+    }
+
+    /// The time interval(s) this job blocks. An all-day job blocks the full working window of each
+    /// workday it owns; a timed job blocks only `[startTime, startTime + durationMinutes]` on its day —
+    /// so timed jobs can share a day. Used by the interval engine to find intra-day openings.
+    func occupiedIntervals(schedule: WorkSchedule, calendar: Calendar = .current) -> [DateInterval] {
+        if isAllDay {
+            return occupiedDays(schedule: schedule, calendar: calendar).compactMap {
+                WorkCalendar.workingHours($0, schedule: schedule, calendar: calendar).first
+            }
+        }
+        guard let start = startTime, let minutes = durationMinutes, minutes > 0 else { return [] }
+        return [DateInterval(start: start, duration: TimeInterval(minutes) * 60)]   // Double math: no Int overflow
+    }
+}
+
+// MARK: - Scheduling engine (pure logic — next available date + gaps)
+
+/// One open stretch of workdays with no job booked.
+nonisolated struct ScheduleGap: Identifiable, Equatable {
+    let start: Date
+    let end: Date
+    let workdays: Int
+    var id: Date { start }
+}
+
+/// An opening in the schedule: either a run of fully-free workdays (good for an all-day/multi-day job)
+/// or a single-day time window (good for a short timed job, e.g. between two cleanings).
+nonisolated struct Opening: Identifiable, Equatable {
+    enum Span: Equatable {
+        case fullDays(Int)
+        case window(DateInterval)
+    }
+    let start: Date
+    let end: Date
+    let span: Span
+    var id: Date { start }
+
+    /// Workday capacity for a full-day run; 1 for an intra-day window.
+    var workdays: Int { if case .fullDays(let n) = span { return n } else { return 1 } }
+    var window: DateInterval? { if case .window(let interval) = span { return interval } else { return nil } }
+}
+
+nonisolated extension ScheduledJob {
+    /// "1 workday" / "3 workdays" in the app's language (a catalog plural).
+    static func workdaysText(_ count: Int) -> String {
+        MBLocalization.string("\(count) workdays")
+    }
+}
+
+nonisolated extension Opening {
+    /// The capacity shown next to the date: "Fits 3 workdays" or "4 hr free", in the app's
+    /// language (catalog plurals, never an English word ternary).
+    var capacityText: String {
+        if let window {
+            return MBLocalization.string("\(Opening.durationLabel(minutes: Int(window.duration / 60))) free")
+        }
+        return MBLocalization.string("Fits \(workdays) workdays")
+    }
+
+    /// The gaps-list subtitle for a full-day run: "3 open workdays".
+    var openWorkdaysText: String { MBLocalization.string("\(workdays) open workdays") }
+
+    static func durationLabel(minutes: Int) -> String {
+        // Sign is carried once, on the front, and the split is done on the magnitude.
+        // Formatting the raw value component-wise dropped the hour from anything
+        // negative — -90 read as "-30 min" — because both components carried the
+        // sign and only the minute one survived the `hours > 0` tests.
+        let negative = minutes < 0
+        let magnitude = abs(minutes)
+        let hours = magnitude / 60, mins = magnitude % 60
+        let sign = negative ? "-" : ""
+        if hours > 0 && mins > 0 { return sign + MBLocalization.string("\(hours) hr \(mins) min") }
+        if hours > 0 { return sign + MBLocalization.string("\(hours) hr") }
+        return sign + MBLocalization.string("\(mins) min")
+    }
+}
+
+nonisolated enum SchedulingEngine {
+    /// All day-starts occupied by any job.
+    static func occupiedDays(_ jobs: [ScheduledJob], mask: Int, calendar: Calendar = .current) -> Set<Date> {
+        var set = Set<Date>()
+        for job in jobs { set.formUnion(job.occupiedDays(mask: mask, calendar: calendar)) }
+        return set
+    }
+
+    /// The earliest workday on or after `from` that no job occupies.
+    static func nextAvailable(_ jobs: [ScheduledJob], from: Date = .now, mask: Int,
+                              calendar: Calendar = .current) -> Date {
+        let occupied = occupiedDays(jobs, mask: mask, calendar: calendar)
+        var day = calendar.startOfDay(for: from)
+        var guardCount = 0
+        while guardCount < 3650 {
+            if SchedulingPrefs.isWorkday(day, mask: mask, calendar: calendar), !occupied.contains(day) {
+                return day
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+            guardCount += 1
+        }
+        return calendar.startOfDay(for: from)
+    }
+
+    /// Open workday stretches between `from` and `from + horizonDays`, each bounded by booked work that
+    /// follows it (the open-ended tail after the last job is availability, not a gap, so it's excluded).
+    static func gaps(_ jobs: [ScheduledJob], from: Date = .now, horizonDays: Int = 90, mask: Int,
+                     calendar: Calendar = .current) -> [ScheduleGap] {
+        let occupied = occupiedDays(jobs, mask: mask, calendar: calendar)
+        let start = calendar.startOfDay(for: from)
+        guard let limit = calendar.date(byAdding: .day, value: horizonDays, to: start) else { return [] }
+
+        var gaps: [ScheduleGap] = []
+        var runDays: [Date] = []
+        var day = start
+        while day < limit {
+            if SchedulingPrefs.isWorkday(day, mask: mask, calendar: calendar) {
+                if occupied.contains(day) {
+                    // A booked day closes any open run before it → that's a real gap.
+                    if let first = runDays.first, let last = runDays.last {
+                        gaps.append(ScheduleGap(start: first, end: last, workdays: runDays.count))
+                    }
+                    runDays.removeAll()
+                } else {
+                    runDays.append(day)
+                }
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+        }
+        // A trailing open run (no job after it within the horizon) is left out by design.
+        return gaps
+    }
+
+    // MARK: Schedule-aware (workdays + hours + holidays + vacation + overrides)
+
+    static func occupiedDays(_ jobs: [ScheduledJob], schedule: WorkSchedule,
+                             calendar: Calendar = .current) -> Set<Date> {
+        var set = Set<Date>()
+        for job in jobs { set.formUnion(job.occupiedDays(schedule: schedule, calendar: calendar)) }
+        return set
+    }
+
+    /// The earliest workday on or after `from` that no job occupies — Row 1's "Next available date"
+    /// fallback when there are no bounded gaps.
+    static func nextAvailable(_ jobs: [ScheduledJob], from: Date = .now, schedule: WorkSchedule,
+                              calendar: Calendar = .current) -> Date {
+        let occupied = occupiedDays(jobs, schedule: schedule, calendar: calendar)
+        var day = calendar.startOfDay(for: from)
+        var guardCount = 0
+        while guardCount < 3650 {
+            if WorkCalendar.isWorkday(day, schedule: schedule, calendar: calendar), !occupied.contains(day) {
+                return day
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+            guardCount += 1
+        }
+        return calendar.startOfDay(for: from)
+    }
+
+    /// Bounded open workday stretches between `from` and `from + horizonDays` — each followed by booked
+    /// work (the open-ended tail is availability, not a gap, so it's excluded; that's the "clear date").
+    static func gaps(_ jobs: [ScheduledJob], from: Date = .now, horizonDays: Int = 90,
+                     schedule: WorkSchedule, calendar: Calendar = .current) -> [ScheduleGap] {
+        let occupied = occupiedDays(jobs, schedule: schedule, calendar: calendar)
+        let start = calendar.startOfDay(for: from)
+        guard let limit = calendar.date(byAdding: .day, value: horizonDays, to: start) else { return [] }
+
+        var gaps: [ScheduleGap] = []
+        var runDays: [Date] = []
+        var day = start
+        while day < limit {
+            if WorkCalendar.isWorkday(day, schedule: schedule, calendar: calendar) {
+                if occupied.contains(day) {
+                    if let first = runDays.first, let last = runDays.last {
+                        gaps.append(ScheduleGap(start: first, end: last, workdays: runDays.count))
+                    }
+                    runDays.removeAll()
+                } else {
+                    runDays.append(day)
+                }
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+        }
+        return gaps
+    }
+
+    /// "Next clear date" — the first workday after the LAST booked day (the open-ended runway). When
+    /// nothing is booked on/after `from`, it's just the next available workday from `from`.
+    static func nextClearDate(_ jobs: [ScheduledJob], from: Date = .now, schedule: WorkSchedule,
+                              calendar: Calendar = .current) -> Date {
+        let occupied = occupiedDays(jobs, schedule: schedule, calendar: calendar)
+        let start = calendar.startOfDay(for: from)
+        guard let lastBooked = occupied.filter({ $0 >= start }).max() else {
+            return nextAvailable(jobs, from: from, schedule: schedule, calendar: calendar)
+        }
+        var day = calendar.date(byAdding: .day, value: 1, to: lastBooked) ?? lastBooked
+        var guardCount = 0
+        while guardCount < 3650 {
+            if WorkCalendar.isWorkday(day, schedule: schedule, calendar: calendar), !occupied.contains(day) {
+                return day
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+            guardCount += 1
+        }
+        return calendar.startOfDay(for: lastBooked)
+    }
+
+    // MARK: Interval openings (timed-aware — intra-day windows + multi-day runs)
+
+    /// Bounded openings between booked work within the horizon: runs of fully-free workdays AND the
+    /// free windows left on partially-booked days (between timed jobs). The open-ended tail after the
+    /// last booked day is excluded — that's the "Next clear date". Windows shorter than `minMinutes`
+    /// are dropped.
+    static func openings(_ jobs: [ScheduledJob], from: Date = .now, horizonDays: Int = 90,
+                         schedule: WorkSchedule, minMinutes: Int = 30,
+                         calendar: Calendar = .current) -> [Opening] {
+        let occupied = jobs.flatMap { $0.occupiedIntervals(schedule: schedule, calendar: calendar) }
+        let start = calendar.startOfDay(for: from)
+        guard let limit = calendar.date(byAdding: .day, value: horizonDays, to: start) else { return [] }
+
+        var openings: [Opening] = []
+        var fullRun: [Date] = []
+        let minSeconds = TimeInterval(minMinutes * 60)
+        var day = start
+        while day < limit {
+            if let work = WorkCalendar.workingHours(day, schedule: schedule, calendar: calendar).first {
+                let blocks = occupied.compactMap { work.intersection(with: $0) }.filter { $0.duration > 0 }
+                if blocks.isEmpty {
+                    fullRun.append(day)                       // a fully-free workday
+                } else {
+                    flush(&fullRun, into: &openings)          // a booked day closes any free run before it
+                    for window in subtract(work, blocks) where window.duration >= minSeconds {
+                        openings.append(Opening(start: window.start, end: window.end, span: .window(window)))
+                    }
+                }
+            }
+            day = calendar.date(byAdding: .day, value: 1, to: day) ?? day
+        }
+        // A trailing all-free run is the open-ended tail, not a bounded gap — drop it.
+        return openings
+    }
+
+    private static func flush(_ run: inout [Date], into openings: inout [Opening]) {
+        if let first = run.first, let last = run.last {
+            openings.append(Opening(start: first, end: last, span: .fullDays(run.count)))
+        }
+        run.removeAll()
+    }
+
+    /// `base` minus the `blocks` that overlap it — the free sub-intervals, in order.
+    static func subtract(_ base: DateInterval, _ blocks: [DateInterval]) -> [DateInterval] {
+        var free: [DateInterval] = []
+        var cursor = base.start
+        for block in blocks.sorted(by: { $0.start < $1.start }) {
+            let blockStart = max(block.start, base.start)
+            let blockEnd = min(block.end, base.end)
+            if blockStart > cursor { free.append(DateInterval(start: cursor, end: blockStart)) }
+            cursor = max(cursor, blockEnd)
+        }
+        if cursor < base.end { free.append(DateInterval(start: cursor, end: base.end)) }
+        return free
+    }
+
+    /// Materialize recurring jobs into per-occurrence copies within `range`; one-off jobs pass through.
+    /// Feed the result to occupiedDays / openings / nextClearDate so recurrence counts toward availability.
+    static func expand(_ jobs: [ScheduledJob], in range: DateInterval, calendar: Calendar = .current) -> [ScheduledJob] {
+        jobs.flatMap { job -> [ScheduledJob] in
+            guard job.isRecurring else { return [job] }
+            return job.occurrenceStartDates(in: range, calendar: calendar)
+                .map { job.occurrenceCopy(on: $0, calendar: calendar) }
+        }
+    }
+}
+
+extension ScheduledJob {
+    /// THE one door to `serviceAddress`. Reads see the flat columns only; writes go to flats
+    /// only — the legacy composite is write-forbidden (see its doc). Empty street2
+    /// normalizes to nil, which renders identically.
+    var serviceAddress: Address {
+        get {
+            Address(street1: serviceAddressStreet1,
+                    street2: serviceAddressStreet2.isEmpty ? nil : serviceAddressStreet2,
+                    city: serviceAddressCity,
+                    state: serviceAddressState,
+                    postalCode: serviceAddressPostalCode)
+        }
+        set {
+            serviceAddressStreet1 = newValue.street1
+            serviceAddressStreet2 = newValue.street2 ?? ""
+            serviceAddressCity = newValue.city
+            serviceAddressState = newValue.state
+            serviceAddressPostalCode = newValue.postalCode
+        }
+    }
+}

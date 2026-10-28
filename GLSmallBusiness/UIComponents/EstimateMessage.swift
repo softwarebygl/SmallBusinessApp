@@ -1,0 +1,199 @@
+//
+//  EstimateMessage.swift
+//  GLSmallBusiness
+//
+//  Created by Gold Life LLC on 5/28/26.
+//
+
+import SwiftUI
+import UIKit
+
+/// Builds the branded subject, greeting, and sign-off used when an estimate is emailed or
+/// texted to a customer. Single source of truth so email and Messages stay consistent.
+///
+/// Branding logo: the business's own uploaded logo (`BusinessProfile.logoData`) when present,
+/// otherwise no logo at all (the business name in the signature stands in) — never a fallback mark.
+enum EstimateMessage {
+
+    // MARK: - Customizable wording (prepared defaults, overridable per business)
+
+    /// Prepared default intro shown after the salutation. Used when the business hasn't set
+    /// a custom `messageIntro`, so improving this default reaches everyone who hasn't customized.
+    static let defaultIntro = "Thank you for the opportunity to earn your business. Your estimate is attached for your review."
+
+    /// Prepared default closing shown before the signature.
+    static let defaultClosing = "If you have any questions, just reply to this message. Warm regards,"
+
+    /// The custom intro if set, otherwise a default that names the job when there is one.
+    static func intro(estimate: Estimate, business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.messageIntro)
+        if !custom.isEmpty { return custom }
+        let job = trimmed(estimate.jobTitle)
+        if job.isEmpty { return defaultIntro }
+        return "Thank you for the opportunity to earn your business. Here's your estimate for \(job)."
+    }
+
+    static func closing(for business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.messageClosing)
+        return custom.isEmpty ? defaultClosing : custom
+    }
+
+    // MARK: - Subject
+
+    static func subject(estimate: Estimate, business: BusinessProfile?) -> String {
+        let custom = trimmed(business?.estimateMessageSubject)
+        if !custom.isEmpty { return custom }
+        let company = trimmed(business?.businessName)
+        let number = trimmed(estimate.number)
+        switch (company.isEmpty, number.isEmpty) {
+        case (false, false): return "Estimate \(number) from \(company)"
+        case (false, true):  return "Your estimate from \(company)"
+        case (true, false):  return "Your estimate \(number)"
+        case (true, true):   return "Your estimate"
+        }
+    }
+
+    // MARK: - Plain-text body (SMS / iMessage)
+
+    static func plainBody(estimate: Estimate, business: BusinessProfile?) -> String {
+        let name = greetingName(estimate)
+        let company = trimmed(business?.businessName)
+        let job = trimmed(estimate.jobTitle)
+        let number = trimmed(estimate.number)
+        let total = estimate.total.formatted(.money)
+        let valid = estimate.validUntil.formatted(.englishMessageDate)
+
+        var summaryParts: [String] = []
+        if !number.isEmpty { summaryParts.append(number) }
+        // An OPTIONS estimate has no combined total — quoting the sum of
+        // mutually exclusive options contradicted the attached PDF (QA
+        // 2026-09-01); each option is listed at its own price below instead.
+        if !estimate.isOptionsMode { summaryParts.append("Total: \(total)") }
+        summaryParts.append("Valid until: \(valid)")
+        let summary = summaryParts.joined(separator: " · ")
+        let projectLine = job.isEmpty ? "" : "Project: \(job)\n"
+        let optionLines = estimate.isOptionsMode
+            ? "\n" + estimate.sortedGroups.map { group in
+                let optionName = group.name.isEmpty ? "Option" : group.name
+                let optionTotal = group.optionTotals(taxRatePercent: estimate.taxRatePercent)
+                    .total.formatted(.money)
+                return "\(optionName): \(optionTotal)"
+            }.joined(separator: "\n")
+            : ""
+        let signoff = company.isEmpty ? "" : "\n\n— \(company)"
+
+        return """
+        Hi \(name),
+
+        \(intro(estimate: estimate, business: business))
+
+        \(projectLine)\(summary)\(optionLines)
+
+        \(closing(for: business))\(signoff)
+        """
+    }
+
+    // MARK: - HTML body (email)
+
+    @MainActor
+    static func htmlBody(estimate: Estimate, business: BusinessProfile?) -> String {
+        let name = greetingName(estimate)
+        let job = trimmed(estimate.jobTitle)
+        let number = esc(trimmed(estimate.number))
+        let total = esc(estimate.total.formatted(.money))
+        let valid = esc(estimate.validUntil.formatted(.englishMessageDate))
+
+        let logoTag = EmailSignature.logoTag(business: business)
+
+        var rows: [(label: String, value: String, strong: Bool)] = []
+        if !job.isEmpty { rows.append(("Project", esc(job), false)) }
+        if !number.isEmpty { rows.append(("Estimate", number, false)) }
+        // Options mode: one row per option at its own price — never the
+        // combined sum the feature removed everywhere else (QA 2026-09-01).
+        if estimate.isOptionsMode {
+            for group in estimate.sortedGroups {
+                let optionName = group.name.isEmpty ? "Option" : group.name
+                let optionTotal = group.optionTotals(taxRatePercent: estimate.taxRatePercent)
+                    .total.formatted(.money)
+                rows.append((esc(optionName), esc(optionTotal), false))
+            }
+        } else {
+            rows.append(("Total", total, true))
+        }
+        rows.append(("Valid until", valid, false))
+
+        let signature = EmailSignature.block(business: business)
+
+        let inner = """
+        \(logoTag)
+        <p style="margin:0 0 14px;">Hi \(esc(name)),</p>
+        <p style="margin:0 0 16px;">\(htmlText(intro(estimate: estimate, business: business)))</p>
+        \(EmailHTML.summaryBox(rows))
+        <p style="margin:0 0 16px;">\(htmlText(closing(for: business)))</p>
+        \(signature.isEmpty ? "" : "<p style=\"margin:20px 0 0;\">\(signature)</p>")
+        """
+        return EmailHTML.page(inner)
+    }
+
+    // MARK: - Logo
+
+    /// The brand logo written to a temp PNG, for attaching to a Message. Nil if no logo.
+    @MainActor
+    static func logoAttachmentURL(business: BusinessProfile?) -> URL? {
+        guard let data = logoPNGData(business: business) else { return nil }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("estimate-logo.png")
+        do {
+            try data.write(to: url)
+            return url
+        } catch {
+            return nil
+        }
+    }
+
+    /// PNG of the business's own uploaded logo, downsized for email/Messages. Returns nil when no logo
+    /// has been uploaded — we deliberately do NOT fall back to the bundled GL monogram, so a user's
+    /// documents never go out branded with someone else's mark. The name signature stands in instead.
+    @MainActor
+    static func logoPNGData(business: BusinessProfile?, maxDimension: CGFloat = 240) -> Data? {
+        guard let data = business?.documentLogoData, let image = UIImage(data: data) else { return nil }
+        return resizedPNGData(image, maxDimension: maxDimension)
+    }
+
+    // MARK: - Helpers
+
+    private static func greetingName(_ estimate: Estimate) -> String {
+        let first = trimmed(estimate.customerFirstName)
+        return first.isEmpty ? "there" : first
+    }
+
+    private static func trimmed(_ value: String?) -> String {
+        (value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Escapes the characters that would otherwise break the surrounding HTML. `&` must go first.
+    private static func esc(_ string: String) -> String {
+        string
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+    }
+
+    /// Escapes user-entered prose for HTML and preserves their line breaks as `<br>`.
+    private static func htmlText(_ string: String) -> String {
+        esc(string).replacingOccurrences(of: "\n", with: "<br>")
+    }
+
+    private static func resizedPNGData(_ image: UIImage, maxDimension: CGFloat) -> Data? {
+        let longest = max(image.size.width, image.size.height)
+        guard longest > maxDimension else { return image.pngData() }
+        let scale = maxDimension / longest
+        let target = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: target, format: format)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: target))
+        }.pngData()
+    }
+}

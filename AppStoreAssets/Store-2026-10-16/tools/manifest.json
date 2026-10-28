@@ -1,0 +1,100 @@
+{
+  "iphone": [
+    {
+      "file": "iphone_01.png",
+      "screen": "estimate",
+      "appearance": "dark",
+      "eyebrow": "PROPOSALS & ESTIMATES",
+      "headline": "Send proposals that close fast.",
+      "sub": "Itemized line items, clear totals, and client approvals.",
+      "size": [
+        1320,
+        2868
+      ]
+    },
+    {
+      "file": "iphone_02.png",
+      "screen": "contract",
+      "appearance": "dark",
+      "eyebrow": "PROJECT WORKFLOW",
+      "headline": "Signed contracts, legally sealed.",
+      "sub": "Capture legally binding physical signatures on device.",
+      "size": [
+        1320,
+        2868
+      ]
+    },
+    {
+      "file": "iphone_03.png",
+      "screen": "invoice",
+      "appearance": "dark",
+      "eyebrow": "INVOICES & BILLING",
+      "headline": "Milestone billing, paid on time.",
+      "sub": "Transform estimates into professional invoices in one tap.",
+      "size": [
+        1320,
+        2868
+      ]
+    },
+    {
+      "file": "iphone_04.png",
+      "screen": "calendar",
+      "appearance": "dark",
+      "eyebrow": "SCHEDULE & DISPATCH",
+      "headline": "Live calendar sync, zero clashes.",
+      "sub": "Visualize multi-day crew assignments and job schedules.",
+      "size": [
+        1320,
+        2868
+      ]
+    },
+    {
+      "file": "iphone_05.png",
+      "screen": "customer",
+      "appearance": "dark",
+      "eyebrow": "CLIENT MANAGEMENT",
+      "headline": "Your client roster, fully organized.",
+      "sub": "Complete job history, service addresses, and instant contact.",
+      "size": [
+        1320,
+        2868
+      ]
+    },
+    {
+      "file": "iphone_06.png",
+      "screen": "employees",
+      "appearance": "dark",
+      "eyebrow": "CREW MANAGEMENT",
+      "headline": "Track crew hours & run payroll.",
+      "sub": "Hourly wage tracking and automated payday calculations.",
+      "size": [
+        1320,
+        2868
+      ]
+    },
+    {
+      "file": "iphone_07.png",
+      "screen": "company",
+      "appearance": "dark",
+      "eyebrow": "ENTERPRISE IDENTITY",
+      "headline": "Your business profile, fully governed.",
+      "sub": "Custom branding, contractor licensing, and credentials.",
+      "size": [
+        1320,
+        2868
+      ]
+    },
+    {
+      "file": "iphone_08.png",
+      "screen": "stripe",
+      "appearance": "dark",
+      "eyebrow": "PAYMENTS & DEPOSITS",
+      "headline": "Accept card payments, straight to bank.",
+      "sub": "Stripe Connect deposits with automated bookkeeping.",
+      "size": [
+        1320,
+        2868
+      ]
+    }
+  ]
+}

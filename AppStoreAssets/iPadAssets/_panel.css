@@ -1,0 +1,197 @@
+
+@font-face { font-family:"Italianno"; src:url(Italianno.ttf); }
+@font-face { font-family:"Inter"; src:url(Inter.ttf); font-weight:100 900; }
+:root{ --ink:#14110E; --ink2:#4A4237; --gold:#9C7A2E; --eyebrow:#7A5E1E; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+.panel{position:relative;overflow:hidden;font-family:"Inter";--k:1;}
+.bg-cream{background:
+  radial-gradient(120% 80% at 78% 8%, rgba(180,144,60,.18) 0%, rgba(180,144,60,0) 46%),
+  radial-gradient(130% 90% at 12% 100%, rgba(156,122,46,.12) 0%, rgba(156,122,46,0) 50%),
+  linear-gradient(168deg,#FBF8F1 0%,#F3EAD8 62%,#EEE1C9 100%);}
+.bg-dark{background:
+  radial-gradient(120% 70% at 80% 6%, rgba(180,144,60,.22) 0%, rgba(180,144,60,0) 50%),
+  radial-gradient(120% 80% at 10% 104%, rgba(156,122,46,.16) 0%, rgba(156,122,46,0) 52%),
+  linear-gradient(170deg,#181410 0%,#0E0B08 100%);}
+.wm{position:absolute;font-family:"Italianno";pointer-events:none;line-height:.8;}
+.wm-cream{color:#9C7A2E;opacity:.055;} .wm-dark{color:#C9A24B;opacity:.05;}
+.pad{position:absolute;z-index:3;}
+.eyebrow{font-weight:600;font-size:calc(30px*var(--k));letter-spacing:.34em;text-transform:uppercase;color:var(--eyebrow);}
+.eyebrow.on-dark{color:#D9BE7C;}
+.headline{font-weight:800;font-size:calc(116px*var(--k));line-height:1.02;letter-spacing:-.025em;color:var(--ink);margin-top:calc(56px*var(--k));text-wrap:balance;}
+.headline .g{color:var(--gold);}
+.headline.on-dark{color:#FBF8F1;} .headline.on-dark .g{color:#E7C877;}
+.sub{font-weight:400;font-size:calc(39px*var(--k));line-height:1.42;color:var(--ink2);margin-top:calc(38px*var(--k));}
+.sub .b{font-weight:600;color:var(--ink);} .sub.on-dark{color:#B9AE9B;} .sub.on-dark .b{color:#F1E7D2;}
+.blob{position:absolute;z-index:1;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 42% 38%, rgba(196,157,66,.42) 0%, rgba(180,144,60,.16) 45%, rgba(180,144,60,0) 72%);}
+.blob.on-dark{background:radial-gradient(circle at 45% 40%, rgba(214,172,80,.30) 0%, rgba(180,144,60,.08) 46%, rgba(0,0,0,0) 72%);}
+.stage{position:absolute;inset:0;z-index:2;}
+.phone{position:absolute;width:var(--w);transform-style:preserve-3d;}
+.phone img{position:absolute;top:0;left:0;width:100%;display:block;} .phone .front{position:relative;}
+.pshadow{position:absolute;width:var(--w);filter:blur(42px) brightness(0);opacity:.24;z-index:1;}
+.pshadow.on-dark{filter:blur(64px) brightness(0);opacity:.6;}
+.tl{transform:perspective(2600px) rotateY(-16deg) rotateX(3.5deg) rotateZ(-1.6deg);}
+.tr{transform:perspective(2600px) rotateY(14deg) rotateX(3.5deg) rotateZ(1.4deg);}
+.ts{transform:perspective(3200px) rotateY(-7deg) rotateX(2deg);}
+.tli{transform:perspective(4600px) rotateY(-12deg) rotateX(1.4deg) rotateZ(-.9deg);}
+.tri{transform:perspective(4600px) rotateY(10deg) rotateX(1.4deg) rotateZ(.9deg);}
+.tsi{transform:perspective(5400px) rotateY(-6deg) rotateX(1deg);}
+.seal{width:calc(238px*var(--k));height:auto;}
+.callout-d{position:absolute;z-index:4;background:#0A0A0B;border:2px solid rgba(196,157,66,.55);
+  border-radius:calc(40px*var(--k));padding:calc(40px*var(--k)) calc(48px*var(--k));overflow:hidden;
+  box-shadow:0 60px 100px -34px rgba(60,44,18,.55),0 20px 40px -14px rgba(0,0,0,.28);}
+.callout-d .lens{position:absolute;top:calc(24px*var(--k));right:calc(34px*var(--k));font-weight:600;
+  font-size:calc(22px*var(--k));letter-spacing:.18em;text-transform:uppercase;color:rgba(231,200,119,.85);}
+.callout-d img{display:block;width:100%;}
+.tag{position:absolute;z-index:4;display:inline-flex;align-items:center;gap:calc(16px*var(--k));
+  background:#FCFAF4;border:2px solid rgba(156,122,46,.4);border-radius:100px;
+  padding:calc(20px*var(--k)) calc(34px*var(--k));font-weight:600;font-size:calc(30px*var(--k));color:var(--ink);
+  box-shadow:0 30px 60px -22px rgba(60,44,18,.4);}
+.tag.on-dark{background:#1C1712;border-color:rgba(196,157,66,.5);color:#F1E7D2;}
+.tag .dot{width:calc(18px*var(--k));height:calc(18px*var(--k));border-radius:50%;background:var(--gold);}
+.closer{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;gap:calc(30px*var(--k));padding:0 calc(150px*var(--k));}
+.closer .seal{width:calc(430px*var(--k));}
+.closer h1{font-weight:800;font-size:calc(126px*var(--k));line-height:1;letter-spacing:-.03em;color:var(--ink);text-wrap:balance;}
+.closer h1 .g{color:var(--gold);} .closer p{font-weight:400;font-size:calc(40px*var(--k));color:var(--ink2);}
+.badge{margin-top:calc(18px*var(--k));display:inline-flex;align-items:center;gap:calc(22px*var(--k));
+  background:#14110E;color:#FBF8F1;border-radius:calc(30px*var(--k));padding:calc(28px*var(--k)) calc(52px*var(--k));
+  font-weight:700;font-size:calc(46px*var(--k));}
+.badge small{display:block;font-weight:500;font-size:calc(24px*var(--k));opacity:.7;}
+
+/* ── DARK-NATIVE SET (2026-08-16) ─────────────────────────────────────────
+   Adrian: "my entire aesthetic is dark so we should advertise it that way."
+   The dark panel stops being the exception and becomes the ground. Rules that
+   make dark work where cream did the work for free:
+   • Black-on-black: the device edge needs a gold RIM LIGHT (.phone-rim) and a
+     gold-tinted glow BEHIND the device (.glow) — gold as light source, never
+     as fill. That is how "more gold, not overdone" is kept: intensity lives
+     where the story is gold (the ID card), everywhere else gold is a glint.
+   • Thumbnails are small: headlines stay large, copy is bright cream on black.
+   • Not a phone in every panel: .tiles (feature bubbles — glass cards, one
+     real app row each) and the .idcard hero (the Gold Life ID plate, tilted
+     like a physical card) carry panels on their own.
+   The gold ramp is the APP's own generator (MMTheme.goldStops: sine, dwell 3,
+   shadow #66421D · mid #CC9633 · spec #FFE899) sampled to CSS stops — so the
+   panels' gold IS the product's gold, not a lookalike.                        */
+.bg-black{background:
+  radial-gradient(90% 60% at 76% 10%, rgba(204,150,51,.20) 0%, rgba(204,150,51,0) 55%),
+  radial-gradient(80% 60% at 18% 100%, rgba(102,66,29,.28) 0%, rgba(102,66,29,0) 55%),
+  linear-gradient(172deg,#0E0C09 0%,#050403 100%);}
+.wm-black{color:#E8C87A;opacity:.045;}
+.glow{position:absolute;z-index:1;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 50% 50%, rgba(232,200,122,.30) 0%, rgba(204,150,51,.12) 38%, rgba(0,0,0,0) 70%);}
+.eyebrow.on-black{color:#D9BE7C;}
+.headline.on-black{color:#FBF6EA;} .headline.on-black .g{
+  background:linear-gradient(92deg,#B88A2E 0%,#E8C87A 42%,#FFE899 58%,#CC9633 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.sub.on-black{color:#B3A88F;} .sub.on-black .b{color:#F1E7D2;font-weight:600;}
+.pshadow.on-black{filter:blur(48px) brightness(0);opacity:.75;}
+/* rim light: a gold-tinted copy of the device edge, drawn slightly larger and
+   blurred, so the black bezel separates from the black ground */
+.prim{position:absolute;width:var(--w);z-index:1;pointer-events:none;
+  filter:blur(6px) sepia(1) saturate(4) brightness(1.15);opacity:.55;transform-origin:center;}
+.callout-d.on-black{background:#0C0A08;border-color:rgba(232,200,122,.5);padding-top:calc(72px*var(--k));
+  box-shadow:0 0 0 1px rgba(255,232,153,.12) inset,0 40px 60px -30px rgba(0,0,0,.9);}
+.tag.on-black{background:#171310;border-color:rgba(232,200,122,.55);color:#F1E7D2;}
+.tag.on-black .dot{background:#E8C87A;}
+/* feature tiles — glass "bubbles" on black, hairline gold, one real app row
+   inside each, PADDED (the row floats in the bubble; it is not the bubble),
+   with an eyebrow label above and a caption below. Alternating ±ry so they
+   read as cards floating in space, not a table. */
+.tiles{position:absolute;z-index:4;display:flex;flex-direction:column;gap:calc(44px*var(--k));}
+.tile{position:relative;background:linear-gradient(160deg,rgba(30,26,20,.97),rgba(12,10,8,.99));min-height:calc(400px*var(--k));
+  border:2px solid rgba(232,200,122,.30);border-radius:calc(48px*var(--k));overflow:hidden;
+  padding:calc(40px*var(--k)) calc(48px*var(--k)) calc(44px*var(--k));
+  box-shadow:0 0 0 1px rgba(255,232,153,.08) inset,0 60px 100px -34px rgba(0,0,0,.95),0 0 60px rgba(232,200,122,.06);
+  transform:perspective(2400px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));}
+.tile .lbl{display:block;font-weight:600;font-size:calc(26px*var(--k));letter-spacing:.22em;
+  text-transform:uppercase;color:rgba(232,200,122,.9);margin-bottom:calc(18px*var(--k));}
+.tile img{display:block;width:100%;border-radius:calc(22px*var(--k));}
+.tile .cap{padding-top:calc(28px*var(--k));font-weight:500;font-size:calc(33px*var(--k));
+  color:#B9AE9B;letter-spacing:-.005em;line-height:1.35;}
+.tile .cap b{color:#F1E7D2;font-weight:600;}
+/* the Gold Life ID plate as a physical card */
+.idcard{position:absolute;z-index:3;width:var(--w);border-radius:calc(64px*var(--k));overflow:hidden;
+  transform:perspective(3000px) rotateY(var(--ry,-14deg)) rotateX(var(--rx,4deg)) rotateZ(var(--rz,-2deg));
+  box-shadow:0 0 0 2px rgba(255,232,153,.35) inset,0 50px 60px -30px rgba(0,0,0,.95),0 0 60px rgba(232,200,122,.18);}
+.idcard img{display:block;width:100%;}
+.idcard::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 30%,rgba(255,244,200,.22) 46%,rgba(255,255,255,0) 58%);}
+.closer.on-black h1{color:#FBF6EA;} .closer.on-black h1 .g{
+  background:linear-gradient(92deg,#B88A2E 0%,#E8C87A 42%,#FFE899 58%,#CC9633 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.closer.on-black p{color:#B3A88F;}
+.closer .idplate{width:calc(500px*var(--k));border-radius:calc(40px*var(--k));overflow:hidden;
+  box-shadow:0 0 0 2px rgba(255,232,153,.35) inset,0 40px 60px -30px rgba(0,0,0,.95),0 0 60px rgba(232,200,122,.16);
+  transform:perspective(2600px) rotateY(-10deg) rotateX(6deg) rotateZ(-3deg);}
+.closer .idplate img{display:block;width:100%;}
+
+/* ── v1 POSTER PASS (Adrian, 2026-08-16: "they don't look like I hired a
+   renowned professional advertiser"). What changed and why:
+   • SCALE: objects own 70–80% of the frame and may bleed off the canvas
+     (.bleed lets a phone run off the top/side). Thumbnails decide installs.
+   • COPY: .h-poster is a 3–6 word punchline at 150–170px; subheads mostly
+     gone. .h-mega is the "one giant number" treatment (200px+).
+   • LIGHT: one believable KEY — a hard warm highlight from the upper-left
+     (.key), plus a FLOOR the object sits on: .floor is a soft gold-tinted
+     ellipse under it, .refl a real flipped reflection fading into black.
+     Gold is a lamp, not a tint.
+   • MATERIAL: .glass tiles get a top-edge light sweep and an inner highlight
+     so they read as glass, not outlined boxes.                                */
+.h-poster{font-weight:800;font-size:calc(150px*var(--k));line-height:.98;letter-spacing:-.035em;color:#FBF6EA;
+  margin-top:calc(40px*var(--k));text-wrap:balance;}
+.h-poster .g{background:linear-gradient(92deg,#B88A2E 0%,#E8C87A 42%,#FFE899 58%,#CC9633 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.h-mega{font-weight:800;font-size:calc(206px*var(--k));line-height:.92;letter-spacing:-.05em;margin:calc(28px*var(--k)) 0 calc(60px*var(--k));color:#FBF6EA;
+  text-wrap:balance;text-shadow:0 0 90px rgba(232,200,122,.28);}
+.h-mega small{font-size:.58em;letter-spacing:-.03em;vertical-align:baseline;}
+.panel[style*="--k:1.58"] .h-mega{font-size:calc(150px*var(--k));}
+.panel[style*="--k:1.58"] .h-poster{font-size:calc(96px*var(--k));}
+.panel[style*="--k:1.58"] .sub-short{font-size:calc(34px*var(--k));}
+.panel[style*="--k:1.28"] .h-mega{font-size:calc(130px*var(--k));}
+.panel[style*="--k:1.28"] .h-poster{font-size:calc(82px*var(--k));}
+.panel[style*="--k:1.28"] .sub-short{font-size:calc(30px*var(--k));}
+.panel[style*="--k:1.58"] .closer .idplate{width:calc(300px*var(--k));}
+.panel[style*="--k:1.58"] .closer .seal{width:calc(240px*var(--k));}
+.panel[style*="--k:1.58"] .closer{gap:calc(22px*var(--k));}
+.pad.center .h-poster{margin-top:calc(20px*var(--k));}
+.h-mega .g{background:linear-gradient(92deg,#B88A2E 0%,#E8C87A 42%,#FFE899 58%,#CC9633 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.sub-short{font-weight:400;font-size:calc(42px*var(--k));line-height:1.35;color:#B3A88F;margin-top:calc(34px*var(--k));}
+.sub-short .b{color:#F1E7D2;font-weight:600;}
+.pad.center{text-align:center;} .pad.right{text-align:right;}
+/* NO filter:blur on these — a blurred, border-radius:50% element that extends
+   past the canvas edge renders its clipped region as OPAQUE WHITE in Chromium
+   on the 2752-wide canvas (deterministic; isolated 2026-08-16 by rendering
+   ipad_05 without each layer). The radial gradient already fades to
+   transparent, so the blur bought nothing. */
+.key{position:absolute;z-index:1;pointer-events:none;
+  background:radial-gradient(circle at 50% 50%, rgba(255,232,153,.50) 0%, rgba(232,200,122,.20) 30%, rgba(204,150,51,.05) 55%, rgba(0,0,0,0) 70%);}
+.floor{position:absolute;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%, rgba(232,200,122,.32) 0%, rgba(204,150,51,.11) 40%, rgba(0,0,0,0) 72%);}
+.refl{position:absolute;z-index:2;pointer-events:none;width:var(--w);
+  transform:perspective(3000px) rotateY(var(--ry,-14deg)) rotateX(var(--rx,4deg)) rotateZ(var(--rz,-2deg));
+  opacity:.75;
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,0) 55%);
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,0) 55%);}
+.refl img{display:block;width:100%;}
+.stage.bleed{overflow:visible;}
+.glass{position:relative;border-radius:calc(52px*var(--k));overflow:hidden;
+  background:linear-gradient(165deg,rgba(40,34,26,.92) 0%,rgba(14,12,9,.98) 60%);
+  border:1.5px solid rgba(232,200,122,.32);
+  box-shadow:0 0 0 1px rgba(255,232,153,.10) inset,0 30px 60px -30px rgba(0,0,0,.95),0 0 60px rgba(232,200,122,.07);}
+.glass::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,244,200,.14) 0%,rgba(255,244,200,0) 22%);}
+.glass::after{content:"";position:absolute;left:8%;right:8%;top:0;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,232,153,0),rgba(255,232,153,.7),rgba(255,232,153,0));}
+.tile.glass{padding:calc(44px*var(--k)) calc(52px*var(--k)) calc(48px*var(--k));min-height:0;}
+.tile.glass .lbl{font-size:calc(28px*var(--k));}
+.tile.glass .cap{font-size:calc(36px*var(--k));}
+.idcard.big{border-radius:calc(70px*var(--k));}
+.idcard.big::after{background:linear-gradient(112deg,rgba(255,255,255,0) 28%,rgba(255,250,220,.34) 44%,rgba(255,255,255,0) 54%);}
+.chip{position:absolute;z-index:4;display:inline-flex;align-items:center;gap:calc(18px*var(--k));
+  background:linear-gradient(160deg,rgba(40,34,26,.94),rgba(14,12,9,.98));border:1.5px solid rgba(232,200,122,.4);
+  border-radius:100px;padding:calc(22px*var(--k)) calc(40px*var(--k));font-weight:600;font-size:calc(34px*var(--k));color:#F1E7D2;
+  box-shadow:0 30px 60px -22px rgba(0,0,0,.9);}
+.chip .dot{width:calc(18px*var(--k));height:calc(18px*var(--k));border-radius:50%;background:#E8C87A;box-shadow:0 0 18px rgba(232,200,122,.8);}

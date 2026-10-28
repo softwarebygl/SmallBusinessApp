@@ -1,0 +1,44 @@
+{
+  "configurations": [
+    {
+      "id": "1E5A0C00-0000-4000-A000-000000000001",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "codeCoverage": {
+      "targets": [
+        {
+          "containerPath": "container:GLSmallBusiness.xcodeproj",
+          "identifier": "7E5FB4002FC7B1B30081002D",
+          "name": "GLSmallBusiness"
+        }
+      ]
+    },
+    "language": "en",
+    "region": "US"
+  },
+  "testTargets": [
+    {
+      "target": {
+        "containerPath": "container:GLSmallBusiness.xcodeproj",
+        "identifier": "AA0000000000000000000006",
+        "name": "GLSmallBusinessTests"
+      },
+      "parallelizable": false
+    },
+    {
+      "target": {
+        "containerPath": "container:GLSmallBusiness.xcodeproj",
+        "identifier": "BB0000000000000000000006",
+        "name": "GLSmallBusinessUITests"
+      },
+      "parallelizable": false,
+      "skippedTests": [
+        "MarketingShotsUITests"
+      ]
+    }
+  ],
+  "version": 1
+}

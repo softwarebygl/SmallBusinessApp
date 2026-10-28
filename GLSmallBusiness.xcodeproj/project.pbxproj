@@ -1,0 +1,768 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E1A8B2C30000000100000002 /* MoneyJourneyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A8B2C30000000100000001 /* MoneyJourneyUITests.swift */; };
+		AB0000000000000000000083 /* GoldLifeMoney in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000082 /* GoldLifeMoney */; };
+		AB0000000000000000000033 /* GoldLifeUI in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000032 /* GoldLifeUI */; };
+		AB0000000000000000000043 /* GoldLifeID in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000042 /* GoldLifeID */; };
+		AB0000000000000000000053 /* GoldLifeCloud in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000052 /* GoldLifeCloud */; };
+		AB0000000000000000000063 /* GoldLifeAI in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000062 /* GoldLifeAI */; };
+		AB0000000000000000000073 /* GoldLifeDocuments in Frameworks */ = {isa = PBXBuildFile; productRef = AB0000000000000000000072 /* GoldLifeDocuments */; };
+		CC0000000000000000000031 /* StytchCore in Frameworks */ = {isa = PBXBuildFile; productRef = CC0000000000000000000011 /* StytchCore */; };
+		CC0000000000000000000032 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = CC0000000000000000000012 /* GoogleSignIn */; };
+		CC0000000000000000000033 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = CC0000000000000000000013 /* GoogleSignInSwift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA0000000000000000000007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7E5FB3F92FC7B1B30081002D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E5FB4002FC7B1B30081002D;
+			remoteInfo = GLSmallBusiness;
+		};
+		BB0000000000000000000007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7E5FB3F92FC7B1B30081002D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E5FB4002FC7B1B30081002D;
+			remoteInfo = GLSmallBusiness;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		E1A8B2C30000000100000001 /* MoneyJourneyUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyJourneyUITests.swift; sourceTree = "<group>"; };
+		7E5FB4012FC7B1B30081002D /* GLSmallBusiness.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GLSmallBusiness.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000001 /* GLSmallBusinessTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GLSmallBusinessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB0000000000000000000001 /* GLSmallBusinessUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GLSmallBusinessUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7ECEF4112FC9040800DABC35 /* Exceptions for "GLSmallBusiness" folder in "GLSmallBusiness" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 7E5FB4002FC7B1B30081002D /* GLSmallBusiness */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		7E5FB4032FC7B1B30081002D /* GLSmallBusiness */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7ECEF4112FC9040800DABC35 /* Exceptions for "GLSmallBusiness" folder in "GLSmallBusiness" target */,
+			);
+			path = GLSmallBusiness;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000002 /* GLSmallBusinessTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = GLSmallBusinessTests;
+			sourceTree = "<group>";
+		};
+		BB0000000000000000000002 /* GLSmallBusinessUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = GLSmallBusinessUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7E5FB3FE2FC7B1B30081002D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB0000000000000000000033 /* GoldLifeUI in Frameworks */,
+				AB0000000000000000000043 /* GoldLifeID in Frameworks */,
+				AB0000000000000000000053 /* GoldLifeCloud in Frameworks */,
+				AB0000000000000000000063 /* GoldLifeAI in Frameworks */,
+				AB0000000000000000000073 /* GoldLifeDocuments in Frameworks */,
+				AB0000000000000000000083 /* GoldLifeMoney in Frameworks */,
+				CC0000000000000000000031 /* StytchCore in Frameworks */,
+				CC0000000000000000000032 /* GoogleSignIn in Frameworks */,
+				CC0000000000000000000033 /* GoogleSignInSwift in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA0000000000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB0000000000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7E5FB3F82FC7B1B30081002D = {
+			isa = PBXGroup;
+			children = (
+				7E5FB4032FC7B1B30081002D /* GLSmallBusiness */,
+				AA0000000000000000000002 /* GLSmallBusinessTests */,
+				BB0000000000000000000002 /* GLSmallBusinessUITests */,
+				7E5FB4022FC7B1B30081002D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7E5FB4022FC7B1B30081002D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7E5FB4012FC7B1B30081002D /* GLSmallBusiness.app */,
+				AA0000000000000000000001 /* GLSmallBusinessTests.xctest */,
+				BB0000000000000000000001 /* GLSmallBusinessUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7E5FB4002FC7B1B30081002D /* GLSmallBusiness */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7E5FB40C2FC7B1B40081002D /* Build configuration list for PBXNativeTarget "GLSmallBusiness" */;
+			buildPhases = (
+				7E5FB3FD2FC7B1B30081002D /* Sources */,
+				7E5FB3FE2FC7B1B30081002D /* Frameworks */,
+				7E5FB3FF2FC7B1B30081002D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				7E5FB4032FC7B1B30081002D /* GLSmallBusiness */,
+			);
+			name = GLSmallBusiness;
+			packageProductDependencies = (
+				AB0000000000000000000032 /* GoldLifeUI */,
+				AB0000000000000000000042 /* GoldLifeID */,
+				AB0000000000000000000052 /* GoldLifeCloud */,
+				AB0000000000000000000062 /* GoldLifeAI */,
+				AB0000000000000000000072 /* GoldLifeDocuments */,
+				AB0000000000000000000082 /* GoldLifeMoney */,
+				CC0000000000000000000011 /* StytchCore */,
+				CC0000000000000000000012 /* GoogleSignIn */,
+				CC0000000000000000000013 /* GoogleSignInSwift */,
+			);
+			productName = GLSmallBusiness;
+			productReference = 7E5FB4012FC7B1B30081002D /* GLSmallBusiness.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AA0000000000000000000006 /* GLSmallBusinessTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA000000000000000000000B /* Build configuration list for PBXNativeTarget "GLSmallBusinessTests" */;
+			buildPhases = (
+				AA0000000000000000000003 /* Sources */,
+				AA0000000000000000000004 /* Frameworks */,
+				AA0000000000000000000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA0000000000000000000008 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				AA0000000000000000000002 /* GLSmallBusinessTests */,
+			);
+			name = GLSmallBusinessTests;
+			packageProductDependencies = (
+			);
+			productName = GLSmallBusinessTests;
+			productReference = AA0000000000000000000001 /* GLSmallBusinessTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BB0000000000000000000006 /* GLSmallBusinessUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB000000000000000000000B /* Build configuration list for PBXNativeTarget "GLSmallBusinessUITests" */;
+			buildPhases = (
+				BB0000000000000000000003 /* Sources */,
+				BB0000000000000000000004 /* Frameworks */,
+				BB0000000000000000000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BB0000000000000000000008 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BB0000000000000000000002 /* GLSmallBusinessUITests */,
+			);
+			name = GLSmallBusinessUITests;
+			packageProductDependencies = (
+			);
+			productName = GLSmallBusinessUITests;
+			productReference = BB0000000000000000000001 /* GLSmallBusinessUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7E5FB3F92FC7B1B30081002D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					7E5FB4002FC7B1B30081002D = {
+						CreatedOnToolsVersion = 26.5;
+					};
+					AA0000000000000000000006 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 7E5FB4002FC7B1B30081002D;
+					};
+					BB0000000000000000000006 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 7E5FB4002FC7B1B30081002D;
+					};
+				};
+			};
+			buildConfigurationList = 7E5FB3FC2FC7B1B30081002D /* Build configuration list for PBXProject "GLSmallBusiness" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				es,
+				Base,
+			);
+			mainGroup = 7E5FB3F82FC7B1B30081002D;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AB0000000000000000000031 /* XCLocalSwiftPackageReference "../GoldLifeUI" */,
+				AB0000000000000000000041 /* XCLocalSwiftPackageReference "../GoldLifeID" */,
+				AB0000000000000000000051 /* XCLocalSwiftPackageReference "../GoldLifeCloud" */,
+				AB0000000000000000000061 /* XCLocalSwiftPackageReference "../GoldLifeAI" */,
+				AB0000000000000000000071 /* XCLocalSwiftPackageReference "../GoldLifeDocuments" */,
+				AB0000000000000000000081 /* XCLocalSwiftPackageReference "../GoldLifeMoney" */,
+				CC0000000000000000000021 /* XCRemoteSwiftPackageReference "stytch-ios" */,
+				CC0000000000000000000022 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7E5FB4022FC7B1B30081002D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7E5FB4002FC7B1B30081002D /* GLSmallBusiness */,
+				AA0000000000000000000006 /* GLSmallBusinessTests */,
+				BB0000000000000000000006 /* GLSmallBusinessUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7E5FB3FF2FC7B1B30081002D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA0000000000000000000005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB0000000000000000000005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7E5FB3FD2FC7B1B30081002D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA0000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB0000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA0000000000000000000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7E5FB4002FC7B1B30081002D /* GLSmallBusiness */;
+			targetProxy = AA0000000000000000000007 /* PBXContainerItemProxy */;
+		};
+		BB0000000000000000000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7E5FB4002FC7B1B30081002D /* GLSmallBusiness */;
+			targetProxy = BB0000000000000000000007 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		7E5FB40A2FC7B1B40081002D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = T77JR9H9SB;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		7E5FB40B2FC7B1B40081002D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = T77JR9H9SB;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		7E5FB40D2FC7B1B40081002D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = GLSmallBusiness/GLSmallBusiness.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 111;
+				DEVELOPMENT_TEAM = T77JR9H9SB;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GLSmallBusiness/Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = NO;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = NO;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 3.4.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evolvedbygl.GLSmallBusiness;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		7E5FB40E2FC7B1B40081002D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = GLSmallBusiness/GLSmallBusiness.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 111;
+				DEVELOPMENT_TEAM = T77JR9H9SB;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GLSmallBusiness/Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = NO;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = NO;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 3.4.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evolvedbygl.GLSmallBusiness;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		AA0000000000000000000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 111;
+				DEVELOPMENT_TEAM = T77JR9H9SB;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evolvedbygl.GLSmallBusinessTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GLSmallBusiness.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GLSmallBusiness";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		AA000000000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 111;
+				DEVELOPMENT_TEAM = T77JR9H9SB;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evolvedbygl.GLSmallBusinessTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GLSmallBusiness.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GLSmallBusiness";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		BB0000000000000000000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 111;
+				DEVELOPMENT_TEAM = T77JR9H9SB;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evolvedbygl.GLSmallBusinessUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = GLSmallBusiness;
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		BB000000000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 111;
+				DEVELOPMENT_TEAM = T77JR9H9SB;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evolvedbygl.GLSmallBusinessUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = GLSmallBusiness;
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7E5FB3FC2FC7B1B30081002D /* Build configuration list for PBXProject "GLSmallBusiness" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E5FB40A2FC7B1B40081002D /* Debug */,
+				7E5FB40B2FC7B1B40081002D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7E5FB40C2FC7B1B40081002D /* Build configuration list for PBXNativeTarget "GLSmallBusiness" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E5FB40D2FC7B1B40081002D /* Debug */,
+				7E5FB40E2FC7B1B40081002D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA000000000000000000000B /* Build configuration list for PBXNativeTarget "GLSmallBusinessTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000009 /* Debug */,
+				AA000000000000000000000A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BB000000000000000000000B /* Build configuration list for PBXNativeTarget "GLSmallBusinessUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB0000000000000000000009 /* Debug */,
+				BB000000000000000000000A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		AB0000000000000000000031 /* XCLocalSwiftPackageReference "../GoldLifeUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../GoldLifeUI;
+		};
+		AB0000000000000000000041 /* XCLocalSwiftPackageReference "../GoldLifeID" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../GoldLifeID;
+		};
+		AB0000000000000000000051 /* XCLocalSwiftPackageReference "../GoldLifeCloud" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../GoldLifeCloud;
+		};
+		AB0000000000000000000061 /* XCLocalSwiftPackageReference "../GoldLifeAI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../GoldLifeAI;
+		};
+		AB0000000000000000000071 /* XCLocalSwiftPackageReference "../GoldLifeDocuments" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../GoldLifeDocuments;
+		};
+		AB0000000000000000000081 /* XCLocalSwiftPackageReference "../GoldLifeMoney" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../GoldLifeMoney;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CC0000000000000000000021 /* XCRemoteSwiftPackageReference "stytch-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stytchauth/stytch-ios.git";
+			requirement = {
+				kind = revision;
+				revision = d1a30d7cb40cb98464e8a0f4e2cbc5d077b3b66a;
+			};
+		};
+		CC0000000000000000000022 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AB0000000000000000000032 /* GoldLifeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GoldLifeUI;
+		};
+		AB0000000000000000000042 /* GoldLifeID */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GoldLifeID;
+		};
+		AB0000000000000000000052 /* GoldLifeCloud */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GoldLifeCloud;
+		};
+		AB0000000000000000000062 /* GoldLifeAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GoldLifeAI;
+		};
+		AB0000000000000000000072 /* GoldLifeDocuments */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GoldLifeDocuments;
+		};
+		AB0000000000000000000082 /* GoldLifeMoney */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GoldLifeMoney;
+		};
+		CC0000000000000000000011 /* StytchCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CC0000000000000000000021 /* XCRemoteSwiftPackageReference "stytch-ios" */;
+			productName = StytchCore;
+		};
+		CC0000000000000000000012 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CC0000000000000000000022 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		CC0000000000000000000013 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CC0000000000000000000022 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 7E5FB3F92FC7B1B30081002D /* Project object */;
+}

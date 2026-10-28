@@ -1,0 +1,54 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode - user-specific
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+
+# Xcode - build artifacts
+build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+Package.resolved.user
+
+# CocoaPods (uncomment if adopted)
+# Pods/
+
+# Carthage (uncomment if adopted)
+# Carthage/Build/
+
+# Fastlane (uncomment if adopted)
+# fastlane/report.xml
+# fastlane/Preview.html
+# fastlane/screenshots/**/*.png
+# fastlane/test_output
+
+# Code coverage / profiling
+*.profraw
+*.gcda
+*.gcno
+
+# Editor / OS misc
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Local secrets — tokens, API keys, signing keys (NEVER commit these)
+secrets/
+*.p8
+GLSmallBusiness/Services/LocalSecrets.swift
