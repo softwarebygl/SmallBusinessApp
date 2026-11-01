@@ -74,6 +74,7 @@ nonisolated final class GLSyncStubServer: @unchecked Sendable {
     private var _snapshotStatus = 200
     private var _paths: [String] = []
     private var _syncedOpIDs: [[String]] = []
+    private var _syncedOps: [[[String: Any]]] = []
     private var _mints = 0
     /// A canned answer for one path suffix, ahead of everything else.
     private var _overrides: [String: Reply] = [:]
@@ -91,6 +92,8 @@ nonisolated final class GLSyncStubServer: @unchecked Sendable {
     var paths: [String] { lock.lock(); defer { lock.unlock() }; return _paths }
     /// The op ids of every `/sync` request, one array per request.
     var syncedOpIDs: [[String]] { lock.lock(); defer { lock.unlock() }; return _syncedOpIDs }
+    /// The raw ops of every `/sync` request, one array per request.
+    var syncedOps: [[[String: Any]]] { lock.lock(); defer { lock.unlock() }; return _syncedOps }
     var mints: Int { lock.lock(); defer { lock.unlock() }; return _mints }
 
     func override(_ suffix: String, with reply: Reply) {
@@ -182,7 +185,7 @@ nonisolated final class GLSyncStubServer: @unchecked Sendable {
             let object = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any]
             let ops = (object?["ops"] as? [[String: Any]]) ?? []
             let ids = ops.compactMap { $0["op_id"] as? String }
-            lock.lock(); _syncedOpIDs.append(ids); lock.unlock()
+            lock.lock(); _syncedOpIDs.append(ids); _syncedOps.append(ops); lock.unlock()
             var results: [String: Any] = [:]
             for id in ids {
                 results[id] = lapsed

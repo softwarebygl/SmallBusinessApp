@@ -2718,3 +2718,57 @@ struct GLSyncBlobHashCacheTests {
         #expect(outcome.blobFetches.map(\.field) == ["w9Data"])
     }
 }
+
+// MARK: - Full-Record GLS1 End-to-End Encryption
+
+@MainActor
+@Suite(.serialized)
+struct GLSyncGLS1EncryptionTests {
+
+    @Test func outgoingOpsAreSealedInGLS1EnvelopesAndPlaintextPullsAreAutoSealed() async throws {
+        let server = GLSyncStubServer(lapsed: false)
+        let plaidCustomerID = UUID()
+        server.override("/snapshot", with: GLSyncStubServer.Reply(
+            status: 200,
+            body: """
+            {"records":[{"id":"\(plaidCustomerID.uuidString.lowercased())","type":"customer","parent_id":null,"version":2,"seq":5,"deleted_at":null,"payload":{"firstName":"Plaid","lastName":"Imported"}}]}
+            """
+        ))
+        server.install()
+        defer { GLSyncStubServer.uninstall() }
+
+        let container = try TestStore.makeContainer()
+        let localID = SyncFix.customers(1, in: SyncFix.reader(container), prefix: "Secret")[0]
+        let engine = server.engine(container)
+
+        await engine.sync(trigger: .manual)
+
+        let pushedOps = server.syncedOps.flatMap { $0 }
+        #expect(pushedOps.count == 2, "both the local customer and the unencrypted pulled row must be pushed sealed")
+
+        let masterKey = try await GLSentinelKeyManager.shared.getOrCreateMasterKey(for: "glid-stub")
+        for rawOp in pushedOps {
+            let recordID = try #require(rawOp["id"] as? String)
+            let recordType = try #require(rawOp["type"] as? String)
+            let patch = try #require(rawOp["patch"] as? [String: Any])
+            #expect(patch.keys.sorted() == ["envelope"], "wire patch must contain only the GLS1 envelope, never plaintext keys")
+            let env = try #require(patch["envelope"] as? String)
+            #expect(env.hasPrefix("R0xTMQ"))
+
+            let openedData = try GLSentinelCrypto.openBusinessRecord(
+                base64Envelope: env,
+                userID: "glid-stub",
+                recordID: recordID,
+                recordType: recordType,
+                masterKey: masterKey
+            )
+            let decoded = try #require(try JSONSerialization.jsonObject(with: openedData) as? [String: Any])
+            if recordID.lowercased() == localID.uuidString.lowercased() {
+                #expect(decoded["firstName"] as? String == "Secret0")
+            } else if recordID.lowercased() == plaidCustomerID.uuidString.lowercased() {
+                #expect(decoded["firstName"] as? String == "Plaid")
+            }
+        }
+        await engine.stop()
+    }
+}

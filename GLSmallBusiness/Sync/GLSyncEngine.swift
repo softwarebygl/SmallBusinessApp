@@ -813,10 +813,11 @@ actor GLSyncEngine {
             // Blob bytes must be on the server BEFORE the payload that references them, or a
             // pulled row points at an attachment that 404s.
             let sanitized = try await uploadBlobs(for: ops)
+            let wireOps = try await sealOps(sanitized, originalOps: ops, ownerID: persisted.ownerID)
 
             try Task.checkCancellation()
             let response = try await wire().sync(
-                deviceID: persisted.deviceID, cursor: persisted.cursor, ops: sanitized)
+                deviceID: persisted.deviceID, cursor: persisted.cursor, ops: wireOps)
 
             let push = await store.applyResults(response.results, for: sanitized)
             heldThisCycle.formUnion(push.heldOpIDs)
@@ -832,7 +833,8 @@ actor GLSyncEngine {
             // that echo must not land on an edit saved while the request was on the wire.
             let folded = try await foldBeforeApplying(&window)
 
-            let verdict = await store.applyChanges(response.changes)
+            let opened = await openRows(response.changes, ownerID: persisted.ownerID)
+            let verdict = await store.applyChanges(opened.rows)
             switch verdict {
             case .massDeleteRefused(let deletions, let threshold):
                 // GLSYNC-SPEC.md §5. The cursor is NOT advanced and the history token is NOT
@@ -844,6 +846,7 @@ actor GLSyncEngine {
 
             case .applied(let pull):
                 await absorb(pull)
+                let migrated = await store.enqueueSealMigration(for: opened.unsealedTypesByID)
 
                 // §5.5 — together, transactionally, and only now. The newest folded token: every
                 // window up to it is in the outbox, which is where unsent work lives.
@@ -874,11 +877,12 @@ actor GLSyncEngine {
                 // cap. The next trigger retries it, which is what "later" means here.
                 let moreToPush = ops.count >= Self.opsPerChunk && !sanitized.isEmpty
                 let morePulled = response.changes.count >= Self.pullPageSize
-                // An edit folded mid-cycle is pushed in THIS cycle: the save's own trigger was
-                // dropped while the cycle ran. Bounded, so an app write that answers every pull
-                // with a save cannot spin rounds; past the bound the outbox still holds it.
+                // An edit folded mid-cycle (or an unsealed Plaid/legacy row queued for GLS1 sealing)
+                // is pushed in THIS cycle: the save's own trigger was dropped while the cycle ran.
+                // Bounded, so an app write that answers every pull with a save cannot spin rounds;
+                // past the bound the outbox still holds it.
                 var foldedMore = false
-                if folded > 0, foldDrivenRounds < Self.maxFoldDrivenRounds {
+                if (folded > 0 || migrated > 0), foldDrivenRounds < Self.maxFoldDrivenRounds {
                     foldDrivenRounds += 1
                     foldedMore = true
                 }
@@ -940,6 +944,7 @@ actor GLSyncEngine {
         var after = 0
         var pulledIDs: Set<UUID> = []
         var pulledPayloads: [UUID: [String: Any]] = [:]
+        var unsealedTypesByID: [UUID: String] = [:]
         var maxSeq = persisted.cursor
 
         while true {
@@ -959,6 +964,7 @@ actor GLSyncEngine {
                 after = 0
                 pulledIDs = []
                 pulledPayloads = [:]
+                unsealedTypesByID = [:]
                 maxSeq = 0
                 continue
             }
@@ -968,7 +974,11 @@ actor GLSyncEngine {
             // F16: an edit saved while the previous page downloaded joins the outbox before
             // this page lands on it.
             try await foldBeforeApplying(&window)
-            let verdict = await store.applyChanges(page.records)
+            let opened = await openRows(page.records, ownerID: persisted.ownerID)
+            for (recordID, recordType) in opened.unsealedTypesByID {
+                unsealedTypesByID[recordID] = recordType
+            }
+            let verdict = await store.applyChanges(opened.rows)
             switch verdict {
             case .massDeleteRefused(let deletions, let threshold):
                 pause(deletions: deletions, threshold: threshold, announce: true)
@@ -980,11 +990,11 @@ actor GLSyncEngine {
                 maxSeq = max(maxSeq, pull.maxSeq)
             }
 
-            pulledIDs.formUnion(page.records.map(\.id))
-            for row in page.records where !row.isTombstone {
+            pulledIDs.formUnion(opened.rows.map(\.id))
+            for row in opened.rows where !row.isTombstone {
                 if let payload = row.payload.payload { pulledPayloads[row.id] = payload }
             }
-            after = page.records.map(\.seq).max() ?? after
+            after = opened.rows.map(\.seq).max() ?? after
             if page.records.count < Self.snapshotPageSize { break }
         }
 
@@ -1005,12 +1015,132 @@ actor GLSyncEngine {
             NSLog("glsync: bootstrap upload suppressed — this store predates the signed-in account")
         } else {
             enqueued = await store.enqueueEverything(pulled: pulledPayloads)
+            if !unsealedTypesByID.isEmpty {
+                enqueued += await store.enqueueSealMigration(for: unsealedTypesByID)
+            }
         }
         NSLog("glsync: bootstrap complete — %d pulled, %d local records queued for upload",
               pulledIDs.count, enqueued)
 
         await store.markBootstrapComplete(cursor: maxSeq)
         persisted = await store.persistedState()
+    }
+
+    // MARK: GLS1 Record Encryption
+
+    /// Seals every non-delete op's full record payload inside a `GLS1` (`AES-256-GCM`) envelope
+    /// bound to the signed-in Gold Life ID (`ownerID`), `recordID`, and `recordType`.
+    private func sealOps(
+        _ ops: [GLSyncPendingOp],
+        originalOps: [GLSyncPendingOp],
+        ownerID: String?
+    ) async throws -> [GLSyncPendingOp] {
+        guard !ops.isEmpty else { return [] }
+        let resolvedOwner = ownerID ?? (try? wire().binding?.owner)
+        guard let owner = resolvedOwner, !owner.isEmpty else { return ops }
+
+        let masterKey = try await GLSentinelKeyManager.shared.getOrCreateMasterKey(for: owner)
+        let fullPayloads = await store.fullPayloadsForSealing(
+            sanitizedOps: ops, originalOps: originalOps)
+
+        return try ops.map { op in
+            guard !op.isDelete else { return op }
+            let payloadDict = fullPayloads[op.recordID]
+                ?? ((op.patchJSON.data(using: .utf8)
+                    .flatMap { try? JSONSerialization.jsonObject(with: $0) } as? GLSyncPayload) ?? [:])
+
+            if payloadDict.count == 1, let existing = payloadDict["envelope"] as? String, !existing.isEmpty {
+                return op
+            }
+
+            guard JSONSerialization.isValidJSONObject(payloadDict),
+                  let jsonData = try? JSONSerialization.data(withJSONObject: payloadDict, options: [.sortedKeys]) else {
+                return op
+            }
+
+            let envelope = try GLSentinelCrypto.sealBusinessRecord(
+                payloadJSON: jsonData,
+                userID: owner,
+                recordID: op.recordID.uuidString,
+                recordType: op.recordType,
+                masterKey: masterKey
+            )
+            let wrapper: [String: String] = ["envelope": envelope]
+            guard let sealedData = try? JSONSerialization.data(withJSONObject: wrapper, options: [.sortedKeys]),
+                  let sealedText = String(data: sealedData, encoding: .utf8) else {
+                return op
+            }
+
+            return GLSyncPendingOp(
+                opID: op.opID,
+                recordID: op.recordID,
+                recordType: op.recordType,
+                parentID: op.parentID,
+                baseVersion: op.baseVersion,
+                patchJSON: sealedText,
+                isDelete: op.isDelete,
+                cascade: op.cascade,
+                clientTS: op.clientTS
+            )
+        }
+    }
+
+    /// Opens incoming server rows that carry a `GLS1` (`{"envelope": "GLS1..."}`) payload,
+    /// and collects the `(id, type)` pairs of any live rows that arrived in plaintext (such as
+    /// fresh Plaid bank transactions or pre-E2EE rows) so they can be immediately sealed and re-pushed.
+    private func openRows(
+        _ rows: [GLSyncRecordRow],
+        ownerID: String?
+    ) async -> (rows: [GLSyncRecordRow], unsealedTypesByID: [UUID: String]) {
+        guard !rows.isEmpty else { return ([], [:]) }
+        let resolvedOwner = ownerID ?? (try? wire().binding?.owner)
+        guard let owner = resolvedOwner, !owner.isEmpty,
+              let masterKey = try? await GLSentinelKeyManager.shared.getOrCreateMasterKey(for: owner) else {
+            return (rows, [:])
+        }
+
+        var openedRows: [GLSyncRecordRow] = []
+        openedRows.reserveCapacity(rows.count)
+        var unsealedTypesByID: [UUID: String] = [:]
+
+        for row in rows {
+            if row.isTombstone {
+                openedRows.append(row)
+                continue
+            }
+            if case .object(let dict) = row.payload,
+               case .string(let envelope) = dict["envelope"],
+               !envelope.isEmpty {
+                do {
+                    let decryptedData = try GLSentinelCrypto.openBusinessRecord(
+                        base64Envelope: envelope,
+                        userID: owner,
+                        recordID: row.id.uuidString,
+                        recordType: row.type,
+                        masterKey: masterKey
+                    )
+                    if let jsonObj = try JSONSerialization.jsonObject(with: decryptedData) as? [String: Any] {
+                        openedRows.append(GLSyncRecordRow(
+                            id: row.id,
+                            type: row.type,
+                            parentID: row.parentID,
+                            version: row.version,
+                            seq: row.seq,
+                            deletedAt: row.deletedAt,
+                            payload: GLSyncJSONValue.from(jsonObj)
+                        ))
+                    } else {
+                        openedRows.append(row)
+                    }
+                } catch {
+                    Logger.data.error("glsync GLS1 open failed for \(row.type, privacy: .public) \(row.id.uuidString, privacy: .public)")
+                }
+            } else {
+                openedRows.append(row)
+                unsealedTypesByID[row.id] = row.type
+            }
+        }
+        return (openedRows, unsealedTypesByID)
     }
 
     // MARK: Self-heal
@@ -2545,6 +2675,89 @@ final class GLSyncLocalStore {
             }
         }
         persist()
+        return enqueued
+    }
+
+    /// Builds the complete record payload for each non-delete op so `GLSyncEngine` can seal
+    /// the entire record inside a `GLS1` (`AES-256-GCM`) envelope while preserving any blob
+    /// hash rewrites or failed-upload field removals from `uploadBlobs`.
+    func fullPayloadsForSealing(
+        sanitizedOps: [GLSyncPendingOp],
+        originalOps: [GLSyncPendingOp]
+    ) -> [UUID: GLSyncPayload] {
+        let originalByID = Dictionary(uniqueKeysWithValues: originalOps.map { ($0.recordID, $0) })
+        var result: [UUID: GLSyncPayload] = [:]
+
+        for op in sanitizedOps where !op.isDelete {
+            let sanitizedPatch = (op.patchJSON.data(using: .utf8)
+                .flatMap { try? JSONSerialization.jsonObject(with: $0) } as? GLSyncPayload) ?? [:]
+
+            guard let entry = GLSyncRegistry.entry(for: op.recordType),
+                  let record = entry.fetch(op.recordID, context) else {
+                result[op.recordID] = sanitizedPatch
+                continue
+            }
+
+            var full = record.glSyncPayload()
+
+            if let orig = originalByID[op.recordID],
+               let origData = orig.patchJSON.data(using: .utf8),
+               let origPatch = (try? JSONSerialization.jsonObject(with: origData)) as? GLSyncPayload {
+                for key in origPatch.keys where sanitizedPatch[key] == nil {
+                    full.removeValue(forKey: key)
+                }
+            }
+
+            for blobField in entry.blobFields where GLSyncRegistry.piiClass(type: op.recordType, field: blobField) == .tax {
+                if sanitizedPatch[blobField] == nil {
+                    full.removeValue(forKey: blobField)
+                }
+            }
+
+            for (key, value) in sanitizedPatch {
+                full[key] = value
+            }
+
+            result[op.recordID] = full
+        }
+        return result
+    }
+
+    /// Enqueues local records whose server rows arrived without a `GLS1` encryption envelope
+    /// (such as newly ingested Plaid bank transactions or pre-E2EE rows) so the next round
+    /// immediately seals and overwrites them on the server with `{"envelope": "GLS1..."}`.
+    @discardableResult
+    func enqueueSealMigration(for unsealedTypesByID: [UUID: String]) -> Int {
+        guard !unsealedTypesByID.isEmpty else { return 0 }
+        var enqueued = 0
+        let ordered = unsealedTypesByID.sorted { lhs, rhs in
+            let ld = GLSyncRegistry.depth(of: lhs.value)
+            let rd = GLSyncRegistry.depth(of: rhs.value)
+            if ld != rd { return ld < rd }
+            return lhs.key.uuidString < rhs.key.uuidString
+        }
+        let now = Date()
+
+        for (recordID, recordType) in ordered {
+            guard let entry = GLSyncRegistry.entry(for: recordType),
+                  let record = entry.fetch(recordID, context) else { continue }
+            guard GLSyncOutboxEntry.entry(for: recordID, in: context) == nil else { continue }
+
+            let patch = record.glSyncPayload()
+            guard !patch.isEmpty else { continue }
+
+            let row = GLSyncOutboxEntry(
+                recordID: recordID,
+                recordType: recordType,
+                parentID: record.glSyncParentID,
+                baseVersion: version(for: recordID),
+                fieldsJSON: "",
+                firstDirtiedAt: now)
+            row.fields = patch
+            context.insert(row)
+            enqueued += 1
+        }
+        if enqueued > 0 { persist() }
         return enqueued
     }
 

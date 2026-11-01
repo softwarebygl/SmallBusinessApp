@@ -85,13 +85,17 @@ struct SentinelChatListColumn: View {
 
     private var newChatButton: some View {
         Button {
+            MBAssistantSession.shared.controller?.stop()
             chatService.startNewConversation()
-            selectedSessionID = chatService.activeSessionId
-            Task {
-                await MBAssistantSession.shared.loadSession(
-                    chatService.sessions[0],
-                    force: true
-                )
+            let newID = chatService.activeSessionId
+            selectedSessionID = newID
+            if let newSession = chatService.sessions.first(where: { $0.id == newID }) ?? chatService.sessions.first {
+                Task {
+                    await MBAssistantSession.shared.loadSession(
+                        newSession,
+                        force: true
+                    )
+                }
             }
         } label: {
             HStack(spacing: 8) {
@@ -161,6 +165,9 @@ struct SentinelChatListColumn: View {
 
     private func delete(_ items: [ChatSession]) {
         let wasSelected = items.contains { $0.id == selectedSessionID }
+        if wasSelected {
+            MBAssistantSession.shared.controller?.stop()
+        }
         for item in items {
             chatService.deleteSession(id: item.id)
         }

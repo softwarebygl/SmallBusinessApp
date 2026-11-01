@@ -205,7 +205,10 @@ struct IPadRootSplitView: View {
         }
         .onChange(of: selectedChatSessionID) { _, newID in
             if let id = newID {
-                AIChatService.shared.switchToSession(id: id)
+                if AIChatService.shared.activeSessionId != id {
+                    MBAssistantSession.shared.controller?.stop()
+                    AIChatService.shared.switchToSession(id: id)
+                }
                 if let target = AIChatService.shared.sessions.first(where: { $0.id == id }) {
                     Task {
                         await MBAssistantSession.shared.loadSession(target)

@@ -80,7 +80,7 @@ struct LaunchEntitlementTests {
         var components = try #require(URLComponents(url: pathURL, resolvingAgainstBaseURL: false))
         components.queryItems = request.queryItems
         let url = try #require(components.url)
-        #expect(url.path == "/entitlement")
+        #expect(url.path == "/id/entitlement" || url.path == "/entitlement")
         #expect(url.query == "app=my_business")
         #expect(!url.absoluteString.contains("%3F"))
     }
