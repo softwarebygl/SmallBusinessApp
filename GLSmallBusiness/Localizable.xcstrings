@@ -4479,6 +4479,12 @@
             "state": "translated",
             "value": "Cancelar"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
         }
       }
     },
@@ -6273,6 +6279,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copiado"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied"
           }
         }
       }
@@ -8683,6 +8695,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Listo"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
           }
         }
       }
@@ -14193,7 +14211,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "OK"
+            "value": "Aceptar"
           }
         }
       }
@@ -22488,6 +22506,12 @@
             "state": "translated",
             "value": "Desbloquear"
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
         }
       }
     },
@@ -26016,6 +26040,890 @@
           "stringUnit": {
             "state": "translated",
             "value": "¿Eliminar esta conversación?"
+          }
+        }
+      }
+    },
+    "Encrypted data locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypted data locked"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos cifrados bloqueados"
+          }
+        }
+      }
+    },
+    "Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave de recuperación"
+          }
+        }
+      }
+    },
+    "Locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueado"
+          }
+        }
+      }
+    },
+    "Your cloud data is protected with end-to-end encryption. If iCloud Keychain hasn’t synced your key yet, unlock this device with your Recovery Key or another signed-in device.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your cloud data is protected with end-to-end encryption. If iCloud Keychain hasn’t synced your key yet, unlock this device with your Recovery Key or another signed-in device."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus datos en la nube están protegidos con cifrado de extremo a extremo. Si el Llavero de iCloud aún no ha sincronizado tu clave, desbloquea este dispositivo con tu clave de recuperación o desde otro dispositivo con sesión iniciada."
+          }
+        }
+      }
+    },
+    "Unlock Encrypted Data": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock Encrypted Data"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear datos cifrados"
+          }
+        }
+      }
+    },
+    "Your encryption key is created automatically the first time your data syncs, and syncs across your Apple devices through iCloud Keychain.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your encryption key is created automatically the first time your data syncs, and syncs across your Apple devices through iCloud Keychain."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu clave de cifrado se crea automáticamente la primera vez que tus datos se sincronizan y se comparte entre tus dispositivos Apple mediante el Llavero de iCloud."
+          }
+        }
+      }
+    },
+    "Create Recovery Key Now": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Recovery Key Now"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear clave de recuperación ahora"
+          }
+        }
+      }
+    },
+    "Hide Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar clave de recuperación"
+          }
+        }
+      }
+    },
+    "Show Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar clave de recuperación"
+          }
+        }
+      }
+    },
+    "Secret Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secret Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave secreta de recuperación"
+          }
+        }
+      }
+    },
+    "Gold Life never stores this key. Keep a copy in a safe place so you can always unlock your My Business records and Sentinel chats if you lose all of your devices.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold Life never stores this key. Keep a copy in a safe place so you can always unlock your My Business records and Sentinel chats if you lose all of your devices."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold Life nunca guarda esta clave. Conserva una copia en un lugar seguro para poder desbloquear siempre tus registros de My Business y tus chats de Sentinel si pierdes todos tus dispositivos."
+          }
+        }
+      }
+    },
+    "Save Recovery Kit PDF": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Recovery Kit PDF"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar PDF del kit de recuperación"
+          }
+        }
+      }
+    },
+    "Exports a printable 1-page Recovery Kit PDF for safekeeping.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exports a printable 1-page Recovery Kit PDF for safekeeping."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporta un PDF imprimible de 1 página con tu kit de recuperación para guardarlo en un lugar seguro."
+          }
+        }
+      }
+    },
+    "Link Another Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link Another Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vincular otro dispositivo"
+          }
+        }
+      }
+    },
+    "Scan the QR code shown on another signed-in device to transfer your encryption key directly between devices.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the QR code shown on another signed-in device to transfer your encryption key directly between devices."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea el código QR que aparece en otro dispositivo con sesión iniciada para transferir tu clave de cifrado directamente entre dispositivos."
+          }
+        }
+      }
+    },
+    "Connect to the internet first so Gold Life can verify your account doesn’t already have an encryption key.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect to the internet first so Gold Life can verify your account doesn’t already have an encryption key."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conéctate primero a internet para que Gold Life pueda verificar que tu cuenta no tenga ya una clave de cifrado."
+          }
+        }
+      }
+    },
+    "Couldn’t create your Recovery Key right now. Please try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t create your Recovery Key right now. Please try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo crear tu clave de recuperación en este momento. Inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "Unlock Method": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock Method"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Método de desbloqueo"
+          }
+        }
+      }
+    },
+    "Another Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otro dispositivo"
+          }
+        }
+      }
+    },
+    "Unlock Data": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock Data"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear datos"
+          }
+        }
+      }
+    },
+    "Scan Pairing QR": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Pairing QR"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanear QR de vinculación"
+          }
+        }
+      }
+    },
+    "Couldn’t Unlock Data": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t Unlock Data"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron desbloquear los datos"
+          }
+        }
+      }
+    },
+    "GL-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GL-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GL-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
+          }
+        }
+      }
+    },
+    "Paste from Clipboard": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste from Clipboard"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pegar desde el portapapeles"
+          }
+        }
+      }
+    },
+    "Enter Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingresa tu clave de recuperación"
+          }
+        }
+      }
+    },
+    "Enter the Secret Recovery Key from your Gold Life Recovery Kit or from Menu ▸ Gold Life ID ▸ Recovery Key on another signed-in device.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the Secret Recovery Key from your Gold Life Recovery Kit or from Menu ▸ Gold Life ID ▸ Recovery Key on another signed-in device."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingresa la clave secreta de recuperación de tu kit de recuperación de Gold Life o desde Menú ▸ Gold Life ID ▸ Clave de recuperación en otro dispositivo con sesión iniciada."
+          }
+        }
+      }
+    },
+    "Copy Pairing Request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Pairing Request"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar solicitud de vinculación"
+          }
+        }
+      }
+    },
+    "Step 1 — Scan on Unlocked Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 1 — Scan on Unlocked Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paso 1 — Escanea en tu dispositivo desbloqueado"
+          }
+        }
+      }
+    },
+    "On a device where your data is already unlocked, open Menu ▸ Gold Life ID ▸ Recovery Key ▸ Link Another Device and scan this QR code.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On a device where your data is already unlocked, open Menu ▸ Gold Life ID ▸ Recovery Key ▸ Link Another Device and scan this QR code."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En un dispositivo donde tus datos ya estén desbloqueados, abre Menú ▸ Gold Life ID ▸ Clave de recuperación ▸ Vincular otro dispositivo y escanea este código QR."
+          }
+        }
+      }
+    },
+    "Scan Response QR": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Response QR"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanear QR de respuesta"
+          }
+        }
+      }
+    },
+    "Or paste pairing response": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or paste pairing response"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pega el código de respuesta"
+          }
+        }
+      }
+    },
+    "Complete Pairing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete Pairing"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completar vinculación"
+          }
+        }
+      }
+    },
+    "Step 2 — Scan Response QR": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 2 — Scan Response QR"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paso 2 — Escanea el QR de respuesta"
+          }
+        }
+      }
+    },
+    "That Recovery Key doesn’t match the Gold Life format. Check every group and try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That Recovery Key doesn’t match the Gold Life format. Check every group and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa clave de recuperación no coincide con el formato de Gold Life. Revisa cada grupo e inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "That key didn’t unlock your encrypted data. Check for typos and try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That key didn’t unlock your encrypted data. Check for typos and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa clave no pudo desbloquear tus datos cifrados. Revisa que esté bien escrita e inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "Couldn’t unlock your encrypted data right now. Please try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t unlock your encrypted data right now. Please try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron desbloquear tus datos cifrados en este momento. Inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "That device holds a different encryption key and couldn’t unlock this account’s data.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That device holds a different encryption key and couldn’t unlock this account’s data."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese dispositivo tiene una clave de cifrado distinta y no pudo desbloquear los datos de esta cuenta."
+          }
+        }
+      }
+    },
+    "That pairing code wasn’t recognized or expired. Try scanning again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That pairing code wasn’t recognized or expired. Try scanning again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese código de vinculación no se reconoció o caducó. Intenta escanearlo de nuevo."
+          }
+        }
+      }
+    },
+    "Copy Pairing Response": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Pairing Response"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar respuesta de vinculación"
+          }
+        }
+      }
+    },
+    "Scan This QR on Your New Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan This QR on Your New Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea este QR en tu nuevo dispositivo"
+          }
+        }
+      }
+    },
+    "Your encryption key is sealed specifically for that device’s one-time pairing session.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your encryption key is sealed specifically for that device’s one-time pairing session."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu clave de cifrado está protegida específicamente para la sesión única de vinculación de ese dispositivo."
+          }
+        }
+      }
+    },
+    "Scan New Device QR": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan New Device QR"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanear QR del nuevo dispositivo"
+          }
+        }
+      }
+    },
+    "Or paste pairing request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or paste pairing request"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pega la solicitud de vinculación"
+          }
+        }
+      }
+    },
+    "Approve Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprobar dispositivo"
+          }
+        }
+      }
+    },
+    "Scan the Step 1 QR code displayed on the device you want to unlock.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the Step 1 QR code displayed on the device you want to unlock."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea el código QR del Paso 1 que aparece en el dispositivo que deseas desbloquear."
+          }
+        }
+      }
+    },
+    "Link Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vincular dispositivo"
+          }
+        }
+      }
+    },
+    "Couldn’t Link Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t Link Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo vincular el dispositivo"
+          }
+        }
+      }
+    },
+    "This device doesn’t hold an unlocked encryption key yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device doesn’t hold an unlocked encryption key yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo aún no tiene una clave de cifrado desbloqueada."
+          }
+        }
+      }
+    },
+    "That QR code wasn’t recognized. Make sure you scanned the Step 1 pairing QR.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That QR code wasn’t recognized. Make sure you scanned the Step 1 pairing QR."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se reconoció ese código QR. Asegúrate de escanear el QR de vinculación del Paso 1."
+          }
+        }
+      }
+    },
+    "Camera access isn’t available on this device. Paste the pairing code below instead.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera access isn’t available on this device. Paste the pairing code below instead."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El acceso a la cámara no está disponible en este dispositivo. Pega el código de vinculación abajo."
+          }
+        }
+      }
+    },
+    "Or paste pairing code": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or paste pairing code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pega el código de vinculación"
+          }
+        }
+      }
+    },
+    "Use Pasted Code": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Pasted Code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar código pegado"
           }
         }
       }

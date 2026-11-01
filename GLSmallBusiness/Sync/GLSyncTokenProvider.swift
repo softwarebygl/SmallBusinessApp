@@ -257,6 +257,12 @@ actor GLSyncTokenProvider {
         let ttl = (object["expires_in"] as? NSNumber)?.doubleValue ?? 15 * 60
         cached = Cached(token: token, subject: subject,
                         expiresAt: Date().addingTimeInterval(ttl), mintedFor: sessionSubject)
+        if !subject.isEmpty, !sessionSubject.isEmpty {
+            await GLSentinelKeyManager.shared.registerIdentityAlias(
+                primaryID: subject,
+                aliasID: sessionSubject
+            )
+        }
         return .token(token, subject: subject)
     }
 

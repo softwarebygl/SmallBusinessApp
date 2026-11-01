@@ -30,6 +30,7 @@
 
 import Testing
 import Foundation
+import CryptoKit
 import SwiftData
 import GoldLifeCloud
 @testable import GLSmallBusiness
@@ -2726,6 +2727,7 @@ struct GLSyncBlobHashCacheTests {
 struct GLSyncGLS1EncryptionTests {
 
     @Test func outgoingOpsAreSealedInGLS1EnvelopesAndPlaintextPullsAreAutoSealed() async throws {
+        GLVaultUnlockCoordinator.shared.reset()
         let server = GLSyncStubServer(lapsed: false)
         let plaidCustomerID = UUID()
         server.override("/snapshot", with: GLSyncStubServer.Reply(
@@ -2769,6 +2771,176 @@ struct GLSyncGLS1EncryptionTests {
                 #expect(decoded["firstName"] as? String == "Plaid")
             }
         }
+        await engine.stop()
+    }
+
+    @Test func singletonExistsDoesNotStampServerVersionOntoRejectedLocalDuplicate() throws {
+        let container = try TestStore.makeContainer()
+        let context = SyncFix.reader(container)
+        let survivingID = UUID()
+        let duplicateID = UUID()
+        let row = SyncFix.outbox(
+            record: duplicateID,
+            type: "business_profile",
+            base: 0,
+            fields: ["companyName": "Duplicate LLC"],
+            in: context
+        )
+        let opID = try #require(row.opID)
+        let op = GLSyncPendingOp(
+            opID: opID,
+            recordID: duplicateID,
+            recordType: "business_profile",
+            parentID: nil,
+            baseVersion: 0,
+            patchJSON: row.fieldsJSON,
+            isDelete: false,
+            cascade: [],
+            clientTS: 1_787_000_000_000
+        )
+        let head = SyncFix.liveRow(
+            survivingID,
+            type: "business_profile",
+            version: 5,
+            seq: 10,
+            payload: ["companyName": "Survivor LLC"]
+        )
+        let result = GLSyncOpResult(
+            status: .conflict,
+            version: 5,
+            appliedFields: [],
+            lwwLost: [],
+            conflicts: [],
+            reason: .singletonExists,
+            head: head
+        )
+
+        let store = SyncFix.store(container)
+        _ = store.applyResults([opID: result], for: [op])
+
+        #expect(SyncFix.storedVersion(duplicateID, in: container) == nil,
+                "singleton_exists must not stamp head.version onto the rejected duplicate recordID")
+        #expect(SyncFix.storedVersion(survivingID, in: container) == 5,
+                "singleton_exists must stamp head.version onto the surviving head.id")
+    }
+
+    @Test func secondaryDeviceWithoutLocalVaultKeyHaltsNonDestructivelyAndUnlocksOnRecoveryKeyImport() async throws {
+        await GLSentinelKeyManager.shared.deleteVaultKeys(for: "glid-stub")
+        await GLSentinelKeyManager.shared.deleteVaultKeys(for: "stytch-session-stub")
+        GLVaultUnlockCoordinator.shared.reset()
+        defer {
+            GLVaultUnlockCoordinator.shared.reset()
+            GLSyncStubServer.uninstall()
+        }
+
+        let deviceASecret = GLSentinelKeyManager.generateSecretKeyString()
+        let deviceAKey = try GLSentinelKeyManager.parseSecretKey(deviceASecret)
+        let remoteCustomerID = UUID()
+        let remoteEnvelope = try GLSentinelCrypto.sealBusinessRecord(
+            payloadJSON: Data(#"{"firstName":"Locked","lastName":"Customer","syncID":"\#(remoteCustomerID.uuidString)"}"#.utf8),
+            userID: "glid-stub",
+            recordID: remoteCustomerID.uuidString,
+            recordType: "customer",
+            masterKey: deviceAKey
+        )
+
+        let server = GLSyncStubServer(lapsed: false)
+        server.override("/snapshot", with: GLSyncStubServer.Reply(
+            status: 200,
+            body: """
+            {"records":[{"id":"\(remoteCustomerID.uuidString.lowercased())","type":"customer","parent_id":null,"version":3,"seq":12,"deleted_at":null,"payload":{"envelope":"\(remoteEnvelope)"}}]}
+            """
+        ))
+        server.install()
+
+        let container = try TestStore.makeContainer()
+        let engine = server.engine(container)
+
+        // 1. Sync runs on Device B with no local key: must set isVaultLocked, mint NO competing key, and push NO ops
+        await engine.sync(trigger: .manual)
+
+        #expect(GLVaultUnlockCoordinator.shared.isVaultLocked, "missing key on GLS1 account must engage vault lock")
+        #expect(await GLSentinelKeyManager.shared.getExistingMasterKey(for: "glid-stub") == nil,
+                "Device B must never mint a random key over an existing GLS1 account")
+        #expect(server.syncedOps.isEmpty, "locked vault must halt before /sync push")
+        let preUnlockState = SyncFix.store(container).persistedState()
+        #expect(!preUnlockState.bootstrapComplete, "locked vault must not mark bootstrapComplete")
+        #expect(preUnlockState.cursor == 0, "locked vault must not advance cursor past undecrypted rows")
+
+        // 2. User enters Device A's Recovery Key -> imports key, clears lock, next sync decrypts Locked Customer
+        try await GLVaultUnlockCoordinator.shared.verifyAndImportRecoveryKey(deviceASecret, for: "glid-stub")
+        #expect(!GLVaultUnlockCoordinator.shared.isVaultLocked)
+
+        await engine.sync(trigger: .manual)
+
+        let customers = try SyncFix.reader(container).fetch(FetchDescriptor<Customer>())
+        #expect(customers.contains { $0.firstName == "Locked" && $0.lastName == "Customer" })
+        #expect(SyncFix.store(container).persistedState().bootstrapComplete)
+        await engine.stop()
+    }
+
+    @Test func partialSubcontractorEditPreservesEncryptedW9HashInsideSealedGLS1Record() async throws {
+        await GLSentinelKeyManager.shared.deleteVaultKeys(for: "glid-stub")
+        GLVaultUnlockCoordinator.shared.reset()
+        let docKeyBytes = Data((0..<32).map { UInt8($0 + 7) })
+        let server = GLSyncStubServer(lapsed: false)
+        server.override("auth/document-key", with: GLSyncStubServer.Reply(
+            status: 200,
+            body: #"{"key":"\#(docKeyBytes.base64EncodedString())","version":1}"#
+        ))
+        server.install()
+        defer { GLSyncStubServer.uninstall() }
+
+        let container = try TestStore.makeContainer()
+        let seedCtx = SyncFix.reader(container)
+        let subID = UUID()
+        let w9Plaintext = Data("%PDF-1.4-SECRET-SSN-123-45-6789".utf8)
+        let plaintextSHA = glSyncSHA256(w9Plaintext)
+        let sub = Subcontractor()
+        sub.syncID = subID
+        sub.firstName = "Mateo"
+        sub.lastName = "Silva"
+        sub.notes = "Initial note"
+        sub.w9Data = w9Plaintext
+        sub.w9Name = "mateo-w9.pdf"
+        seedCtx.insert(sub)
+        try seedCtx.save()
+        SyncFix.stampVersionRow(subID, 2, in: seedCtx)
+
+        let store = SyncFix.store(container)
+        store.establishHistoryBaseline()
+        let baselineToken = store.persistedState().historyToken
+        store.markBootstrapComplete(cursor: 5)
+
+        // Edit ONLY `notes` (a partial edit that does not touch `w9Data`)
+        let editCtx = SyncFix.reader(container)
+        let fetchedSub = try #require(try editCtx.fetch(FetchDescriptor<Subcontractor>()).first)
+        fetchedSub.notes = "Updated note without touching W-9"
+        try editCtx.save()
+        _ = try store.fold(since: baselineToken, writtenUnder: GLSyncHistory.schemaFingerprint)
+
+        let engine = server.engine(container)
+        await engine.sync(trigger: .manual)
+
+        let masterKey = try #require(await GLSentinelKeyManager.shared.getExistingMasterKey(for: "glid-stub"))
+        let pushedOp = try #require(server.syncedOps.flatMap { $0 }.first)
+        let patch = try #require(pushedOp["patch"] as? [String: Any])
+        let env = try #require(patch["envelope"] as? String)
+        let decryptedData = try GLSentinelCrypto.openBusinessRecord(
+            base64Envelope: env,
+            userID: "glid-stub",
+            recordID: subID.uuidString,
+            recordType: "subcontractor",
+            masterKey: masterKey
+        )
+        let fullRecord = try #require(try JSONSerialization.jsonObject(with: decryptedData) as? [String: Any])
+        #expect(fullRecord["notes"] as? String == "Updated note without touching W-9")
+        let w9Ref = try #require(fullRecord["w9Data"] as? [String: Any],
+                                 "partial edit must not drop w9Data reference from sealed GLS1 record")
+        let sealedW9SHA = try #require(w9Ref["sha256"] as? String)
+        #expect(!sealedW9SHA.isEmpty)
+        #expect(sealedW9SHA != plaintextSHA, "w9Data inside GLS1 must reference the encrypted R2 envelope SHA, never plaintext SHA")
+        #expect(w9Ref["name"] as? String == "mateo-w9.pdf")
         await engine.stop()
     }
 }

@@ -37,6 +37,7 @@
 //
 
 import Foundation
+import GoldLifeCloud
 import GoldLifeMoney
 import GoldLifeUI
 import OSLog
@@ -508,10 +509,16 @@ struct MBMoneyHostEnvironment: ViewModifier {
     @State private var readOnlyRefusal: MBWriteOperation?
     @ObservedObject private var demo = UserDemoMode.shared
     @State private var subscription = SubscriptionManager.shared
+    @State private var vaultUnlock = GLVaultUnlockCoordinator.shared
     private let loc = MBLocalization.shared
 
     private var isBannerActive: Bool {
-        demo.isDemoActive || !NetworkMonitor.shared.isConnected || subscription.isLapsed
+        !GLSystemBanners.visible(
+            isSampleData: demo.isDemoActive,
+            isOffline: !NetworkMonitor.shared.isConnected,
+            isLapsed: subscription.isLapsed,
+            isVaultLocked: vaultUnlock.isVaultLocked
+        ).isEmpty
     }
 
     func body(content: Content) -> some View {
@@ -538,6 +545,9 @@ struct MBMoneyHostEnvironment: ViewModifier {
                     } else {
                         ctx.delete(model) // GLSYNC-LINT-OK: fallback for non-synced PersistentModel
                     }
+                },
+                onSyncNeeded: {
+                    Task { await GLSyncEngine.current?.sync(trigger: .edit) }
                 }
             ))
             .readOnlyRefusalAlert($readOnlyRefusal)

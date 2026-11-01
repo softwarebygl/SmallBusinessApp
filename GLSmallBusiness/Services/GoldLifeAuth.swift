@@ -602,6 +602,8 @@ final class GoldLifeAuth {
     func deleteAccount(identityAlreadyDeleted: Bool = false) async throws {
         isBusy = true
         defer { isBusy = false }
+        let deletingAccountScope = SecureTINStore.accountScope
+        let deletingStytchSub = GLSessionEngine.currentSignedInUserID()
         if !identityAlreadyDeleted {
             try await GoldLifeAPI.shared.deleteAccount()
         }
@@ -630,6 +632,14 @@ final class GoldLifeAuth {
         // subcontractors' Tax ID keys can still be read from it.
         Self.purgeAccountSecrets(scope: SecureTINStore.accountScope,
                                  context: UserScopedStore.shared.activeMainContext)
+        if let deletingAccountScope, !deletingAccountScope.isEmpty {
+            await GLSentinelKeyManager.shared.deleteVaultKeys(for: deletingAccountScope)
+            await GLVaultUnlockCoordinator.shared.clearLock(for: deletingAccountScope)
+        }
+        if let deletingStytchSub, !deletingStytchSub.isEmpty {
+            await GLSentinelKeyManager.shared.deleteVaultKeys(for: deletingStytchSub)
+            await GLVaultUnlockCoordinator.shared.clearLock(for: deletingStytchSub)
+        }
         UserScopedStore.shared.wipeOnAccountDeletion()
         GLSessionWipe.shared.run(.sessionEnded)
         GateMemory.rememberedEmail = ""

@@ -357,6 +357,7 @@ actor GLSyncEngine {
         startBackgroundFlushTrigger()
         startEditObserver()
         startEntitlementTrigger()
+        startVaultUnlockTrigger()
         await sync(trigger: .foreground)
     }
 
@@ -504,6 +505,18 @@ actor GLSyncEngine {
         }
         monitors.append(task)
         #endif
+    }
+
+    private func startVaultUnlockTrigger() {
+        let task = Task { [weak self] in
+            let notifications = NotificationCenter.default.notifications(
+                named: .glSentinelVaultDidUnlock)
+            for await _ in notifications {
+                guard let self else { break }
+                await self.sync(trigger: .manual)
+            }
+        }
+        monitors.append(task)
     }
 
     /// A save then an immediate close is a normal move — "entered my name,
@@ -833,7 +846,7 @@ actor GLSyncEngine {
             // that echo must not land on an edit saved while the request was on the wire.
             let folded = try await foldBeforeApplying(&window)
 
-            let opened = await openRows(response.changes, ownerID: persisted.ownerID)
+            let opened = try await openRows(response.changes, ownerID: persisted.ownerID)
             let verdict = await store.applyChanges(opened.rows)
             switch verdict {
             case .massDeleteRefused(let deletions, let threshold):
@@ -974,7 +987,7 @@ actor GLSyncEngine {
             // F16: an edit saved while the previous page downloaded joins the outbox before
             // this page lands on it.
             try await foldBeforeApplying(&window)
-            let opened = await openRows(page.records, ownerID: persisted.ownerID)
+            let opened = try await openRows(page.records, ownerID: persisted.ownerID)
             for (recordID, recordType) in opened.unsealedTypesByID {
                 unsealedTypesByID[recordID] = recordType
             }
@@ -1028,18 +1041,60 @@ actor GLSyncEngine {
 
     // MARK: GLS1 Record Encryption
 
+    private enum GLSyncEncryptionFailure: Error {
+        case missingOwner
+        case invalidPayloadJSON(UUID)
+    }
+
+    /// Resolves the existing `MasterVaultKey` for sealing outgoing writes, or verifies against
+    /// `/snapshot` that zero remote `GLS1` envelopes exist before minting the account's first key.
+    private func resolveMasterKeyForSealing(owner: String) async throws -> SymmetricKey {
+        if await GLVaultUnlockCoordinator.shared.isLocked(for: owner) {
+            throw GLVaultLockedError(ownerID: owner)
+        }
+        if let existing = await GLSentinelKeyManager.shared.getExistingMasterKey(for: owner) {
+            return existing
+        }
+        let probePage = try await wire().snapshot(after: 0, limit: 20)
+        for row in probePage.records where !row.isTombstone {
+            if case .object(let dict) = row.payload,
+               dict.count == 1,
+               case .string(let envelope) = dict["envelope"],
+               !envelope.isEmpty {
+                await GLVaultUnlockCoordinator.shared.reportVaultLocked(
+                    ownerID: owner,
+                    sample: .init(
+                        base64Envelope: envelope,
+                        userID: owner,
+                        recordID: row.id.uuidString,
+                        recordType: row.type,
+                        kind: .businessRecord
+                    )
+                )
+                throw GLVaultLockedError(ownerID: owner)
+            }
+        }
+        return try await GLSentinelKeyManager.shared.getOrCreateMasterKey(for: owner)
+    }
+
     /// Seals every non-delete op's full record payload inside a `GLS1` (`AES-256-GCM`) envelope
     /// bound to the signed-in Gold Life ID (`ownerID`), `recordID`, and `recordType`.
+    /// Fails closed: never sends an unencrypted non-delete op over the wire.
     private func sealOps(
         _ ops: [GLSyncPendingOp],
         originalOps: [GLSyncPendingOp],
         ownerID: String?
     ) async throws -> [GLSyncPendingOp] {
         guard !ops.isEmpty else { return [] }
-        let resolvedOwner = ownerID ?? (try? wire().binding?.owner)
-        guard let owner = resolvedOwner, !owner.isEmpty else { return ops }
+        let hasNonDelete = ops.contains { !$0.isDelete }
+        guard hasNonDelete else { return ops }
 
-        let masterKey = try await GLSentinelKeyManager.shared.getOrCreateMasterKey(for: owner)
+        let resolvedOwner = ownerID ?? (try? wire().binding?.owner)
+        guard let owner = resolvedOwner, !owner.isEmpty else {
+            throw GLSyncEncryptionFailure.missingOwner
+        }
+
+        let masterKey = try await resolveMasterKeyForSealing(owner: owner)
         let fullPayloads = await store.fullPayloadsForSealing(
             sanitizedOps: ops, originalOps: originalOps)
 
@@ -1053,9 +1108,10 @@ actor GLSyncEngine {
                 return op
             }
 
-            guard JSONSerialization.isValidJSONObject(payloadDict),
+            guard !payloadDict.isEmpty,
+                  JSONSerialization.isValidJSONObject(payloadDict),
                   let jsonData = try? JSONSerialization.data(withJSONObject: payloadDict, options: [.sortedKeys]) else {
-                return op
+                throw GLSyncEncryptionFailure.invalidPayloadJSON(op.recordID)
             }
 
             let envelope = try GLSentinelCrypto.sealBusinessRecord(
@@ -1068,7 +1124,7 @@ actor GLSyncEngine {
             let wrapper: [String: String] = ["envelope": envelope]
             guard let sealedData = try? JSONSerialization.data(withJSONObject: wrapper, options: [.sortedKeys]),
                   let sealedText = String(data: sealedData, encoding: .utf8) else {
-                return op
+                throw GLSyncEncryptionFailure.invalidPayloadJSON(op.recordID)
             }
 
             return GLSyncPendingOp(
@@ -1085,41 +1141,70 @@ actor GLSyncEngine {
         }
     }
 
-    /// Opens incoming server rows that carry a `GLS1` (`{"envelope": "GLS1..."}`) payload,
-    /// and collects the `(id, type)` pairs of any live rows that arrived in plaintext (such as
-    /// fresh Plaid bank transactions or pre-E2EE rows) so they can be immediately sealed and re-pushed.
+    /// Opens incoming server rows that carry a `GLS1` (`{"envelope": "GLS1..."}`) payload.
+    /// If any `GLS1` row is present and the local `MasterVaultKey` is missing or cannot decrypt it,
+    /// reports a `LockedEnvelopeSample` to `GLVaultUnlockCoordinator` and throws `GLVaultLockedError`
+    /// WITHOUT minting a competing key and WITHOUT advancing `cursor` or `bootstrapComplete`.
     private func openRows(
         _ rows: [GLSyncRecordRow],
         ownerID: String?
-    ) async -> (rows: [GLSyncRecordRow], unsealedTypesByID: [UUID: String]) {
+    ) async throws -> (rows: [GLSyncRecordRow], unsealedTypesByID: [UUID: String]) {
         guard !rows.isEmpty else { return ([], [:]) }
         let resolvedOwner = ownerID ?? (try? wire().binding?.owner)
-        guard let owner = resolvedOwner, !owner.isEmpty,
-              let masterKey = try? await GLSentinelKeyManager.shared.getOrCreateMasterKey(for: owner) else {
-            return (rows, [:])
-        }
 
-        var openedRows: [GLSyncRecordRow] = []
-        openedRows.reserveCapacity(rows.count)
-        var unsealedTypesByID: [UUID: String] = [:]
-
-        for row in rows {
-            if row.isTombstone {
-                openedRows.append(row)
-                continue
-            }
+        var firstSealedSample: (row: GLSyncRecordRow, envelope: String)?
+        for row in rows where !row.isTombstone {
             if case .object(let dict) = row.payload,
+               dict.count == 1,
                case .string(let envelope) = dict["envelope"],
                !envelope.isEmpty {
-                do {
-                    let decryptedData = try GLSentinelCrypto.openBusinessRecord(
-                        base64Envelope: envelope,
+                firstSealedSample = (row, envelope)
+                break
+            }
+        }
+
+        if let sample = firstSealedSample {
+            guard let owner = resolvedOwner, !owner.isEmpty else {
+                throw GLSyncEncryptionFailure.missingOwner
+            }
+            guard let masterKey = await GLSentinelKeyManager.shared.getExistingMasterKey(for: owner) else {
+                await GLVaultUnlockCoordinator.shared.reportVaultLocked(
+                    ownerID: owner,
+                    sample: .init(
+                        base64Envelope: sample.envelope,
                         userID: owner,
-                        recordID: row.id.uuidString,
-                        recordType: row.type,
-                        masterKey: masterKey
+                        recordID: sample.row.id.uuidString,
+                        recordType: sample.row.type,
+                        kind: .businessRecord
                     )
-                    if let jsonObj = try JSONSerialization.jsonObject(with: decryptedData) as? [String: Any] {
+                )
+                throw GLVaultLockedError(ownerID: owner)
+            }
+
+            var openedRows: [GLSyncRecordRow] = []
+            openedRows.reserveCapacity(rows.count)
+            var unsealedTypesByID: [UUID: String] = [:]
+
+            for row in rows {
+                if row.isTombstone {
+                    openedRows.append(row)
+                    continue
+                }
+                if case .object(let dict) = row.payload,
+                   dict.count == 1,
+                   case .string(let envelope) = dict["envelope"],
+                   !envelope.isEmpty {
+                    do {
+                        let decryptedData = try GLSentinelCrypto.openBusinessRecord(
+                            base64Envelope: envelope,
+                            userID: owner,
+                            recordID: row.id.uuidString,
+                            recordType: row.type,
+                            masterKey: masterKey
+                        )
+                        guard let jsonObj = try JSONSerialization.jsonObject(with: decryptedData) as? [String: Any] else {
+                            throw GLSentinelCryptoError.openFailed
+                        }
                         openedRows.append(GLSyncRecordRow(
                             id: row.id,
                             type: row.type,
@@ -1129,18 +1214,36 @@ actor GLSyncEngine {
                             deletedAt: row.deletedAt,
                             payload: GLSyncJSONValue.from(jsonObj)
                         ))
-                    } else {
-                        openedRows.append(row)
+                    } catch {
+                        Logger.data.error("glsync GLS1 open failed for \(row.type, privacy: .public) \(row.id.uuidString, privacy: .public)")
+                        await GLVaultUnlockCoordinator.shared.reportVaultLocked(
+                            ownerID: owner,
+                            sample: .init(
+                                base64Envelope: envelope,
+                                userID: owner,
+                                recordID: row.id.uuidString,
+                                recordType: row.type,
+                                kind: .businessRecord
+                            )
+                        )
+                        throw GLVaultLockedError(ownerID: owner)
                     }
-                } catch {
-                    Logger.data.error("glsync GLS1 open failed for \(row.type, privacy: .public) \(row.id.uuidString, privacy: .public)")
+                } else {
+                    openedRows.append(row)
+                    unsealedTypesByID[row.id] = row.type
                 }
-            } else {
-                openedRows.append(row)
-                unsealedTypesByID[row.id] = row.type
             }
+
+            await GLVaultUnlockCoordinator.shared.clearLock(for: owner)
+            return (openedRows, unsealedTypesByID)
         }
-        return (openedRows, unsealedTypesByID)
+
+        // Only plaintext / tombstone rows in this batch: record live plaintext rows for GLS1 migration.
+        var unsealedTypesByID: [UUID: String] = [:]
+        for row in rows where !row.isTombstone {
+            unsealedTypesByID[row.id] = row.type
+        }
+        return (rows, unsealedTypesByID)
     }
 
     // MARK: Self-heal
@@ -1192,7 +1295,7 @@ actor GLSyncEngine {
         guard !uploads.isEmpty else { return ops }
 
         var dropped: [UUID: Set<String>] = [:]
-        var sealedHashes: [UUID: [String: String]] = [:]
+        var sealedHashes: [UUID: [String: (sha256: String, name: String?)]] = [:]
         var held: Set<UUID> = []
 
         for upload in uploads {
@@ -1214,7 +1317,7 @@ actor GLSyncEngine {
                 do {
                     let envelope = try await documents.seal(upload.bytes)
                     sealed = envelope
-                    sealedHashes[upload.recordID, default: [:]][upload.field] = envelope.sha256
+                    sealedHashes[upload.recordID, default: [:]][upload.field] = (envelope.sha256, upload.name)
                 } catch is CancellationError {
                     throw CancellationError()
                 } catch let error where Self.canRetryLater(error) {
@@ -1471,13 +1574,16 @@ extension GLSyncPendingOp {
     /// that were actually uploaded. Encryption is the only caller — the server
     /// content-addresses the envelope it received, so a reference naming the plaintext hash
     /// would point at a blob that was never stored. The `name` half is left alone.
-    nonisolated func replacingBlobHashes(_ hashes: [String: String]) -> GLSyncPendingOp {
+    nonisolated func replacingBlobHashes(_ hashes: [String: (sha256: String, name: String?)]) -> GLSyncPendingOp {
         guard !hashes.isEmpty else { return self }
         return rewritingPatch { patch in
-            for (field, sha) in hashes {
-                guard var reference = patch[field] as? [String: Any] else { continue }
-                reference["sha256"] = sha
-                patch[field] = reference
+            for (field, info) in hashes {
+                if var reference = patch[field] as? [String: Any] {
+                    reference["sha256"] = info.sha256
+                    patch[field] = reference
+                } else {
+                    patch[field] = GLSyncValue.blobRef(sha256: info.sha256, name: info.name)
+                }
             }
         }
     }
@@ -2286,17 +2392,36 @@ final class GLSyncLocalStore {
             let patch = (op.patchJSON.data(using: .utf8)
                 .flatMap { try? JSONSerialization.jsonObject(with: $0) } as? GLSyncPayload) ?? [:]
             let bytesByField = entry.blobBytes(record)
+            var cachedFullPayload: GLSyncPayload?
 
             for field in entry.blobFields {
-                guard let sha = GLSyncValue.blobSHA(patch, field),
-                      let bytes = bytesByField[field] else { continue }
-                uploads.append(GLSyncBlobUpload(
-                    recordID: op.recordID,
-                    recordType: op.recordType,
-                    field: field,
-                    sha256: sha,
-                    name: GLSyncValue.blobName(patch, field),
-                    bytes: bytes))
+                if let sha = GLSyncValue.blobSHA(patch, field),
+                   let bytes = bytesByField[field] {
+                    uploads.append(GLSyncBlobUpload(
+                        recordID: op.recordID,
+                        recordType: op.recordType,
+                        field: field,
+                        sha256: sha,
+                        name: GLSyncValue.blobName(patch, field),
+                        bytes: bytes))
+                } else if GLSyncRegistry.piiClass(type: op.recordType, field: field) == .tax,
+                          patch[field] == nil,
+                          let bytes = bytesByField[field] {
+                    // Unchanged tax-class W-9 on a partial record edit: compute deterministic
+                    // envelope SHA via uploadBlobs (`uploadedHashes` dedupes network upload) so
+                    // `fullPayloadsForSealing` retains the encrypted W-9 reference inside GLS1.
+                    let full = cachedFullPayload ?? record.glSyncPayload()
+                    cachedFullPayload = full
+                    if let sha = GLSyncValue.blobSHA(full, field) {
+                        uploads.append(GLSyncBlobUpload(
+                            recordID: op.recordID,
+                            recordType: op.recordType,
+                            field: field,
+                            sha256: sha,
+                            name: GLSyncValue.blobName(full, field),
+                            bytes: bytes))
+                    }
+                }
             }
         }
         return uploads
@@ -2336,7 +2461,7 @@ final class GLSyncLocalStore {
             if op.isDelete, result.status == .applied || result.status == .cached {
                 dropVersion(for: op.recordID)
                 for id in op.cascade { dropVersion(for: id) }
-            } else if let version = result.version {
+            } else if let version = result.version, result.reason != .singletonExists {
                 stampVersion(version, for: op.recordID)
             }
             if let head = result.head { stampVersion(head.version, for: head.id) }
