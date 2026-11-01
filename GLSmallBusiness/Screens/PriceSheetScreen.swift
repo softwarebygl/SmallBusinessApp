@@ -146,7 +146,7 @@ struct PriceSheetScreen: View {
     }
 
     private var emptyView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: GLLayout.sectionSpacing) {
             Image(systemName: "tag.fill")
                 .font(.system(size: 48))
                 .foregroundStyle(gold)

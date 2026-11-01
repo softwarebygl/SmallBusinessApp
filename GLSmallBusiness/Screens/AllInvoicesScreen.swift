@@ -214,6 +214,7 @@ struct OwedToYouCard: View, Equatable {
             .frame(maxWidth: .infinity, alignment: .leading)
             .glCardBackground()
             .padding(.horizontal, GLLayout.rowCardInset)
+            .padding(.vertical, 4)
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
             .listRowSeparator(.hidden)

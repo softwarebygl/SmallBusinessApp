@@ -229,7 +229,7 @@ struct ComplianceDocsManagerSheet: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 14) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 ForEach(ComplianceKind.allCases) { card($0) }
                 Text("Upload each document once (PDF or image). Tap one to view, share, or replace it — or use the button above to share them all. Stored privately in your Gold Life account.")
                     .font(.footnote)
@@ -239,7 +239,8 @@ struct ComplianceDocsManagerSheet: View {
                 referenceCOISection
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }

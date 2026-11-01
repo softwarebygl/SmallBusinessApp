@@ -506,13 +506,20 @@ struct MBShareLinkItems<Label: View>: View {
 /// and Law 6 read-only refusal alert + `Logger.access` line (`ReadOnlyGate.refuse`).
 struct MBMoneyHostEnvironment: ViewModifier {
     @State private var readOnlyRefusal: MBWriteOperation?
+    @ObservedObject private var demo = UserDemoMode.shared
+    @State private var subscription = SubscriptionManager.shared
     private let loc = MBLocalization.shared
+
+    private var isBannerActive: Bool {
+        demo.isDemoActive || !NetworkMonitor.shared.isConnected || subscription.isLapsed
+    }
 
     func body(content: Content) -> some View {
         let _ = loc.language
         content
             .environment(\.locale, loc.locale)
             .moneyBannerInset(MBSystemBannerInset())
+            .isMoneyBannerActive(isBannerActive)
             .environment(\.moneyWriteGate, MoneyWriteGate(
                 canWrite: { !ReadOnlyGate.isReadOnly() },
                 onRefusal: { rawOp in

@@ -128,7 +128,7 @@ struct EstimateDetailScreen: View {
 
     @ViewBuilder private var aliveBody: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 heroCard
                 quickActionBar
                 serviceAddressCard
@@ -139,7 +139,8 @@ struct EstimateDetailScreen: View {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             // One column with the banners above (QA 2026-10-03 F50): capped at 640 pt, the gutter inside it.
             .glReadableWidth()
         }

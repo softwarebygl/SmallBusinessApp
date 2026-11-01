@@ -26,6 +26,15 @@ enum GLLayout {
     /// The shared card radius.
     static let cardCornerRadius: CGFloat = GLTheme.cornerRadius          // 22
 
+    /// Vertical space between sibling interactive components inside a list or form.
+    static let componentSpacing: CGFloat = GLTheme.componentSpacing      // 10
+
+    /// Vertical space separating major thematic sections on a detail or form screen.
+    static let sectionSpacing: CGFloat = GLTheme.sectionSpacing          // 12
+
+    /// Top vertical inset for scroll content inside scroll views that don't use title clearance.
+    static let scrollContentVerticalPadding: CGFloat = GLTheme.scrollContentVerticalPadding // 6
+
     /// DEPRECATED as a gold tint. Cards are a NEUTRAL tonal step now (decision D1:
     /// hierarchy is shade, not hue; gold becomes THE accent only). Kept because the
     /// white-label watermark still shows through a translucent card (decision D4) and

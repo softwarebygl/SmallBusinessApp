@@ -186,7 +186,7 @@ struct InvoiceFromContractSheet: View {
 
                 case .percentage:
                     Section {
-                        VStack(spacing: 14) {
+                        VStack(spacing: GLLayout.componentSpacing) {
                             HStack(spacing: 8) {
                                 ForEach([25.0, 33.0, 50.0, 100.0], id: \.self) { pct in
                                     Button {

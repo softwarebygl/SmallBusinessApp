@@ -76,7 +76,7 @@ struct SubcontractorDetailScreen: View {
 
     @ViewBuilder private var aliveBody: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 header
                 contactCard
                 moreInfoRow
@@ -94,7 +94,8 @@ struct SubcontractorDetailScreen: View {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }
@@ -509,7 +510,7 @@ struct AllActivitySheet: View /* internal for render-coverage tests */ {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.vertical, 4)
             if range == .custom {
                 VStack(spacing: 6) {
                     DatePicker("From", selection: $from, displayedComponents: .date)
@@ -697,7 +698,7 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
 
     @ViewBuilder private var aliveBody: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 yearPicker
                 if let previewImage {
                     Image(uiImage: previewImage)
@@ -723,7 +724,8 @@ struct Form1099NECSheet: View /* internal for render-coverage tests */ {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }

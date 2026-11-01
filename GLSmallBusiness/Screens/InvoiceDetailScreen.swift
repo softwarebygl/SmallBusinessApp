@@ -171,7 +171,7 @@ struct InvoiceDetailScreen: View {
 
     @ViewBuilder private var aliveBody: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 if payStatusUnreachable { payStatusUnreachableCard }
                 heroCard
                 quickActionBar
@@ -190,7 +190,8 @@ struct InvoiceDetailScreen: View {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             // One column with the banners above (QA 2026-10-03 F50): capped at 640 pt, the gutter inside it.
             .glReadableWidth()
         }
@@ -1616,7 +1617,8 @@ struct PaymentReceiptSheet: View /* internal for render-coverage tests */ {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
             .background { GLTheme.background.ignoresSafeArea() }

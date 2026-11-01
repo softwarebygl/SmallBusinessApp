@@ -105,7 +105,7 @@ struct ContractDetailScreen: View {
     @ViewBuilder
     private var aliveBody: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 headerCard
                 quickActionBar
                 contactAndAddressCard
@@ -119,7 +119,8 @@ struct ContractDetailScreen: View {
                 attachmentsCard
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .glReadableWidth()
         }
         .safeAreaInset(edge: .bottom) {

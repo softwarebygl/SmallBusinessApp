@@ -234,7 +234,7 @@ struct PaywallSheet: View {
     }
 
     private func storeProblem(symbol: String, title: String, message: String) -> some View {
-        VStack(spacing: 20) {
+        VStack(spacing: GLLayout.sectionSpacing) {
             header
             ContentUnavailableView {
                 Label(title, systemImage: symbol)
@@ -270,7 +270,8 @@ struct PaywallSheet: View {
             }
         }
         .padding(.horizontal, GLLayout.rowCardInset)
-        .padding(.vertical)
+        .padding(.top, 4)
+        .padding(.bottom, 12)
         // Scroll when it doesn't fit: at accessibility text sizes the header, the message and both
         // buttons overran the sheet and hid Try Again / Restore below the fold — a dead end in the
         // exact state where those two buttons are the only way forward. (The store path is safe:

@@ -61,7 +61,7 @@ struct DocumentDetailScreen: View {
     }
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: GLLayout.sectionSpacing) {
             if let data = slot.data {
                 CertificatePreview(data: data)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -105,7 +105,8 @@ struct DocumentDetailScreen: View {
             .buttonStyle(.plain)
         }
         .padding(.horizontal, GLLayout.rowCardInset)
-        .padding(.vertical)
+        .padding(.top, 4)
+        .padding(.bottom, 12)
         .frame(maxWidth: 640)
         .frame(maxWidth: .infinity)
         .background { GLTheme.background.ignoresSafeArea() }

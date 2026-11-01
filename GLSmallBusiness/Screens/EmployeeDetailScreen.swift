@@ -68,7 +68,7 @@ struct EmployeeDetailScreen: View {
 
     @ViewBuilder private var aliveBody: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 header
                 contactCard
                 moreInfoRow
@@ -80,7 +80,8 @@ struct EmployeeDetailScreen: View {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }
@@ -329,7 +330,7 @@ struct EmployeeDetailScreen: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, GLLayout.rowContentPadding)
-        .padding(.vertical)
+        .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: GLLayout.cardCornerRadius, style: .continuous).fill(GLTheme.accent.opacity(0.12)))
     }
@@ -493,7 +494,7 @@ struct AllHoursSheet: View /* internal for render-coverage tests */ {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.vertical, 4)
             if range == .custom {
                 VStack(spacing: 6) {
                     DatePicker("From", selection: $from, displayedComponents: .date)
@@ -634,7 +635,7 @@ struct AllPaychecksSheet: View /* internal for render-coverage tests */ {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.vertical, 4)
             if range == .custom {
                 VStack(spacing: 6) {
                     DatePicker("From", selection: $from, displayedComponents: .date)

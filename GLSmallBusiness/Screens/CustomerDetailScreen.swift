@@ -59,7 +59,7 @@ struct CustomerDetailScreen: View {
 
     @ViewBuilder private var aliveBody: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 header
                 contactCard
                 addressCard
@@ -68,7 +68,8 @@ struct CustomerDetailScreen: View {
                 GLSection("Their insurance") { insuranceSection }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             // One column with the banners above (QA 2026-10-03 F50): capped at 640 pt, the gutter inside it.
             .glReadableWidth()
         }

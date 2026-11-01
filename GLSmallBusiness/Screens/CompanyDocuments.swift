@@ -91,7 +91,7 @@ struct YearEndTaxReportSheet: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 summaryPreview
                 yearControl
                 Text("Sharing sends two files for \(String(selectedYear)) — this tax summary and a receipts CSV listing every expense. Hand them to your accountant or keep them for your records.")
@@ -100,7 +100,8 @@ struct YearEndTaxReportSheet: View {
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }
@@ -319,7 +320,7 @@ struct W9DocumentSheet: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 if profile.w9IsComplete {
                     completeContent
                 } else {
@@ -327,7 +328,8 @@ struct W9DocumentSheet: View {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }
@@ -469,7 +471,7 @@ struct W9DocumentSheet: View {
     }
 
     private var incompleteContent: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: GLLayout.sectionSpacing) {
             Image(systemName: "doc.text")
                 .font(.system(size: 44))
                 .foregroundStyle(gold)

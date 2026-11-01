@@ -34,6 +34,8 @@ final class MBAssistantSession {
     /// This month's usage for the thin percent bar (law 80, owner ruling 2026-09-29: keep the
     /// server's rule). Nil until fetched; cleared with the session.
     private(set) var usage: GLAIUsage?
+    /// The `ChatSession.id` currently loaded into `controller`, preventing redundant resets on navigation.
+    private(set) var loadedSessionID: UUID?
     @ObservationIgnored private var transport: GLAIServerTransport?
     @ObservationIgnored private var directTransport: GLAIDirectProviderTransport?
 
@@ -74,6 +76,9 @@ final class MBAssistantSession {
         await cancelAndWait()
         attachedStore = store
         build()
+        if let currentSession = AIChatService.shared.sessions.first(where: { $0.id == AIChatService.shared.activeSessionId }) {
+            await loadSession(currentSession, force: true)
+        }
     }
 
     private func build() {
@@ -124,9 +129,11 @@ final class MBAssistantSession {
             subscriptionState: { .entitled })
         let answerer = Self.onDevice(box)
         storedOnDevice = answerer
-        controller = GLAIConversationController(toolbox: box.online, transport: direct,
-                                                configuration: configuration,
-                                                onDevice: answerer)
+        let builtController = GLAIConversationController(toolbox: box.online, transport: direct,
+                                                         configuration: configuration,
+                                                         onDevice: answerer)
+        builtController.syncsWithChatService = true
+        controller = builtController
         env.ledger.clear()
     }
 
@@ -248,6 +255,20 @@ final class MBAssistantSession {
         return "\(short) (\(build))"
     }
 
+    /// Loads the given chat session history into the active controller if not already loaded.
+    func loadSession(_ session: ChatSession, force: Bool = false) async {
+        guard controller != nil else { return }
+        guard force || loadedSessionID != session.id else { return }
+        loadedSessionID = session.id
+        await controller?.loadSession(session)
+    }
+
+    /// Resets the conversation controller for a new chat session and updates `loadedSessionID`.
+    func newConversation() async {
+        await controller?.newConversation()
+        loadedSessionID = AIChatService.shared.activeSessionId
+    }
+
     // MARK: The fence
 
     /// Stops the loop and waits for it, BEFORE the store unmounts. Safe to call when nothing is
@@ -268,6 +289,7 @@ final class MBAssistantSession {
         transport = nil
         directTransport = nil
         usage = nil
+        loadedSessionID = nil
         let running = controller
         controller = nil
         toolbox = nil

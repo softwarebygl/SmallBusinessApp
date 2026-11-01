@@ -2,6 +2,7 @@ import Combine
 import OSLog
 import SwiftData
 import SwiftUI
+import GoldLifeAI
 import GoldLifeUI
 import GoldLifeID
 
@@ -33,6 +34,7 @@ final class UserDemoMode: ObservableObject {
             defaults.set(defaults.bool(forKey: Self.legacyDefaultsKey), forKey: Self.defaultsKey)
             defaults.removeObject(forKey: Self.legacyDefaultsKey)
         }
+        AIChatService.isSampleModeOverride = { UserDemoMode.shared.isDemoActive }
     }
 
     func startDemo() {
@@ -61,6 +63,7 @@ final class UserDemoMode: ObservableObject {
             self.isDemoActive = true
             UserDefaults.standard.set(true, forKey: Self.defaultsKey)
             GoldLifeID.shared.enterSampleMode()
+            AIChatService.shared.enterSampleMode()
         } catch {
             // In-memory container creation failing means the schema itself is
             // broken — DEBUG territory. Alert AND log all the same: a chip that
@@ -87,6 +90,7 @@ final class UserDemoMode: ObservableObject {
         if GoldLifeID.shared.isSampleMode {
             GoldLifeID.shared.exitSampleMode()
         }
+        AIChatService.shared.exitSampleMode()
         DispatchQueue.main.async { [weak self] in
             guard let self, !self.isDemoActive else { return }
             self.demoContainer = nil

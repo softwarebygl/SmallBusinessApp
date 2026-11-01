@@ -436,7 +436,7 @@ struct MyCompanyDetailScreen: View {
         // the shared skin; the logo hero rides as a clear row.
         Form {
             Section {
-                VStack(spacing: 16) {
+                VStack(spacing: GLLayout.componentSpacing) {
                     logo(profile)
                     Text(profile.businessName.isEmpty ? mbLoc("Your business") : profile.businessName)
                         .font(.title2.weight(.semibold))

@@ -24,7 +24,7 @@ struct EmployeeDetailsScreen: View {
 
     @ViewBuilder private var aliveBody: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 MBTitledCard(title: "Contact") {
                     infoRow("Name", employee.fullName)
                     contactRow("Email", .email, employee.email)
@@ -55,7 +55,8 @@ struct EmployeeDetailsScreen: View {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }

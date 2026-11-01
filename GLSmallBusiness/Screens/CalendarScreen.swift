@@ -111,7 +111,7 @@ struct CalendarScreen: View {
     private var content: some View {
         let byDay = jobsByDay
         ScrollView {
-            VStack(spacing: 18) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 banner
                 MonthGrid(jobsByDay: byDay, gold: gold) { day in
                     daySelection = DaySelection(date: day, jobs: byDay[day] ?? [])
@@ -119,7 +119,8 @@ struct CalendarScreen: View {
                 agenda
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }
@@ -530,7 +531,8 @@ struct GapsList: View /* internal for render-coverage tests */ {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }

@@ -183,7 +183,7 @@ struct ContractorPackageSheet: View {
 
     @ViewBuilder private var aliveBody: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 if customer.hasCOI {
                     readyContent
                 } else {
@@ -191,7 +191,8 @@ struct ContractorPackageSheet: View {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }
@@ -693,7 +694,7 @@ struct ContractorPackageSheet: View {
     // MARK: - No COI yet
 
     private var noCOIContent: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: GLLayout.sectionSpacing) {
             Image(systemName: "checkmark.shield").font(.system(size: 44)).foregroundStyle(gold)
                 .accessibilityHidden(true)
             Text("Add this customer’s COI")

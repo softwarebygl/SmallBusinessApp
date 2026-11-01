@@ -61,7 +61,7 @@ struct StatsScreen: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 18) {
+            VStack(spacing: GLLayout.sectionSpacing) {
                 periodSelector
                 if hasData {
                     // Compute the summary ONCE per render — it scans the whole store, and the
@@ -81,7 +81,8 @@ struct StatsScreen: View {
                 }
             }
             .padding(.horizontal, GLLayout.rowCardInset)
-            .padding(.vertical)
+            .padding(.top, 4)
+            .padding(.bottom, 12)
             .frame(maxWidth: 640)
             .frame(maxWidth: .infinity)
         }

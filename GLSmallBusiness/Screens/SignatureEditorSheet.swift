@@ -215,7 +215,7 @@ struct SignatureEditorSheet: View {
                     .scaledToFit()
                     .frame(maxWidth: .infinity, maxHeight: 140)
                     .padding(.horizontal, GLLayout.rowCardInset)
-                    .padding(.vertical)
+                    .padding(.vertical, 8)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }

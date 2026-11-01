@@ -18,6 +18,7 @@
 import SwiftUI
 import GoldLifeUI
 import GoldLifeMoney
+import GoldLifeAI
 import SwiftData
 import UIKit
 
@@ -132,6 +133,7 @@ struct IPadRootSplitView: View {
     @State private var moneySegment: Int = 0
     @State private var selectedTransactionSyncID: UUID?
     @State private var selectedSubscriptionSyncID: UUID?
+    @State private var selectedChatSessionID: UUID?
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     /// The person whose detail root is on screen right now (nil while a pushed screen covers it,
     /// or while a placeholder shows). Set by the roots' onAppear/onDisappear.
@@ -187,8 +189,51 @@ struct IPadRootSplitView: View {
             if let raw = newSection?.rawValue, router.ipadSection != raw {
                 router.ipadSection = raw
             }
+            if newSection == .assistant {
+                if selectedChatSessionID == nil {
+                    if AIChatService.shared.sessions.isEmpty {
+                        AIChatService.shared.startNewConversation()
+                    }
+                    selectedChatSessionID = AIChatService.shared.activeSessionId
+                }
+                if let id = selectedChatSessionID, let session = AIChatService.shared.sessions.first(where: { $0.id == id }) {
+                    Task {
+                        await MBAssistantSession.shared.loadSession(session)
+                    }
+                }
+            }
+        }
+        .onChange(of: selectedChatSessionID) { _, newID in
+            if let id = newID {
+                AIChatService.shared.switchToSession(id: id)
+                if let target = AIChatService.shared.sessions.first(where: { $0.id == id }) {
+                    Task {
+                        await MBAssistantSession.shared.loadSession(target)
+                    }
+                }
+            }
+        }
+        .onReceive(AIChatService.shared.$activeSessionId) { newActive in
+            if selectedChatSessionID != newActive {
+                selectedChatSessionID = newActive
+            }
         }
         .sheet(isPresented: $showingMenu) { MenuScreen().glAppearance(colorScheme) }
+        .onAppear {
+            if section == .assistant {
+                if selectedChatSessionID == nil {
+                    if AIChatService.shared.sessions.isEmpty {
+                        AIChatService.shared.startNewConversation()
+                    }
+                    selectedChatSessionID = AIChatService.shared.activeSessionId
+                }
+                if let id = selectedChatSessionID, let session = AIChatService.shared.sessions.first(where: { $0.id == id }) {
+                    Task {
+                        await MBAssistantSession.shared.loadSession(session)
+                    }
+                }
+            }
+        }
         #if DEBUG
         .onAppear { selectDemoCustomerIfNeeded(); selectDemoEmployeeIfNeeded(); selectDemoSubcontractorIfNeeded() }
         .onChange(of: customers.count) { _, _ in selectDemoCustomerIfNeeded() }
@@ -307,10 +352,7 @@ struct IPadRootSplitView: View {
             )
             .mbMoneyHostEnvironment()
         case .assistant:
-            // The split view's content closure IS this column's navigation controller, and the
-            // Menu already sits at the bottom of the sidebar — so the assistant drops both, like
-            // every other column (AllJobsScreen(isTabRoot:), CalendarScreen(ownsStack:)).
-            AssistantScreen(ownsStack: false)
+            SentinelChatListColumn(selectedSessionID: $selectedChatSessionID)
         case nil:
             BrandPlaceholder(text: mbLoc("Select a section"), systemImage: "square.grid.2x2")
         }
@@ -414,9 +456,12 @@ struct IPadRootSplitView: View {
                 )
                 .mbMoneyHostEnvironment()
             case .assistant:
-                // The conversation itself lives in the COLUMN (it owns its own navigation stack,
-                // so an `open` pushes the record beside it); the wide pane names the section.
-                BrandPlaceholder(text: mbLoc("Sentinel"), systemImage: "sparkles")
+                if let sessionID = selectedChatSessionID {
+                    AssistantScreen(ownsStack: false)
+                        .id(sessionID)
+                } else {
+                    BrandPlaceholder(text: mbLoc("Select a Chat"), systemImage: "sparkles")
+                }
             case nil:
                 BrandPlaceholder(text: "")
             }
