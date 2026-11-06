@@ -162,10 +162,19 @@ struct IPadRootSplitView: View {
         NavigationSplitView {
             // Each column is its own navigation controller, so each one pins its
             // own back buttons (GoldLifeUI ruling S6).
-            sidebar.glMinimalBackButtons()
+            sidebar
+                .glMinimalBackButtons()
+                // The sidebar is navigation, not content: keep it narrow so the
+                // working column and the detail get the screen (TestFlight ACnrc:
+                // "the right screen should definitely not be the majority").
+                .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 320)
         } content: {
-            content.glMinimalBackButtons()
+            content
+                .glMinimalBackButtons()
+                .navigationSplitViewColumnWidth(min: 280, ideal: 340, max: 440)
         } detail: {
+            // The detail column takes everything the other two leave: the chat
+            // transcript (Sentinel) or the selected record.
             detail
         }
         // The SPLIT VIEW's identity is the section + segment. A segment flip must reset

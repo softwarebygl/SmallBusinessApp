@@ -154,7 +154,7 @@ struct InvoiceCreditDueTests {
         let invoice = overpaid(in: container.mainContext)
         // Tall enough to hold the totals card without scrolling; settled before it is read.
         let read = try DrawnText.screen(InvoiceDetailScreen(invoice: invoice), container: container,
-                                        size: CGSize(width: 430, height: 2400),
+                                        size: CGSize(width: 430, height: 1400),
                                         after: { RunLoop.current.run(until: Date(timeIntervalSinceNow: 2)) })
         #expect(read.contains("Paid") && read.contains("$700.00"), "the totals card was drawn; read: \(read)")
         #expect(read.contains("Credit due"), "read: \(read)")
