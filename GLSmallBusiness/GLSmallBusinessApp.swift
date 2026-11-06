@@ -122,15 +122,6 @@ struct GLSmallBusinessApp: App {
         GoldLifeID.shared.configure(GoldLifeIDConfig(
             stytchPublicToken: LocalSecrets.stytchPublicToken,
             sessionDurationMinutes: 43_200,
-            // Empty: this app attests Apple through its own native
-            // oauth.apple.start slot, not the package's Trusted-Auth-attest
-            // door — see the header comment above.
-            appleTrustedAuthProfileID: "",
-            googleTrustedAuthProfileID: LocalSecrets.googleTrustedAuthProfileId,
-            // Read from Info.plist's GIDClientID — the Google SDK already
-            // configures itself from it, so this app has never needed to pass
-            // it explicitly. Kept here for the package's future Google door.
-            googleClientID: Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String ?? "",
             identityBaseURL: LocalSecrets.workerURL,
             appID: MBHostDataErase.appID,
             // My Business's own row on the package's deletion screen erases in place
@@ -275,7 +266,6 @@ struct GLSmallBusinessApp: App {
                         Task { await goldLifeAuth.resolve() }
                     }
                 }
-                .onOpenURL { _ = GoldLifeID.shared.handleOpenURL($0) }
                 // The app-switcher cover is GLPrivacyShield (registered above) —
                 // a window above `.alert` level, so it covers presented sheets
                 // too. Deliberately NOT an overlay here.
