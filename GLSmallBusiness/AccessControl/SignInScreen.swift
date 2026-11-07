@@ -6,7 +6,6 @@ struct SignInScreen: View {
 
     @ObservedObject private var demo = UserDemoMode.shared
     @State private var showingPrivacy = false
-    @State private var showingGoldLife = false
     @State private var rememberMe = GateMemory.rememberEnabled
     @State private var autoRanDoor = false
 
@@ -19,9 +18,12 @@ struct SignInScreen: View {
             isOffline: !NetworkMonitor.shared.isConnected,
             errorMessage: auth.errorMessage,
             rememberDoor: $rememberMe,
-            onGoldLifeSignIn: {
-                auth.errorMessage = nil
-                showingGoldLife = true
+            emailAdapter: auth,
+            onAppleSignIn: {
+                await auth.signInWithApple()
+            },
+            onGoogleSignIn: {
+                await auth.signInWithGoogle()
             },
             onSampleData: {
                 auth.errorMessage = nil
@@ -31,10 +33,12 @@ struct SignInScreen: View {
         )
         .mbFitOrScroll(alignment: .center)
         .sheet(isPresented: $showingPrivacy) { PrivacyPolicySheet() }
-        .sheet(isPresented: $showingGoldLife) { GoldLifeEmailSignInSheet(auth: auth) }
         .task { await autoContinueIfRemembered() }
         .onChange(of: rememberMe) { _, newValue in
             GateMemory.rememberEnabled = newValue
+            if !newValue {
+                GateMemory.rememberedEmail = ""
+            }
         }
         .alert(mbLoc("Couldn’t open sample data"),
                isPresented: Binding(get: { demo.seedError != nil },
@@ -58,7 +62,7 @@ struct SignInScreen: View {
         switch door {
         case .apple, .google, .gold:
             // Do NOT auto-pop modal on cold launch (feedback AGg9v-nfgb_gZP5VBHAteLc).
-            // User taps "Continue with Gold Life ID" to open pre-filled sheet.
+            // Remembered email pre-expands inline inside GLGateVaultCard via GLGateScreen.onAppear.
             break
         }
     }

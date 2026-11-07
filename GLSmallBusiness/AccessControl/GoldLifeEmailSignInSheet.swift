@@ -55,14 +55,6 @@ extension GoldLifeAuth: GLGateEmailAuthAdapter {
         await completeCodeSignIn(code: code, methodID: methodID)
     }
 
-    func gateSendPhoneCode(phone: String) async -> String? {
-        await sendPhoneCode(to: phone)
-    }
-
-    func gateCompletePhoneCodeSignIn(code: String, methodID: String) async -> Bool {
-        await completeCodeSignIn(code: code, methodID: methodID)
-    }
-
     var rememberedEmail: String {
         get { GateMemory.rememberedEmail }
         set { GateMemory.rememberedEmail = newValue }

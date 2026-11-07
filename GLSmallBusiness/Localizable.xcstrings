@@ -1,38 +1,6 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "Sentinel": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sentinel"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sentinel"
-          }
-        }
-      }
-    },
-    "Sentinel isn’t available right now.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sentinel isn’t available right now."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sentinel no está disponible en este momento."
-          }
-        }
-      }
-    },
     "": {
       "localizations": {
         "es": {
@@ -454,6 +422,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ no está disponible en tu región o ubicación de red actual. Revisa tu VPN o conexión a internet y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "%@ isn’t connected yet. Tap the AI menu above the message bar to connect %@ or switch to one of your connected AIs.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ isn’t connected yet. Tap the AI menu above the message bar to connect %@ or switch to one of your connected AIs."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ aún no está conectado. Toca el menú de IA sobre la barra de mensajes para conectar %@ o cambia a una de tus IA conectadas."
           }
         }
       }
@@ -1663,6 +1647,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "(%1$lldh %2$lldm)"
+          }
+        }
+      }
+    },
+    "(555) 000-0000": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(555) 000-0000"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(555) 000-0000"
           }
         }
       }
@@ -3187,6 +3187,22 @@
         }
       }
     },
+    "All sign-in options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All sign-in options"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las opciones de inicio de sesión"
+          }
+        }
+      }
+    },
     "All time": {
       "localizations": {
         "es": {
@@ -3380,6 +3396,23 @@
         }
       }
     },
+    "Another Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otro dispositivo"
+          }
+        }
+      }
+    },
     "Another device changed this at the same time, so your change wasn’t backed up. The other device’s version was kept.": {
       "extractionState": "migrated",
       "localizations": {
@@ -3393,6 +3426,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Otro dispositivo cambió esto al mismo tiempo, así que tu cambio no se respaldó. Se conservó la versión del otro dispositivo."
+          }
+        }
+      }
+    },
+    "Answered on this device": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answered on this device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respondido en este dispositivo"
           }
         }
       }
@@ -3448,6 +3497,22 @@
         }
       }
     },
+    "Apple Intelligence · Built-In · Free": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence · Built-In · Free"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence · Integrado · Gratis"
+          }
+        }
+      }
+    },
     "Apple Maps": {
       "extractionState": "migrated",
       "localizations": {
@@ -3461,6 +3526,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mapas de Apple"
+          }
+        }
+      }
+    },
+    "Apple Sign-In is temporarily unavailable.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Sign-In is temporarily unavailable."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El inicio de sesión con Apple no está disponible temporalmente."
           }
         }
       }
@@ -3537,6 +3618,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aprobar"
+          }
+        }
+      }
+    },
+    "Approve Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprobar dispositivo"
           }
         }
       }
@@ -4228,6 +4326,22 @@
         }
       }
     },
+    "Built-In · Free": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Built-In · Free"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Integrado · Gratis"
+          }
+        }
+      }
+    },
     "Business": {
       "localizations": {
         "en": {
@@ -4472,18 +4586,35 @@
         }
       }
     },
-    "Cancel": {
+    "Camera access isn’t available on this device. Paste the pairing code below instead.": {
+      "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera access isn’t available on this device. Paste the pairing code below instead."
+          }
+        },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelar"
+            "value": "El acceso a la cámara no está disponible en este dispositivo. Pega el código de vinculación abajo."
           }
-        },
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Cancel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
           }
         }
       }
@@ -4892,6 +5023,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "¿Cambiar la factura pagada %@?"
+          }
+        }
+      }
+    },
+    "Change phone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change phone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar teléfono"
           }
         }
       }
@@ -5647,6 +5794,23 @@
         }
       }
     },
+    "Complete Pairing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete Pairing"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completar vinculación"
+          }
+        }
+      }
+    },
     "Complete your business profile": {
       "localizations": {
         "es": {
@@ -5739,6 +5903,38 @@
         }
       }
     },
+    "Connect AI…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect AI…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar IA…"
+          }
+        }
+      }
+    },
+    "Connect Cloud AI (Optional)…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Cloud AI (Optional)…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar IA en la nube (Opcional)…"
+          }
+        }
+      }
+    },
     "Connect Stripe": {
       "extractionState": "migrated",
       "localizations": {
@@ -5793,6 +5989,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Conecta una cuenta de Stripe para que tus clientes paguen tus facturas con tarjeta. Esto es para cobrarles a tus clientes — no tiene relación con tu suscripción de My Business. Los pagos van directo a tu cuenta de Stripe; nosotros nunca retenemos tu dinero."
+          }
+        }
+      }
+    },
+    "Connect an AI to continue. Tap the AI menu above the message bar or the CPU button in the top bar to connect ChatGPT, Claude, Gemini, or Muse.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect an AI to continue. Tap the AI menu above the message bar or the CPU button in the top bar to connect ChatGPT, Claude, Gemini, or Muse."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta una IA para continuar. Toca el menú de IA sobre la barra de mensajes o el botón de CPU en la barra superior para conectar ChatGPT, Claude, Gemini o Muse."
+          }
+        }
+      }
+    },
+    "Connect to the internet first so Gold Life can verify your account doesn’t already have an encryption key.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect to the internet first so Gold Life can verify your account doesn’t already have an encryption key."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conéctate primero a internet para que Gold Life pueda verificar que tu cuenta no tenga ya una clave de cifrado."
           }
         }
       }
@@ -5992,6 +6221,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Continuar con Apple"
+          }
+        }
+      }
+    },
+    "Continue with Email": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue with Email"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar con correo electrónico"
           }
         }
       }
@@ -6275,16 +6520,16 @@
     "Copied": {
       "extractionState": "migrated",
       "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiado"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Copied"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiado"
           }
         }
       }
@@ -6312,6 +6557,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copia B — entrégasela a %@. Guarda una copia para tus registros. Presenta la Copia A ante el IRS tú mismo (e-file) o entrégale a tu contador el Reporte de fin de año."
+          }
+        }
+      }
+    },
+    "Copy Pairing Request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Pairing Request"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar solicitud de vinculación"
+          }
+        }
+      }
+    },
+    "Copy Pairing Response": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Pairing Response"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar respuesta de vinculación"
+          }
+        }
+      }
+    },
+    "Couldn’t Link Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t Link Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo vincular el dispositivo"
+          }
+        }
+      }
+    },
+    "Couldn’t Unlock Data": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t Unlock Data"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron desbloquear los datos"
           }
         }
       }
@@ -6470,6 +6783,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "No se pudo crear este documento"
+          }
+        }
+      }
+    },
+    "Couldn’t create your Recovery Key right now. Please try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t create your Recovery Key right now. Please try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo crear tu clave de recuperación en este momento. Inténtalo de nuevo."
           }
         }
       }
@@ -6835,12 +7165,45 @@
         }
       }
     },
+    "Couldn’t send the code. Check the phone number, or wait a moment and try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t send the code. Check the phone number, or wait a moment and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo enviar el código. Verifica el número de teléfono o espera un momento e inténtalo de nuevo."
+          }
+        }
+      }
+    },
     "Couldn’t set up payments": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "No se pudieron configurar los pagos"
+          }
+        }
+      }
+    },
+    "Couldn’t unlock your encrypted data right now. Please try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t unlock your encrypted data right now. Please try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron desbloquear tus datos cifrados en este momento. Inténtalo de nuevo."
           }
         }
       }
@@ -6923,6 +7286,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Crear factura (%@)"
+          }
+        }
+      }
+    },
+    "Create Recovery Key Now": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Recovery Key Now"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear clave de recuperación ahora"
           }
         }
       }
@@ -7762,6 +8142,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "¿Eliminar esta orden de cambio?"
+          }
+        }
+      }
+    },
+    "Delete this chat?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this chat?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar esta conversación?"
           }
         }
       }
@@ -8691,16 +9087,16 @@
       "comment": "The label of a button that ends editing mode.",
       "isCommentAutoGenerated": true,
       "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Listo"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Done"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
           }
         }
       }
@@ -9333,6 +9729,23 @@
         }
       }
     },
+    "Encrypted data locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypted data locked"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos cifrados bloqueados"
+          }
+        }
+      }
+    },
     "Encrypted in your iCloud Keychain: synced end-to-end across your Apple devices and shared only across Gold Life LLC apps.": {
       "extractionState": "manual",
       "localizations": {
@@ -9436,6 +9849,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "English o Español. Tu elección se guarda en tu Gold Life ID y te sigue en todos tus dispositivos."
+          }
+        }
+      }
+    },
+    "Enter Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingresa tu clave de recuperación"
           }
         }
       }
@@ -9575,6 +10005,23 @@
         }
       }
     },
+    "Enter the Secret Recovery Key from your Gold Life Recovery Kit or from Menu ▸ Gold Life ID ▸ Recovery Key on another signed-in device.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the Secret Recovery Key from your Gold Life Recovery Kit or from Menu ▸ Gold Life ID ▸ Recovery Key on another signed-in device."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingresa la clave secreta de recuperación de tu kit de recuperación de Gold Life o desde Menú ▸ Gold Life ID ▸ Clave de recuperación en otro dispositivo con sesión iniciada."
+          }
+        }
+      }
+    },
     "Enter the code we emailed to %@. Codes expire after a few minutes.": {
       "extractionState": "migrated",
       "localizations": {
@@ -9588,6 +10035,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Escribe el código que enviamos a %@. Los códigos caducan a los pocos minutos."
+          }
+        }
+      }
+    },
+    "Enter the code we sent to %@. Codes expire after a few minutes.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the code we sent to %@. Codes expire after a few minutes."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingresa el código que enviamos a %@. Los códigos vencen después de unos minutos."
           }
         }
       }
@@ -9976,6 +10439,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Exportar tus estadísticas"
+          }
+        }
+      }
+    },
+    "Exports a printable 1-page Recovery Kit PDF for safekeeping.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exports a printable 1-page Recovery Kit PDF for safekeeping."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporta un PDF imprimible de 1 página con tu kit de recuperación para guardarlo en un lugar seguro."
           }
         }
       }
@@ -10453,6 +10933,23 @@
         }
       }
     },
+    "GL-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GL-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GL-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
+          }
+        }
+      }
+    },
     "GOLD LIFE ID": {
       "extractionState": "migrated",
       "localizations": {
@@ -10615,6 +11112,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ajuste del Gold Life ID sigue el idioma guardado en tu Gold Life ID. Tu elección aquí aplica solo en esta app. El dinero y las fechas siempre usan tu región."
+          }
+        }
+      }
+    },
+    "Gold Life never stores this key. Keep a copy in a safe place so you can always unlock your My Business records and Sentinel chats if you lose all of your devices.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold Life never stores this key. Keep a copy in a safe place so you can always unlock your My Business records and Sentinel chats if you lose all of your devices."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold Life nunca guarda esta clave. Conserva una copia en un lugar seguro para poder desbloquear siempre tus registros de My Business y tus chats de Sentinel si pierdes todos tus dispositivos."
           }
         }
       }
@@ -10794,6 +11308,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Oculta en el selector de apps"
+          }
+        }
+      }
+    },
+    "Hide Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar clave de recuperación"
           }
         }
       }
@@ -11699,6 +12230,22 @@
         }
       }
     },
+    "I’m Sentinel, running privately on this device with Apple Intelligence. How can I help you today?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I’m Sentinel, running privately on this device with Apple Intelligence. How can I help you today?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soy Sentinel, ejecutándome de forma privada en este dispositivo con Apple Intelligence. ¿Cómo puedo ayudarte hoy?"
+          }
+        }
+      }
+    },
     "JOB": {
       "extractionState": "migrated",
       "localizations": {
@@ -12252,6 +12799,40 @@
         }
       }
     },
+    "Link Another Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link Another Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vincular otro dispositivo"
+          }
+        }
+      }
+    },
+    "Link Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vincular dispositivo"
+          }
+        }
+      }
+    },
     "Link a customer to bill this job.": {
       "localizations": {
         "es": {
@@ -12275,6 +12856,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cargando…"
+          }
+        }
+      }
+    },
+    "Locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueado"
           }
         }
       }
@@ -13149,12 +13747,44 @@
         }
       }
     },
+    "New Chat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Chat"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva conversación"
+          }
+        }
+      }
+    },
     "New Contract": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Nuevo contrato"
+          }
+        }
+      }
+    },
+    "New Conversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Conversation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva conversación"
           }
         }
       }
@@ -13422,6 +14052,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sin artículos en el catálogo"
+          }
+        }
+      }
+    },
+    "No Chats": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Chats"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conversaciones"
           }
         }
       }
@@ -13746,6 +14392,22 @@
         }
       }
     },
+    "No messages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No messages"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin mensajes"
+          }
+        }
+      }
+    },
     "No name": {
       "localizations": {
         "es": {
@@ -13774,6 +14436,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sin contraseña. Enviamos un código de un solo uso a la dirección de tu cuenta."
+          }
+        }
+      }
+    },
+    "No password. We’ll text you a one-time code — your first sign-in creates your Gold Life ID.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No password. We’ll text you a one-time code — your first sign-in creates your Gold Life ID."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin contraseña. Te enviaremos un código único por SMS; tu primer inicio de sesión crea tu Gold Life ID."
           }
         }
       }
@@ -14304,6 +14982,23 @@
         }
       }
     },
+    "On a device where your data is already unlocked, open Menu ▸ Gold Life ID ▸ Recovery Key ▸ Link Another Device and scan this QR code.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On a device where your data is already unlocked, open Menu ▸ Gold Life ID ▸ Recovery Key ▸ Link Another Device and scan this QR code."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En un dispositivo donde tus datos ya estén desbloqueados, abre Menú ▸ Gold Life ID ▸ Clave de recuperación ▸ Vincular otro dispositivo y escanea este código QR."
+          }
+        }
+      }
+    },
     "On date": {
       "localizations": {
         "es": {
@@ -14334,6 +15029,22 @@
         }
       }
     },
+    "On-Device · Free": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On-Device · Free"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el dispositivo · Gratis"
+          }
+        }
+      }
+    },
     "On: everything adds into one total. Off: each group is its own priced option the customer can choose from.": {
       "localizations": {
         "es": {
@@ -14351,6 +15062,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Una cuenta en todas las apps de Gold Life. Al iniciar sesión recibes un Gold Life ID."
+          }
+        }
+      }
+    },
+    "One identity across every Gold Life app": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One identity across every Gold Life app"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una sola identidad en todas las apps de Gold Life"
           }
         }
       }
@@ -14706,6 +15433,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opciones"
+          }
+        }
+      }
+    },
+    "Or paste pairing code": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or paste pairing code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pega el código de vinculación"
+          }
+        }
+      }
+    },
+    "Or paste pairing request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or paste pairing request"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pega la solicitud de vinculación"
+          }
+        }
+      }
+    },
+    "Or paste pairing response": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or paste pairing response"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pega el código de respuesta"
           }
         }
       }
@@ -15092,6 +15870,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pega cualquier URL de reseñas (Google, Yelp, etc.) — puedes enviarla a un cliente cuando quieras desde Detalles de mi negocio. Para cerrar cada recibo de pago con una solicitud de reseña, actívalo en Ajustes → Mensajes de documentos."
+          }
+        }
+      }
+    },
+    "Paste from Clipboard": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste from Clipboard"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pegar desde el portapapeles"
           }
         }
       }
@@ -15545,16 +16340,16 @@
     },
     "Phone": {
       "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Teléfono"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Phone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teléfono"
           }
         }
       }
@@ -15572,6 +16367,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Número de teléfono"
+          }
+        }
+      }
+    },
+    "Phone SMS": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone SMS"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SMS al teléfono"
           }
         }
       }
@@ -16458,6 +17269,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registros"
+          }
+        }
+      }
+    },
+    "Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave de recuperación"
           }
         }
       }
@@ -17468,6 +18296,23 @@
         }
       }
     },
+    "Save Recovery Kit PDF": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Recovery Kit PDF"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar PDF del kit de recuperación"
+          }
+        }
+      }
+    },
     "Save to Phone Contacts": {
       "localizations": {
         "es": {
@@ -17724,6 +18569,40 @@
         }
       }
     },
+    "Scan New Device QR": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan New Device QR"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanear QR del nuevo dispositivo"
+          }
+        }
+      }
+    },
+    "Scan Pairing QR": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Pairing QR"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanear QR de vinculación"
+          }
+        }
+      }
+    },
     "Scan Receipt": {
       "localizations": {
         "es": {
@@ -17734,12 +18613,80 @@
         }
       }
     },
+    "Scan Response QR": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Response QR"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanear QR de respuesta"
+          }
+        }
+      }
+    },
+    "Scan This QR on Your New Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan This QR on Your New Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea este QR en tu nuevo dispositivo"
+          }
+        }
+      }
+    },
     "Scan receipt": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Escanear recibo"
+          }
+        }
+      }
+    },
+    "Scan the QR code shown on another signed-in device to transfer your encryption key directly between devices.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the QR code shown on another signed-in device to transfer your encryption key directly between devices."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea el código QR que aparece en otro dispositivo con sesión iniciada para transferir tu clave de cifrado directamente entre dispositivos."
+          }
+        }
+      }
+    },
+    "Scan the Step 1 QR code displayed on the device you want to unlock.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the Step 1 QR code displayed on the device you want to unlock."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea el código QR del Paso 1 que aparece en el dispositivo que deseas desbloquear."
           }
         }
       }
@@ -17923,6 +18870,22 @@
         }
       }
     },
+    "Search chats…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search chats…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar conversaciones…"
+          }
+        }
+      }
+    },
     "Search contracts": {
       "localizations": {
         "es": {
@@ -18043,6 +19006,23 @@
         }
       }
     },
+    "Secret Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secret Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave secreta de recuperación"
+          }
+        }
+      }
+    },
     "Security": {
       "localizations": {
         "es": {
@@ -18099,6 +19079,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seleccionar artículos"
+          }
+        }
+      }
+    },
+    "Select a Chat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a Chat"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona una conversación"
           }
         }
       }
@@ -18385,6 +19381,70 @@
         }
       }
     },
+    "Sentinel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentinel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentinel"
+          }
+        }
+      }
+    },
+    "Sentinel isn’t available right now.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentinel isn’t available right now."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentinel no está disponible en este momento."
+          }
+        }
+      }
+    },
+    "Sentinel sends what you type and the records needed to answer when using a connected cloud AI. Turn this off and Sentinel will ask again before sending.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentinel sends what you type and the records needed to answer when using a connected cloud AI. Turn this off and Sentinel will ask again before sending."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentinel envía lo que escribes y los registros necesarios para responder al usar una IA en la nube conectada. Desactiva esto y Sentinel volverá a preguntar antes de enviar."
+          }
+        }
+      }
+    },
+    "Sentinel will ask before sending to connected cloud AIs again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentinel will ask before sending to connected cloud AIs again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentinel volverá a preguntar antes de enviar a las IA en la nube conectadas."
+          }
+        }
+      }
+    },
     "Service Address": {
       "localizations": {
         "es": {
@@ -18645,6 +19705,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Al compartir se envían dos archivos de %@ — este resumen de impuestos y un CSV de recibos que lista cada gasto. Entrégaselos a tu contador o guárdalos para tus registros."
+          }
+        }
+      }
+    },
+    "Show Recovery Key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Recovery Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar clave de recuperación"
           }
         }
       }
@@ -19266,6 +20343,40 @@
         }
       }
     },
+    "Step 1 — Scan on Unlocked Device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 1 — Scan on Unlocked Device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paso 1 — Escanea en tu dispositivo desbloqueado"
+          }
+        }
+      }
+    },
+    "Step 2 — Scan Response QR": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 2 — Scan Response QR"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paso 2 — Escanea el QR de respuesta"
+          }
+        }
+      }
+    },
     "Still has your data — open that app and delete it there.": {
       "extractionState": "migrated",
       "localizations": {
@@ -19311,6 +20422,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dejar de dictar"
+          }
+        }
+      }
+    },
+    "Stop sharing with Sentinel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop sharing with Sentinel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dejar de compartir con Sentinel"
+          }
+        }
+      }
+    },
+    "Stop sharing with Sentinel?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop sharing with Sentinel?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Dejar de compartir con Sentinel?"
           }
         }
       }
@@ -20003,6 +21146,22 @@
         }
       }
     },
+    "Tap New Chat to start a conversation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap New Chat to start a conversation."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca Nueva conversación para iniciar un chat."
+          }
+        }
+      }
+    },
     "Tap an opening to schedule a job in it.": {
       "localizations": {
         "es": {
@@ -20453,6 +21612,40 @@
         }
       }
     },
+    "That QR code wasn’t recognized. Make sure you scanned the Step 1 pairing QR.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That QR code wasn’t recognized. Make sure you scanned the Step 1 pairing QR."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se reconoció ese código QR. Asegúrate de escanear el QR de vinculación del Paso 1."
+          }
+        }
+      }
+    },
+    "That Recovery Key doesn’t match the Gold Life format. Check every group and try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That Recovery Key doesn’t match the Gold Life format. Check every group and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa clave de recuperación no coincide con el formato de Gold Life. Revisa cada grupo e inténtalo de nuevo."
+          }
+        }
+      }
+    },
     "That change didn’t save": {
       "localizations": {
         "es": {
@@ -20487,6 +21680,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ese código no funcionó. Puede haber caducado: envía uno nuevo e inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "That device holds a different encryption key and couldn’t unlock this account’s data.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That device holds a different encryption key and couldn’t unlock this account’s data."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese dispositivo tiene una clave de cifrado distinta y no pudo desbloquear los datos de esta cuenta."
           }
         }
       }
@@ -20558,6 +21768,23 @@
         }
       }
     },
+    "That key didn’t unlock your encrypted data. Check for typos and try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That key didn’t unlock your encrypted data. Check for typos and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa clave no pudo desbloquear tus datos cifrados. Revisa que esté bien escrita e inténtalo de nuevo."
+          }
+        }
+      }
+    },
     "That name is too long to fit on a signature line. Try a shorter version — a first initial and last name works well.": {
       "localizations": {
         "es": {
@@ -20574,6 +21801,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eso solo se hace en su propia pantalla."
+          }
+        }
+      }
+    },
+    "That pairing code wasn’t recognized or expired. Try scanning again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That pairing code wasn’t recognized or expired. Try scanning again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese código de vinculación no se reconoció o caducó. Intenta escanearlo de nuevo."
           }
         }
       }
@@ -21011,6 +22255,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Los correos y números de teléfono a los que se pueden enviar tus códigos de un solo uso."
+          }
+        }
+      }
+    },
+    "The email addresses your one-time sign-in codes can be sent to.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The email addresses your one-time sign-in codes can be sent to."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las direcciones de correo electrónico a las que se pueden enviar tus códigos únicos de inicio de sesión."
           }
         }
       }
@@ -21478,6 +22738,22 @@
         }
       }
     },
+    "Thinking: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thinking: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pensamiento: %@"
+          }
+        }
+      }
+    },
     "Thinking…": {
       "localizations": {
         "es": {
@@ -21686,6 +22962,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Este dispositivo no puede escanear."
+          }
+        }
+      }
+    },
+    "This device doesn’t hold an unlocked encryption key yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device doesn’t hold an unlocked encryption key yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo aún no tiene una clave de cifrado desbloqueada."
           }
         }
       }
@@ -22501,16 +23794,67 @@
     },
     "Unlock": {
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        },
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Desbloquear"
           }
-        },
+        }
+      }
+    },
+    "Unlock Data": {
+      "extractionState": "manual",
+      "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlock"
+            "value": "Unlock Data"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear datos"
+          }
+        }
+      }
+    },
+    "Unlock Encrypted Data": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock Encrypted Data"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear datos cifrados"
+          }
+        }
+      }
+    },
+    "Unlock Method": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock Method"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Método de desbloqueo"
           }
         }
       }
@@ -23026,6 +24370,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Usar código"
+          }
+        }
+      }
+    },
+    "Use Pasted Code": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Pasted Code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar código pegado"
           }
         }
       }
@@ -23817,6 +25178,22 @@
         }
       }
     },
+    "Yesterday": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayer"
+          }
+        }
+      }
+    },
     "You appear to be offline. Check your Wi-Fi or cellular data connection and tap Try Again.": {
       "extractionState": "manual",
       "localizations": {
@@ -23830,6 +25207,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Parece que no tienes conexión a internet. Revisa tu conexión Wi-Fi o de datos móviles y toca Reintentar."
+          }
+        }
+      }
+    },
+    "You are Sentinel, the AI agent inside My Business, answering with no internet connection. You can look things up with find, get and report, and nothing else. You cannot add or change anything: if the person asks for a change, say “I’ll need a connection to make that change.” Answer briefly, in the person’s own words, and never invent a number, a name or a date.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are Sentinel, the AI agent inside My Business, answering with no internet connection. You can look things up with find, get and report, and nothing else. You cannot add or change anything: if the person asks for a change, say “I’ll need a connection to make that change.” Answer briefly, in the person’s own words, and never invent a number, a name or a date."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eres Sentinel, el agente de IA dentro de My Business, respondiendo sin conexión a internet. Puedes consultar datos con find, get y report, y nada más. No puedes agregar ni cambiar nada: si la persona pide un cambio, di “Necesito conexión para hacer ese cambio.” Responde brevemente, con las palabras de la persona, y nunca inventes un número, un nombre ni una fecha."
           }
         }
       }
@@ -23850,6 +25243,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Puedes dejar de compartir cuando quieras en Ajustes, en Asistente."
+          }
+        }
+      }
+    },
+    "You can stop sharing any time in Settings, under Sentinel.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can stop sharing any time in Settings, under Sentinel."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes dejar de compartir en cualquier momento en Configuración, bajo Sentinel."
           }
         }
       }
@@ -24127,6 +25536,23 @@
         }
       }
     },
+    "Your Gold Life ID sign-in record will be removed from our servers, and any app signed into this Gold Life ID will sign out.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Gold Life ID sign-in record will be removed from our servers, and any app signed into this Gold Life ID will sign out."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu registro de inicio de sesión de Gold Life ID se eliminará de nuestros servidores y se cerrará la sesión en cualquier app conectada a este Gold Life ID."
+          }
+        }
+      }
+    },
     "Your Gold Life apps": {
       "extractionState": "migrated",
       "localizations": {
@@ -24368,6 +25794,23 @@
         }
       }
     },
+    "Your cloud data is protected with end-to-end encryption. If iCloud Keychain hasn’t synced your key yet, unlock this device with your Recovery Key or another signed-in device.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your cloud data is protected with end-to-end encryption. If iCloud Keychain hasn’t synced your key yet, unlock this device with your Recovery Key or another signed-in device."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus datos en la nube están protegidos con cifrado de extremo a extremo. Si el Llavero de iCloud aún no ha sincronizado tu clave, desbloquea este dispositivo con tu clave de recuperación o desde otro dispositivo con sesión iniciada."
+          }
+        }
+      }
+    },
     "Your device couldn’t write the change. Free up storage if it’s low, then open the record and try again.": {
       "localizations": {
         "es": {
@@ -24384,6 +25827,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tus cambios se guardaron, pero no se pudieron vincular las partidas de esta orden de cambio en la factura. Actualiza las partidas de la factura a mano."
+          }
+        }
+      }
+    },
+    "Your encryption key is created automatically the first time your data syncs, and syncs across your Apple devices through iCloud Keychain.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your encryption key is created automatically the first time your data syncs, and syncs across your Apple devices through iCloud Keychain."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu clave de cifrado se crea automáticamente la primera vez que tus datos se sincronizan y se comparte entre tus dispositivos Apple mediante el Llavero de iCloud."
+          }
+        }
+      }
+    },
+    "Your encryption key is sealed specifically for that device’s one-time pairing session.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your encryption key is sealed specifically for that device’s one-time pairing session."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu clave de cifrado está protegida específicamente para la sesión única de vinculación de ese dispositivo."
           }
         }
       }
@@ -25527,1403 +27004,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "★  ¿Te gustó trabajar con nosotros?"
-          }
-        }
-      }
-    },
-    "Your Gold Life ID sign-in record will be removed from our servers, and any app signed into this Gold Life ID will sign out.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your Gold Life ID sign-in record will be removed from our servers, and any app signed into this Gold Life ID will sign out."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu registro de inicio de sesión de Gold Life ID se eliminará de nuestros servidores y se cerrará la sesión en cualquier app conectada a este Gold Life ID."
-          }
-        }
-      }
-    },
-    "Apple Intelligence · Built-In · Free": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple Intelligence · Built-In · Free"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple Intelligence · Integrado · Gratis"
-          }
-        }
-      }
-    },
-    "Answered on this device": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Answered on this device"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Respondido en este dispositivo"
-          }
-        }
-      }
-    },
-    "Connect Cloud AI (Optional)…": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect Cloud AI (Optional)…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conectar IA en la nube (Opcional)…"
-          }
-        }
-      }
-    },
-    "Connect AI…": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect AI…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conectar IA…"
-          }
-        }
-      }
-    },
-    "Built-In · Free": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Built-In · Free"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Integrado · Gratis"
-          }
-        }
-      }
-    },
-    "On-Device · Free": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "On-Device · Free"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En el dispositivo · Gratis"
-          }
-        }
-      }
-    },
-    "Thinking: %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thinking: %@"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pensamiento: %@"
-          }
-        }
-      }
-    },
-    "I’m Sentinel, running privately on this device with Apple Intelligence. How can I help you today?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "I’m Sentinel, running privately on this device with Apple Intelligence. How can I help you today?"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Soy Sentinel, ejecutándome de forma privada en este dispositivo con Apple Intelligence. ¿Cómo puedo ayudarte hoy?"
-          }
-        }
-      }
-    },
-    "Sentinel sends what you type and the records needed to answer when using a connected cloud AI. Turn this off and Sentinel will ask again before sending.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sentinel sends what you type and the records needed to answer when using a connected cloud AI. Turn this off and Sentinel will ask again before sending."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sentinel envía lo que escribes y los registros necesarios para responder al usar una IA en la nube conectada. Desactiva esto y Sentinel volverá a preguntar antes de enviar."
-          }
-        }
-      }
-    },
-    "Stop sharing with Sentinel": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stop sharing with Sentinel"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dejar de compartir con Sentinel"
-          }
-        }
-      }
-    },
-    "Stop sharing with Sentinel?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stop sharing with Sentinel?"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¿Dejar de compartir con Sentinel?"
-          }
-        }
-      }
-    },
-    "Sentinel will ask before sending to connected cloud AIs again.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sentinel will ask before sending to connected cloud AIs again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sentinel volverá a preguntar antes de enviar a las IA en la nube conectadas."
-          }
-        }
-      }
-    },
-    "Phone SMS": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Phone SMS"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SMS al teléfono"
-          }
-        }
-      }
-    },
-    "(555) 000-0000": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "(555) 000-0000"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "(555) 000-0000"
-          }
-        }
-      }
-    },
-    "No password. We’ll text you a one-time code — your first sign-in creates your Gold Life ID.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No password. We’ll text you a one-time code — your first sign-in creates your Gold Life ID."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sin contraseña. Te enviaremos un código único por SMS; tu primer inicio de sesión crea tu Gold Life ID."
-          }
-        }
-      }
-    },
-    "Enter the code we sent to %@. Codes expire after a few minutes.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter the code we sent to %@. Codes expire after a few minutes."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ingresa el código que enviamos a %@. Los códigos vencen después de unos minutos."
-          }
-        }
-      }
-    },
-    "Change phone": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Change phone"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cambiar teléfono"
-          }
-        }
-      }
-    },
-    "Couldn’t send the code. Check the phone number, or wait a moment and try again.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn’t send the code. Check the phone number, or wait a moment and try again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudo enviar el código. Verifica el número de teléfono o espera un momento e inténtalo de nuevo."
-          }
-        }
-      }
-    },
-    "You can stop sharing any time in Settings, under Sentinel.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You can stop sharing any time in Settings, under Sentinel."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Puedes dejar de compartir en cualquier momento en Configuración, bajo Sentinel."
-          }
-        }
-      }
-    },
-    "You are Sentinel, the AI agent inside My Business, answering with no internet connection. You can look things up with find, get and report, and nothing else. You cannot add or change anything: if the person asks for a change, say “I’ll need a connection to make that change.” Answer briefly, in the person’s own words, and never invent a number, a name or a date.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You are Sentinel, the AI agent inside My Business, answering with no internet connection. You can look things up with find, get and report, and nothing else. You cannot add or change anything: if the person asks for a change, say “I’ll need a connection to make that change.” Answer briefly, in the person’s own words, and never invent a number, a name or a date."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eres Sentinel, el agente de IA dentro de My Business, respondiendo sin conexión a internet. Puedes consultar datos con find, get y report, y nada más. No puedes agregar ni cambiar nada: si la persona pide un cambio, di “Necesito conexión para hacer ese cambio.” Responde brevemente, con las palabras de la persona, y nunca inventes un número, un nombre ni una fecha."
-          }
-        }
-      }
-    },
-    "Connect an AI to continue. Tap the AI menu above the message bar or the CPU button in the top bar to connect ChatGPT, Claude, Gemini, or Muse.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect an AI to continue. Tap the AI menu above the message bar or the CPU button in the top bar to connect ChatGPT, Claude, Gemini, or Muse."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conecta una IA para continuar. Toca el menú de IA sobre la barra de mensajes o el botón de CPU en la barra superior para conectar ChatGPT, Claude, Gemini o Muse."
-          }
-        }
-      }
-    },
-    "%@ isn’t connected yet. Tap the AI menu above the message bar to connect %@ or switch to one of your connected AIs.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ isn’t connected yet. Tap the AI menu above the message bar to connect %@ or switch to one of your connected AIs."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ aún no está conectado. Toca el menú de IA sobre la barra de mensajes para conectar %@ o cambia a una de tus IA conectadas."
-          }
-        }
-      }
-    },
-    "Search chats…": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search chats…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buscar conversaciones…"
-          }
-        }
-      }
-    },
-    "No Chats": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No Chats"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sin conversaciones"
-          }
-        }
-      }
-    },
-    "Tap New Chat to start a conversation.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tap New Chat to start a conversation."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toca Nueva conversación para iniciar un chat."
-          }
-        }
-      }
-    },
-    "New Chat": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New Chat"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nueva conversación"
-          }
-        }
-      }
-    },
-    "New Conversation": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New Conversation"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nueva conversación"
-          }
-        }
-      }
-    },
-    "No messages": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No messages"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sin mensajes"
-          }
-        }
-      }
-    },
-    "Select a Chat": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Select a Chat"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selecciona una conversación"
-          }
-        }
-      }
-    },
-    "Yesterday": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yesterday"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ayer"
-          }
-        }
-      }
-    },
-    "Delete this chat?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete this chat?"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¿Eliminar esta conversación?"
-          }
-        }
-      }
-    },
-    "Encrypted data locked": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Encrypted data locked"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Datos cifrados bloqueados"
-          }
-        }
-      }
-    },
-    "Recovery Key": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recovery Key"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clave de recuperación"
-          }
-        }
-      }
-    },
-    "Locked": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Locked"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bloqueado"
-          }
-        }
-      }
-    },
-    "Your cloud data is protected with end-to-end encryption. If iCloud Keychain hasn’t synced your key yet, unlock this device with your Recovery Key or another signed-in device.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your cloud data is protected with end-to-end encryption. If iCloud Keychain hasn’t synced your key yet, unlock this device with your Recovery Key or another signed-in device."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tus datos en la nube están protegidos con cifrado de extremo a extremo. Si el Llavero de iCloud aún no ha sincronizado tu clave, desbloquea este dispositivo con tu clave de recuperación o desde otro dispositivo con sesión iniciada."
-          }
-        }
-      }
-    },
-    "Unlock Encrypted Data": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unlock Encrypted Data"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desbloquear datos cifrados"
-          }
-        }
-      }
-    },
-    "Your encryption key is created automatically the first time your data syncs, and syncs across your Apple devices through iCloud Keychain.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your encryption key is created automatically the first time your data syncs, and syncs across your Apple devices through iCloud Keychain."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu clave de cifrado se crea automáticamente la primera vez que tus datos se sincronizan y se comparte entre tus dispositivos Apple mediante el Llavero de iCloud."
-          }
-        }
-      }
-    },
-    "Create Recovery Key Now": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Create Recovery Key Now"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crear clave de recuperación ahora"
-          }
-        }
-      }
-    },
-    "Hide Recovery Key": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hide Recovery Key"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ocultar clave de recuperación"
-          }
-        }
-      }
-    },
-    "Show Recovery Key": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show Recovery Key"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar clave de recuperación"
-          }
-        }
-      }
-    },
-    "Secret Recovery Key": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Secret Recovery Key"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clave secreta de recuperación"
-          }
-        }
-      }
-    },
-    "Gold Life never stores this key. Keep a copy in a safe place so you can always unlock your My Business records and Sentinel chats if you lose all of your devices.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gold Life never stores this key. Keep a copy in a safe place so you can always unlock your My Business records and Sentinel chats if you lose all of your devices."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gold Life nunca guarda esta clave. Conserva una copia en un lugar seguro para poder desbloquear siempre tus registros de My Business y tus chats de Sentinel si pierdes todos tus dispositivos."
-          }
-        }
-      }
-    },
-    "Save Recovery Kit PDF": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save Recovery Kit PDF"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Guardar PDF del kit de recuperación"
-          }
-        }
-      }
-    },
-    "Exports a printable 1-page Recovery Kit PDF for safekeeping.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exports a printable 1-page Recovery Kit PDF for safekeeping."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exporta un PDF imprimible de 1 página con tu kit de recuperación para guardarlo en un lugar seguro."
-          }
-        }
-      }
-    },
-    "Link Another Device": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Link Another Device"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vincular otro dispositivo"
-          }
-        }
-      }
-    },
-    "Scan the QR code shown on another signed-in device to transfer your encryption key directly between devices.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan the QR code shown on another signed-in device to transfer your encryption key directly between devices."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escanea el código QR que aparece en otro dispositivo con sesión iniciada para transferir tu clave de cifrado directamente entre dispositivos."
-          }
-        }
-      }
-    },
-    "Connect to the internet first so Gold Life can verify your account doesn’t already have an encryption key.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect to the internet first so Gold Life can verify your account doesn’t already have an encryption key."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conéctate primero a internet para que Gold Life pueda verificar que tu cuenta no tenga ya una clave de cifrado."
-          }
-        }
-      }
-    },
-    "Couldn’t create your Recovery Key right now. Please try again.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn’t create your Recovery Key right now. Please try again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudo crear tu clave de recuperación en este momento. Inténtalo de nuevo."
-          }
-        }
-      }
-    },
-    "Unlock Method": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unlock Method"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Método de desbloqueo"
-          }
-        }
-      }
-    },
-    "Another Device": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Another Device"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Otro dispositivo"
-          }
-        }
-      }
-    },
-    "Unlock Data": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unlock Data"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desbloquear datos"
-          }
-        }
-      }
-    },
-    "Scan Pairing QR": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan Pairing QR"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escanear QR de vinculación"
-          }
-        }
-      }
-    },
-    "Couldn’t Unlock Data": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn’t Unlock Data"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudieron desbloquear los datos"
-          }
-        }
-      }
-    },
-    "GL-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GL-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GL-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
-          }
-        }
-      }
-    },
-    "Paste from Clipboard": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paste from Clipboard"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pegar desde el portapapeles"
-          }
-        }
-      }
-    },
-    "Enter Recovery Key": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter Recovery Key"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ingresa tu clave de recuperación"
-          }
-        }
-      }
-    },
-    "Enter the Secret Recovery Key from your Gold Life Recovery Kit or from Menu ▸ Gold Life ID ▸ Recovery Key on another signed-in device.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter the Secret Recovery Key from your Gold Life Recovery Kit or from Menu ▸ Gold Life ID ▸ Recovery Key on another signed-in device."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ingresa la clave secreta de recuperación de tu kit de recuperación de Gold Life o desde Menú ▸ Gold Life ID ▸ Clave de recuperación en otro dispositivo con sesión iniciada."
-          }
-        }
-      }
-    },
-    "Copy Pairing Request": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy Pairing Request"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar solicitud de vinculación"
-          }
-        }
-      }
-    },
-    "Step 1 — Scan on Unlocked Device": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Step 1 — Scan on Unlocked Device"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paso 1 — Escanea en tu dispositivo desbloqueado"
-          }
-        }
-      }
-    },
-    "On a device where your data is already unlocked, open Menu ▸ Gold Life ID ▸ Recovery Key ▸ Link Another Device and scan this QR code.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "On a device where your data is already unlocked, open Menu ▸ Gold Life ID ▸ Recovery Key ▸ Link Another Device and scan this QR code."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En un dispositivo donde tus datos ya estén desbloqueados, abre Menú ▸ Gold Life ID ▸ Clave de recuperación ▸ Vincular otro dispositivo y escanea este código QR."
-          }
-        }
-      }
-    },
-    "Scan Response QR": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan Response QR"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escanear QR de respuesta"
-          }
-        }
-      }
-    },
-    "Or paste pairing response": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Or paste pairing response"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O pega el código de respuesta"
-          }
-        }
-      }
-    },
-    "Complete Pairing": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Complete Pairing"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Completar vinculación"
-          }
-        }
-      }
-    },
-    "Step 2 — Scan Response QR": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Step 2 — Scan Response QR"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paso 2 — Escanea el QR de respuesta"
-          }
-        }
-      }
-    },
-    "That Recovery Key doesn’t match the Gold Life format. Check every group and try again.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "That Recovery Key doesn’t match the Gold Life format. Check every group and try again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esa clave de recuperación no coincide con el formato de Gold Life. Revisa cada grupo e inténtalo de nuevo."
-          }
-        }
-      }
-    },
-    "That key didn’t unlock your encrypted data. Check for typos and try again.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "That key didn’t unlock your encrypted data. Check for typos and try again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esa clave no pudo desbloquear tus datos cifrados. Revisa que esté bien escrita e inténtalo de nuevo."
-          }
-        }
-      }
-    },
-    "Couldn’t unlock your encrypted data right now. Please try again.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn’t unlock your encrypted data right now. Please try again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudieron desbloquear tus datos cifrados en este momento. Inténtalo de nuevo."
-          }
-        }
-      }
-    },
-    "That device holds a different encryption key and couldn’t unlock this account’s data.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "That device holds a different encryption key and couldn’t unlock this account’s data."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ese dispositivo tiene una clave de cifrado distinta y no pudo desbloquear los datos de esta cuenta."
-          }
-        }
-      }
-    },
-    "That pairing code wasn’t recognized or expired. Try scanning again.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "That pairing code wasn’t recognized or expired. Try scanning again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ese código de vinculación no se reconoció o caducó. Intenta escanearlo de nuevo."
-          }
-        }
-      }
-    },
-    "Copy Pairing Response": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy Pairing Response"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar respuesta de vinculación"
-          }
-        }
-      }
-    },
-    "Scan This QR on Your New Device": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan This QR on Your New Device"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escanea este QR en tu nuevo dispositivo"
-          }
-        }
-      }
-    },
-    "Your encryption key is sealed specifically for that device’s one-time pairing session.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your encryption key is sealed specifically for that device’s one-time pairing session."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu clave de cifrado está protegida específicamente para la sesión única de vinculación de ese dispositivo."
-          }
-        }
-      }
-    },
-    "Scan New Device QR": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan New Device QR"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escanear QR del nuevo dispositivo"
-          }
-        }
-      }
-    },
-    "Or paste pairing request": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Or paste pairing request"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O pega la solicitud de vinculación"
-          }
-        }
-      }
-    },
-    "Approve Device": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Approve Device"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aprobar dispositivo"
-          }
-        }
-      }
-    },
-    "Scan the Step 1 QR code displayed on the device you want to unlock.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan the Step 1 QR code displayed on the device you want to unlock."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Escanea el código QR del Paso 1 que aparece en el dispositivo que deseas desbloquear."
-          }
-        }
-      }
-    },
-    "Link Device": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Link Device"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vincular dispositivo"
-          }
-        }
-      }
-    },
-    "Couldn’t Link Device": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn’t Link Device"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudo vincular el dispositivo"
-          }
-        }
-      }
-    },
-    "This device doesn’t hold an unlocked encryption key yet.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This device doesn’t hold an unlocked encryption key yet."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Este dispositivo aún no tiene una clave de cifrado desbloqueada."
-          }
-        }
-      }
-    },
-    "That QR code wasn’t recognized. Make sure you scanned the Step 1 pairing QR.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "That QR code wasn’t recognized. Make sure you scanned the Step 1 pairing QR."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se reconoció ese código QR. Asegúrate de escanear el QR de vinculación del Paso 1."
-          }
-        }
-      }
-    },
-    "Camera access isn’t available on this device. Paste the pairing code below instead.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Camera access isn’t available on this device. Paste the pairing code below instead."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El acceso a la cámara no está disponible en este dispositivo. Pega el código de vinculación abajo."
-          }
-        }
-      }
-    },
-    "Or paste pairing code": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Or paste pairing code"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O pega el código de vinculación"
-          }
-        }
-      }
-    },
-    "Use Pasted Code": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Use Pasted Code"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usar código pegado"
           }
         }
       }

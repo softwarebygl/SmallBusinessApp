@@ -122,6 +122,9 @@ struct GLSmallBusinessApp: App {
         GoldLifeID.shared.configure(GoldLifeIDConfig(
             stytchPublicToken: LocalSecrets.stytchPublicToken,
             sessionDurationMinutes: 43_200,
+            appleTrustedAuthProfileID: "",
+            googleTrustedAuthProfileID: LocalSecrets.googleTrustedAuthProfileId,
+            googleClientID: Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String ?? "",
             identityBaseURL: LocalSecrets.workerURL,
             appID: MBHostDataErase.appID,
             // My Business's own row on the package's deletion screen erases in place
@@ -266,6 +269,7 @@ struct GLSmallBusinessApp: App {
                         Task { await goldLifeAuth.resolve() }
                     }
                 }
+                .onOpenURL { _ = GoldLifeID.shared.handleOpenURL($0) }
                 // The app-switcher cover is GLPrivacyShield (registered above) —
                 // a window above `.alert` level, so it covers presented sheets
                 // too. Deliberately NOT an overlay here.

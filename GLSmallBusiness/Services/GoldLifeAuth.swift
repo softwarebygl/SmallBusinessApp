@@ -309,29 +309,16 @@ final class GoldLifeAuth {
     /// state: Stytch generates, delivers, expires, and throttles it
     /// server-side.
     func sendEmailCode(to email: String) async -> String? {
-        lastAttemptedEmail = email
+        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        lastAttemptedEmail = trimmed
         do {
             let response = try await StytchClient.otps.loginOrCreate(
-                parameters: .init(deliveryMethod: .email(email: email)))
+                parameters: .init(deliveryMethod: .email(email: trimmed)))
             return response.methodId
         } catch {
             let detail = (error as? StytchAPIError).map { "\($0.errorType)" }
                 ?? String(describing: type(of: error))
             Self.doorLog.error("Email code send failed: \(detail, privacy: .public)")
-            return nil
-        }
-    }
-
-    /// Send a 6-digit SMS code to `phone` — same `loginOrCreate` semantics for phone number sign-in.
-    func sendPhoneCode(to phone: String) async -> String? {
-        do {
-            let response = try await StytchClient.otps.loginOrCreate(
-                parameters: .init(deliveryMethod: .sms(phoneNumber: phone)))
-            return response.methodId
-        } catch {
-            let detail = (error as? StytchAPIError).map { "\($0.errorType)" }
-                ?? String(describing: type(of: error))
-            Self.doorLog.error("Phone code send failed: \(detail, privacy: .public)")
             return nil
         }
     }
@@ -380,9 +367,12 @@ final class GoldLifeAuth {
         kickAppLink()
         Task { await Self.migrateLegacyStripeToken() }
         GateMemory.record(door)
-        if let lastAttemptedEmail, !lastAttemptedEmail.isEmpty {
+        if door == .gold, let lastAttemptedEmail, !lastAttemptedEmail.isEmpty {
             GateMemory.rememberedEmail = lastAttemptedEmail
+        } else if door != .gold {
+            GateMemory.rememberedEmail = ""
         }
+        lastAttemptedEmail = nil
         Task {
             Self.reconcilePrefOwner()
             await AppearanceStore.shared.syncFromAccount()
@@ -729,6 +719,7 @@ enum GateMemory {
         }
         set {
             UserDefaults.standard.set(newValue, forKey: rememberKey)
+            UserDefaults.standard.set(newValue, forKey: "gl_gate_remember_door")
             if !newValue {
                 UserDefaults.standard.removeObject(forKey: doorKey)
                 UserDefaults.standard.removeObject(forKey: emailKey)
