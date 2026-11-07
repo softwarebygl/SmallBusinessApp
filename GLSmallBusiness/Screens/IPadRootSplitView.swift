@@ -134,6 +134,7 @@ struct IPadRootSplitView: View {
     @State private var selectedTransactionSyncID: UUID?
     @State private var selectedSubscriptionSyncID: UUID?
     @State private var selectedChatSessionID: UUID?
+    @State private var fullScreen = MyAIChatFullScreen()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     /// The person whose detail root is on screen right now (nil while a pushed screen covers it,
     /// or while a placeholder shows). Set by the roots' onAppear/onDisappear.
@@ -159,7 +160,7 @@ struct IPadRootSplitView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: MyAIChatFullScreen.columnVisibilityBinding($fullScreen)) {
             // Each column is its own navigation controller, so each one pins its
             // own back buttons (GoldLifeUI ruling S6).
             sidebar
@@ -177,6 +178,7 @@ struct IPadRootSplitView: View {
             // transcript (Sentinel) or the selected record.
             detail
         }
+        .glAIChatFullScreenSplit($fullScreen)
         // The SPLIT VIEW's identity is the section + segment. A segment flip must reset
         // the detail column's pushed screens — QA-reproduced: an employee's Log Hours
         // form stayed up (Save live) over the Customers segment, and Back landed on a
@@ -197,6 +199,11 @@ struct IPadRootSplitView: View {
         .onChange(of: section) { _, newSection in
             if let raw = newSection?.rawValue, router.ipadSection != raw {
                 router.ipadSection = raw
+            }
+            if newSection != .assistant, fullScreen.isOn {
+                withAnimation {
+                    fullScreen.toggle()
+                }
             }
             if newSection == .assistant {
                 if selectedChatSessionID == nil {
@@ -281,18 +288,38 @@ struct IPadRootSplitView: View {
     // MARK: - Sidebar (sections)
 
     private var sidebar: some View {
-        List(selection: $section) {
+        List {
             ForEach(AppSection.allCases.filter { $0 != .assistant || MBFeatureFlags.assistantEnabled }) { item in
-                Label(item.title, systemImage: item.systemImage)
-                    .tag(item)
+                Button {
+                    section = item
+                } label: {
+                    Label(item.title, systemImage: item.systemImage)
+                        .font(.glBody.weight(section == item ? .semibold : .regular))
+                        .foregroundStyle(GLTheme.textPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(
+                    Group {
+                        if section == item {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(GLTheme.menuGoldSelectedRowFill)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .strokeBorder(GLTheme.menuGoldBorder, lineWidth: 1)
+                                )
+                        } else {
+                            Color.clear
+                        }
+                    }
+                )
             }
         }
         .navigationTitle(GLScript.padded(mbLoc("My Business")))
         .toolbarTitleDisplayMode(.large)   // leading-aligned title now the top-leading button is gone
         .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(mbLoc("My Business"))), for: .scrollContent)
-        .containerBackground(for: .navigation) {
-            GLTheme.background.ignoresSafeArea()
-        }
+        .glGoldSidebarSkin()
         // App-level Menu now lives at the bottom of the sidebar as a clearly-labeled control,
         // not a bare monogram in the nav bar (which read as decoration, not a button).
         .safeAreaInset(edge: .bottom) { sidebarMenuButton }
@@ -300,7 +327,9 @@ struct IPadRootSplitView: View {
 
     private var sidebarMenuButton: some View {
         VStack(spacing: 0) {
-            Divider().opacity(0.4)
+            Rectangle()
+                .fill(GLTheme.menuGoldBorder)
+                .frame(height: 1)
             Button { showingMenu = true } label: {
                 HStack(spacing: 14) {
                     MenuButtonLabel()
@@ -321,7 +350,7 @@ struct IPadRootSplitView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Menu and settings")
         }
-        .background(GLTheme.background)
+        .background(GLTheme.menuGoldCardFill)
     }
 
     // MARK: - Content (the list for the selected section)

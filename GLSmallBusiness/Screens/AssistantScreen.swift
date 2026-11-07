@@ -69,6 +69,7 @@ struct AssistantScreen: View {
                             MBAssistantDestinationView(destination: destination)
                         }
                 }
+                .environment(\.myAIChatFullScreen, MyAIChatFullScreenControl())
             } else {
                 chrome
                     .navigationDestination(item: $columnPush) { destination in
