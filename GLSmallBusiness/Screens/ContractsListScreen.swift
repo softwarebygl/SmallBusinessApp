@@ -106,6 +106,8 @@ struct ContractsListScreen: View {
 struct ContractRow: View {
     let contract: Contract
     var showsCustomer: Bool = false
+    var isSelected: Bool = false
+    var showsChevron: Bool = true
 
     var body: some View {
         HStack(spacing: 12) {
@@ -137,18 +139,22 @@ struct ContractRow: View {
                     .foregroundStyle(GLTheme.textPrimary)
                 ContractStatusBadge(status: contract.status)
             }
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(GLTheme.textTertiary)
-                .accessibilityHidden(true)
+            if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(GLTheme.textTertiary)
+                    .accessibilityHidden(true)
+            }
         }
         .padding(.horizontal, GLLayout.rowContentPadding)
         .padding(.vertical, GLLayout.rowContentVerticalPadding)
         .frame(maxWidth: .infinity)
         .glCardBackground()
+        .glSelectionStroke(isSelected)
         .padding(.horizontal, GLLayout.rowCardInset)
         .padding(.vertical, 4)
         .contentShape(Rectangle())
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private var dateRange: String {

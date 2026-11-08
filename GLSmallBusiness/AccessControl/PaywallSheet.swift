@@ -38,7 +38,7 @@ import SwiftUI
 /// `.assistant` is kept for compatibility; the AI Assistant is 100% free via BYOK
 /// (GoldLifeAI), so Gold Life sells no AI subscription.
 enum PaywallContext {
-    case atCap, upgrade, assistant
+    case atCap, upgrade, assistant, money, byok
 }
 
 struct PaywallSheet: View {
@@ -96,8 +96,8 @@ struct PaywallSheet: View {
         switch context {
         case .assistant:
             return []
-        case .atCap, .upgrade:
-            // AI Assistant is 100% free via BYOK (GoldLifeAI); .atCap and .upgrade sell only Pro.
+        case .atCap, .upgrade, .money, .byok:
+            // AI Assistant is 100% free via BYOK (GoldLifeAI); .atCap, .upgrade, .money, and .byok sell only Pro.
             return SubscriptionManager.shared.entitlingProductIDs.keys
                 .filter { !SubscriptionManager.aiProductIDs.contains($0) }
                 .sorted()
@@ -202,6 +202,10 @@ struct PaywallSheet: View {
             return isLapsed ? mbLoc("Your subscription ended") : mbLoc("You’ve reached the free limit")
         case .upgrade, .assistant:
             return isLapsed ? mbLoc("Your subscription ended") : mbLoc("Subscribe to My Business")
+        case .money:
+            return isLapsed ? mbLoc("Your subscription ended") : mbLoc("Unlock Connected Banks & Money")
+        case .byok:
+            return isLapsed ? mbLoc("Your subscription ended") : mbLoc("Unlock Bring Your Own Key AI")
         }
     }
 
@@ -209,7 +213,14 @@ struct PaywallSheet: View {
         if isLapsed {
             return mbLoc("Reactivate to add and change records again. Everything you created is still here and stays yours.")
         }
-        return mbLoc("Subscribe to add unlimited customers, estimates, invoices, jobs, and receipts. Everything you’ve already created stays yours either way.")
+        switch context {
+        case .money:
+            return mbLoc("Subscribe to connect live bank feeds via Plaid, track automated income and expenses, and manage subscriptions.")
+        case .byok:
+            return mbLoc("Subscribe to connect your own Claude, ChatGPT, Gemini, and Meta Muse keys. Apple Intelligence is built-in and free.")
+        default:
+            return mbLoc("Subscribe to add unlimited customers, estimates, invoices, jobs, and receipts. Everything you’ve already created stays yours either way.")
+        }
     }
 
     var headline: String {

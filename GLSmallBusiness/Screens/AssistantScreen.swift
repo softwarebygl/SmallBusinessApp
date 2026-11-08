@@ -124,9 +124,10 @@ struct AssistantScreen: View {
             .sheet(item: $legalSheet) { destination in
                 legalContent(destination).glAppearance(colorScheme)
             }
-            // The assistant's own paywall: a Pro + AI headline and only the Pro + AI plans —
-            // plain Pro never opens the assistant.
-            .paywallSheet(isPresented: $showingPaywall, context: .assistant) {
+            .environment(\.glaiIsBYOKEntitled, subscription.isPaidMember)
+            .environment(\.glaiOnUpgrade, { showingPaywall = true })
+            // The assistant's own paywall: a Pro headline and only the Pro plans.
+            .paywallSheet(isPresented: $showingPaywall, context: .byok) {
                 Task { await entitlement.refresh() }
             }
             .mbAIHandoffs(session.presenter, owner: token)
@@ -203,7 +204,8 @@ struct AssistantScreen: View {
             onRetrySubscriptionCheck: { Task { await entitlement.recheck() } },
             dictationLocale: MBLocalization.currentLocale,
             usage: session.usage,
-            connectionStore: .shared)
+            connectionStore: .shared,
+            isBYOKEntitled: subscription.isPaidMember)
     }
 
     /// Only an open, online assistant has a month to show.

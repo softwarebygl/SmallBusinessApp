@@ -23,6 +23,7 @@ enum ScreenTab: Hashable { case contacts, contracts, money, calendar, assistant 
 
 struct RootTabView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(SubscriptionManager.self) private var subscription
     @Environment(AppRouter.self) private var envRouter: AppRouter?
     private var router: AppRouter { envRouter ?? .fallback }
     @State private var showingMenu = false
@@ -58,11 +59,18 @@ struct RootTabView: View {
                 AllContractsScreen(isTabRoot: true)
             }
             Tab(mbLoc("Money"), systemImage: "dollarsign.circle", value: ScreenTab.money) {
-                MoneyScreen(onMenuTap: { showingMenu = true })
-                    .mbMoneyHostEnvironment()
-                    .sheet(isPresented: $showingMenu) {
-                        MenuScreen().glAppearance(colorScheme)
-                    }
+                if subscription.isPaidMember {
+                    MoneyScreen(onMenuTap: { showingMenu = true })
+                        .mbMoneyHostEnvironment()
+                        .sheet(isPresented: $showingMenu) {
+                            MenuScreen().glAppearance(colorScheme)
+                        }
+                } else {
+                    MoneyLockedScreen(onMenuTap: { showingMenu = true })
+                        .sheet(isPresented: $showingMenu) {
+                            MenuScreen().glAppearance(colorScheme)
+                        }
+                }
             }
             if MBFeatureFlags.assistantEnabled {
                 Tab(mbLoc("Sentinel"), systemImage: "sparkles", value: ScreenTab.assistant) {

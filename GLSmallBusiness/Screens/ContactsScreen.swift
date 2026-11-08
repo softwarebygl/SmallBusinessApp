@@ -38,9 +38,35 @@ enum ContactsKind: String, CaseIterable, Identifiable {
 /// the same state instead of each shell keeping a private copy.
 @Observable
 final class AppRouter {
-    var contactsKind: ContactsKind = .customers
-    var selectedTab: ScreenTab = .contacts
-    var ipadSection: String = "contacts"
+    var contactsKind: ContactsKind = {
+        #if DEBUG
+        if let s = DemoMode.screen {
+            if s == "employees" { return .employees }
+            if s == "subcontractors" { return .subcontractors }
+        }
+        #endif
+        return .customers
+    }()
+    var selectedTab: ScreenTab = {
+        #if DEBUG
+        if let s = DemoMode.screen {
+            if s == "contracts" || s == "contract" || s == "calendar" || s == "calendar_pushed" { return .contracts }
+            if s == "money" { return .money }
+            if s == "assistant" { return .assistant }
+        }
+        #endif
+        return .contacts
+    }()
+    var ipadSection: String = {
+        #if DEBUG
+        if let s = DemoMode.screen {
+            if s == "contracts" || s == "contract" || s == "calendar" || s == "calendar_pushed" { return "contracts" }
+            if s == "money" { return "money" }
+            if s == "assistant" { return "assistant" }
+        }
+        #endif
+        return "contacts"
+    }()
 
     /// Screens render in previews and the unit-test host without a RootView above them
     /// to inject the router. A shared fallback keeps every render site working — and

@@ -99,17 +99,23 @@ struct IPadRootSplitView: View {
     private var employees: [Employee]
     @Query(sort: [SortDescriptor(\Subcontractor.lastName), SortDescriptor(\Subcontractor.firstName)])
     private var subcontractors: [Subcontractor]
+    @Query(sort: \BankAccount.name) private var bankAccounts: [BankAccount]
+    @Query(sort: \BankTransaction.date, order: .reverse) private var bankTransactions: [BankTransaction]
+    @Query(sort: \Contract.startDate, order: .reverse) private var allContracts: [Contract]
     @Environment(AppRouter.self) private var envRouter: AppRouter?
     private var router: AppRouter { envRouter ?? .fallback }
     @State private var section: AppSection? = {
         #if DEBUG
         // People -demoScreen names land on Contacts; the segment is AppRouter's init.
         if let s = DemoMode.screen {
-            if s == "calendar" || s == "calendar_pushed" {
+            if s == "contracts" || s == "contract" || s == "calendar" || s == "calendar_pushed" {
                 return .contracts
             }
             if s == "money" {
                 return .money
+            }
+            if s == "assistant" {
+                return .assistant
             }
         }
         return .contacts
@@ -120,6 +126,7 @@ struct IPadRootSplitView: View {
     @State private var selectedCustomerID: PersistentIdentifier?
     @State private var selectedEmployeeID: PersistentIdentifier?
     @State private var selectedSubcontractorID: PersistentIdentifier?
+    @State private var selectedContractID: PersistentIdentifier?
     @State private var showingMenu = false
     @State private var showingAddCustomer = false
     @State private var showingAddEmployee = false
@@ -136,6 +143,7 @@ struct IPadRootSplitView: View {
     @State private var selectedChatSessionID: UUID?
     @State private var fullScreen = MyAIChatFullScreen()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(SubscriptionManager.self) private var subscription
     /// The person whose detail root is on screen right now (nil while a pushed screen covers it,
     /// or while a placeholder shows). Set by the roots' onAppear/onDisappear.
     @State private var visibleDetailRoot: PersistentIdentifier?
@@ -158,27 +166,80 @@ struct IPadRootSplitView: View {
     private var selectedSubcontractor: Subcontractor? {
         subcontractors.first { $0.persistentModelID == selectedSubcontractorID }
     }
+    private var selectedContract: Contract? {
+        allContracts.first { $0.persistentModelID == selectedContractID }
+    }
 
-    var body: some View {
-        NavigationSplitView(columnVisibility: MyAIChatFullScreen.columnVisibilityBinding($fullScreen)) {
-            // Each column is its own navigation controller, so each one pins its
-            // own back buttons (GoldLifeUI ruling S6).
-            sidebar
-                .glMinimalBackButtons()
-                // The sidebar is navigation, not content: keep it narrow so the
-                // working column and the detail get the screen (TestFlight ACnrc:
-                // "the right screen should definitely not be the majority").
-                .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 320)
-        } content: {
-            content
-                .glMinimalBackButtons()
-                .navigationSplitViewColumnWidth(min: 280, ideal: 340, max: 440)
-        } detail: {
-            // The detail column takes everything the other two leave: the chat
-            // transcript (Sentinel) or the selected record.
-            detail
+    private var isCurrentContactsListEmpty: Bool {
+        switch router.contactsKind {
+        case .customers:
+            return customers.isEmpty
+        case .employees:
+            return employees.isEmpty
+        case .subcontractors:
+            return subcontractors.isEmpty
         }
-        .glAIChatFullScreenSplit($fullScreen)
+    }
+
+    private var shouldUseTwoColumnLayout: Bool {
+        if section == nil {
+            return true
+        }
+        if section == .money {
+            if !subscription.isPaidMember { return true }
+            if bankAccounts.isEmpty { return true }
+        }
+        if section == .contacts && isCurrentContactsListEmpty {
+            return true
+        }
+        return false
+    }
+
+    private var splitViewID: String {
+        if shouldUseTwoColumnLayout {
+            return "two-column-\(section?.rawValue ?? "none")-\(router.contactsKind.rawValue)"
+        } else {
+            return section == .contacts
+                ? "contacts-\(router.contactsKind.rawValue)-\(detailResetCount)"
+                : "section-\(section?.rawValue ?? "none")"
+        }
+    }
+
+    @ViewBuilder
+    var body: some View {
+        Group {
+            if shouldUseTwoColumnLayout {
+                NavigationSplitView {
+                    sidebar
+                        .glMinimalBackButtons()
+                        .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 320)
+                } detail: {
+                    twoColumnDetail
+                        .glMinimalBackButtons()
+                        .glAmbientBackground { PrimaryBackground() }
+                }
+            } else {
+                NavigationSplitView(columnVisibility: MyAIChatFullScreen.columnVisibilityBinding($fullScreen)) {
+                    // Each column is its own navigation controller, so each one pins its
+                    // own back buttons (GoldLifeUI ruling S6).
+                    sidebar
+                        .glMinimalBackButtons()
+                        // The sidebar is navigation, not content: keep it narrow so the
+                        // working column and the detail get the screen (TestFlight ACnrc:
+                        // "the right screen should definitely not be the majority").
+                        .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 320)
+                } content: {
+                    content
+                        .glMinimalBackButtons()
+                        .navigationSplitViewColumnWidth(min: 280, ideal: 340, max: 440)
+                } detail: {
+                    // The detail column takes everything the other two leave: the chat
+                    // transcript (Sentinel) or the selected record.
+                    detail
+                }
+                .glAIChatFullScreenSplit($fullScreen)
+            }
+        }
         // The SPLIT VIEW's identity is the section + segment. A segment flip must reset
         // the detail column's pushed screens — QA-reproduced: an employee's Log Hours
         // form stayed up (Save live) over the Customers segment, and Back landed on a
@@ -189,8 +250,7 @@ struct IPadRootSplitView: View {
         // detail pushed inside the Jobs column) deliberately reset with the rebuild.
         // A pick made while a screen is pushed over the current person's detail also re-keys it
         // (`detailResetCount`, F23): the pushed form belongs to the person who is no longer shown.
-        .id(section == .contacts ? "contacts-\(router.contactsKind.rawValue)-\(detailResetCount)"
-                                 : "section-\(section?.rawValue ?? "none")")
+        .id(splitViewID)
         .onChange(of: router.ipadSection) { _, newSection in
             if let parsed = AppSection(rawValue: newSection), section != parsed {
                 section = parsed
@@ -252,38 +312,90 @@ struct IPadRootSplitView: View {
                     }
                 }
             }
+            autoSelectFirstPersonIfNeeded()
+            autoSelectFirstTransactionIfNeeded()
         }
-        #if DEBUG
-        .onAppear { selectDemoCustomerIfNeeded(); selectDemoEmployeeIfNeeded(); selectDemoSubcontractorIfNeeded() }
-        .onChange(of: customers.count) { _, _ in selectDemoCustomerIfNeeded() }
-        .onChange(of: employees.count) { _, _ in selectDemoEmployeeIfNeeded() }
-        .onChange(of: subcontractors.count) { _, _ in selectDemoSubcontractorIfNeeded() }
-        #endif
+        .onChange(of: customers.count) { _, _ in autoSelectFirstPersonIfNeeded() }
+        .onChange(of: employees.count) { _, _ in autoSelectFirstPersonIfNeeded() }
+        .onChange(of: subcontractors.count) { _, _ in autoSelectFirstPersonIfNeeded() }
+        .onChange(of: router.contactsKind) { _, _ in autoSelectFirstPersonIfNeeded() }
+        .onChange(of: bankTransactions.count) { _, _ in autoSelectFirstTransactionIfNeeded() }
     }
 
-    #if DEBUG
-    /// Screenshot helper: in demo mode on the Customers segment, show the first customer's
-    /// detail instead of the empty "Select a Customer" placeholder. DEBUG-only — never affects users.
-    private func selectDemoCustomerIfNeeded() {
-        guard DemoMode.isActive, section == .contacts, router.contactsKind == .customers,
-              selectedCustomerID == nil, let first = customers.first else { return }
-        selectedCustomerID = first.persistentModelID
+    @ViewBuilder
+    private var twoColumnDetail: some View {
+        NavigationStack {
+            Group {
+                switch section {
+                case .money:
+                    if !subscription.isPaidMember {
+                        MoneyLockedScreen(ownsStack: false)
+                    } else {
+                        ConnectedBanksAndMoneyScreen(isSampleMode: DemoMode.isActive)
+                            .mbMoneyHostEnvironment()
+                    }
+                case .contacts:
+                    ContactsEmptyStateScreen(
+                        kind: router.contactsKind,
+                        onAdd: {
+                            switch router.contactsKind {
+                            case .customers: showingAddCustomer = true
+                            case .employees: showingAddEmployee = true
+                            case .subcontractors: showingAddSubcontractor = true
+                            }
+                        }
+                    )
+                    .navigationDestination(isPresented: $showingAddCustomer) {
+                        CustomerFormScreen { saved in
+                            selectedCustomerID = saved.persistentModelID
+                        }
+                    }
+                    .navigationDestination(isPresented: $showingAddEmployee) {
+                        EmployeeFormScreen { saved in
+                            selectedEmployeeID = saved.persistentModelID
+                        }
+                    }
+                    .navigationDestination(isPresented: $showingAddSubcontractor) {
+                        SubcontractorFormScreen { saved in
+                            selectedSubcontractorID = saved.persistentModelID
+                        }
+                    }
+                case .contracts:
+                    AllContractsScreen(selectedContractID: $selectedContractID)
+                case .assistant:
+                    AssistantScreen(ownsStack: false)
+                case nil:
+                    BrandPlaceholder(text: mbLoc("Select a section"), systemImage: "square.grid.2x2")
+                }
+            }
+            .glMinimalBackButtons()
+        }
     }
 
-    /// Same idea for Employees, so the iPad detail shows an employee instead of the placeholder.
-    private func selectDemoEmployeeIfNeeded() {
-        guard DemoMode.isActive, section == .contacts, router.contactsKind == .employees,
-              selectedEmployeeID == nil, let first = employees.first else { return }
-        selectedEmployeeID = first.persistentModelID
+    private func autoSelectFirstPersonIfNeeded() {
+        guard section == .contacts else { return }
+        switch router.contactsKind {
+        case .customers:
+            if selectedCustomerID == nil || !customers.contains(where: { $0.persistentModelID == selectedCustomerID }) {
+                selectedCustomerID = customers.first?.persistentModelID
+            }
+        case .employees:
+            if selectedEmployeeID == nil || !employees.contains(where: { $0.persistentModelID == selectedEmployeeID }) {
+                selectedEmployeeID = employees.first?.persistentModelID
+            }
+        case .subcontractors:
+            if selectedSubcontractorID == nil || !subcontractors.contains(where: { $0.persistentModelID == selectedSubcontractorID }) {
+                selectedSubcontractorID = subcontractors.first?.persistentModelID
+            }
+        }
     }
 
-    /// Same idea for Subcontractors.
-    private func selectDemoSubcontractorIfNeeded() {
-        guard DemoMode.isActive, section == .contacts, router.contactsKind == .subcontractors,
-              selectedSubcontractorID == nil, let first = subcontractors.first else { return }
-        selectedSubcontractorID = first.persistentModelID
+    private func autoSelectFirstTransactionIfNeeded() {
+        guard section == .money, subscription.isPaidMember else { return }
+        if selectedTransactionSyncID == nil, let first = bankTransactions.first {
+            selectedTransactionSyncID = first.syncID
+        }
     }
-    #endif
 
     // MARK: - Sidebar (sections)
 
@@ -293,11 +405,26 @@ struct IPadRootSplitView: View {
                 Button {
                     section = item
                 } label: {
-                    Label(item.title, systemImage: item.systemImage)
-                        .font(.glBody.weight(section == item ? .semibold : .regular))
-                        .foregroundStyle(GLTheme.textPrimary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
+                    HStack {
+                        Label(item.title, systemImage: item.systemImage)
+                            .font(.glBody.weight(section == item ? .semibold : .regular))
+                            .foregroundStyle(GLTheme.textPrimary)
+                        Spacer()
+                        if item == .money && !subscription.isPaidMember {
+                            HStack(spacing: 3) {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 8))
+                                Text("PRO")
+                                    .font(.system(size: 9, weight: .bold))
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(GLTheme.accent.opacity(0.18)))
+                            .foregroundStyle(GLTheme.accent)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(
@@ -381,17 +508,19 @@ struct IPadRootSplitView: View {
                 }
             }
         case .contracts:
-            // Contracts section: the LIST is the column (the Calendar fills the detail
-            // pane by default — both visible at once, the wide pane fits the grid).
-            AllContractsScreen()
+            AllContractsScreen(selectedContractID: $selectedContractID)
         case .money:
-            MoneyListColumn(
-                selectedTransactionID: $selectedTransactionSyncID,
-                selectedSubscriptionID: $selectedSubscriptionSyncID,
-                segment: $moneySegment,
-                searchText: $moneySearch
-            )
-            .mbMoneyHostEnvironment()
+            if subscription.isPaidMember {
+                MoneyListColumn(
+                    selectedTransactionID: $selectedTransactionSyncID,
+                    selectedSubscriptionID: $selectedSubscriptionSyncID,
+                    segment: $moneySegment,
+                    searchText: $moneySearch
+                )
+                .mbMoneyHostEnvironment()
+            } else {
+                MoneyLockedScreen(ownsStack: false)
+            }
         case .assistant:
             SentinelChatListColumn(selectedSessionID: $selectedChatSessionID)
         case nil:
@@ -486,16 +615,35 @@ struct IPadRootSplitView: View {
                     }
                 }
             case .contracts:
-                // The month grid + availability banner live in the wide pane; picking
-                // a contract in the column pushes its detail IN the column.
-                CalendarScreen(showsMenuButton: false, ownsStack: false, primaryBackground: true)
+                if let contract = selectedContract {
+                    ContractDetailScreen(contract: contract)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button {
+                                    selectedContractID = nil
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "calendar")
+                                        Text(mbLoc("Calendar"))
+                                    }
+                                }
+                                .accessibilityLabel("Show Calendar")
+                            }
+                        }
+                } else {
+                    CalendarScreen(showsMenuButton: false, ownsStack: false, primaryBackground: true)
+                }
             case .money:
-                MoneyDetailPane(
-                    selectedTransactionID: selectedTransactionSyncID,
-                    selectedSubscriptionID: selectedSubscriptionSyncID,
-                    segment: moneySegment
-                )
-                .mbMoneyHostEnvironment()
+                if subscription.isPaidMember {
+                    MoneyDetailPane(
+                        selectedTransactionID: selectedTransactionSyncID,
+                        selectedSubscriptionID: selectedSubscriptionSyncID,
+                        segment: moneySegment
+                    )
+                    .mbMoneyHostEnvironment()
+                } else {
+                    BrandPlaceholder(text: mbLoc("Money features are available to Pro members"), systemImage: "dollarsign.circle")
+                }
             case .assistant:
                 if let sessionID = selectedChatSessionID {
                     AssistantScreen(ownsStack: false)
@@ -871,5 +1019,85 @@ private struct DetailRootIdentity: ViewModifier {
             // The next person's root can appear before this one disappears: clear only our own.
             .onDisappear { if visible == id { visible = nil } }
             .id(id)
+    }
+}
+
+/// Wide, full-width empty state when the active Contacts segment has no records.
+/// Eliminates the crushed 300pt middle column and the empty 3rd window on iPad.
+private struct ContactsEmptyStateScreen: View {
+    let kind: ContactsKind
+    let onAdd: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ContactsSegmentPicker(host: kind)
+                .padding(.horizontal, GLTheme.gutter)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
+
+            Spacer()
+
+            ContentUnavailableView {
+                Label(title, systemImage: icon)
+            } description: {
+                Text(description)
+            } actions: {
+                Button {
+                    onAdd()
+                } label: {
+                    Text(buttonTitle)
+                        .font(.headline)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(GLTheme.accent)
+                .padding(.top, 8)
+            }
+
+            Spacer()
+        }
+        .containerBackground(for: .navigation) { PrimaryBackground() }
+        .navigationTitle(GLScript.padded(title))
+        .toolbarTitleDisplayMode(.large)
+        .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(title)), for: .scrollContent)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { onAdd() } label: { Image(systemName: "plus") }
+                    .accessibilityLabel(buttonTitle)
+            }
+        }
+    }
+
+    private var title: String {
+        switch kind {
+        case .customers: mbLoc("Customers")
+        case .employees: mbLoc("Employees")
+        case .subcontractors: mbLoc("Subcontractors")
+        }
+    }
+
+    private var icon: String {
+        switch kind {
+        case .customers: "person.2"
+        case .employees: "person.text.rectangle"
+        case .subcontractors: "hammer"
+        }
+    }
+
+    private var description: String {
+        switch kind {
+        case .customers: mbLoc("Add your first customer to start tracking jobs and contracts.")
+        case .employees: mbLoc("Add an employee to track hours, jobs, and paychecks.")
+        case .subcontractors: mbLoc("Add a subcontractor to track jobs and 1099 payments.")
+        }
+    }
+
+    private var buttonTitle: String {
+        switch kind {
+        case .customers: mbLoc("Add Customer")
+        case .employees: mbLoc("Add Employee")
+        case .subcontractors: mbLoc("Add Subcontractor")
+        }
     }
 }

@@ -86,6 +86,20 @@ extension GLSubscription {
         set { }
     }
 
+    /// Whether this user is an active paid member entitled to premium-only features
+    /// (e.g. Connected Banks & Money, BYOK Cloud AI models in Sentinel).
+    public var isPaidMember: Bool {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-forceLocked") {
+            return false
+        }
+        if ProcessInfo.processInfo.arguments.contains("-forceUnlocked") {
+            return true
+        }
+        #endif
+        return isSubscribed || serverEntitled || isVip
+    }
+
     public func checkVipStatus() async {
         await refreshServerEntitlement()
     }

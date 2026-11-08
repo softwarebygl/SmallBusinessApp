@@ -15,6 +15,7 @@ import GoldLifeUI
 
 struct AllContractsScreen: View {
     var isTabRoot: Bool = false
+    var selectedContractID: Binding<PersistentIdentifier?>? = nil
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
@@ -68,9 +69,22 @@ struct AllContractsScreen: View {
                 }
                 ForEach(visibleContracts) { contract in
                     Button {
-                        selectedContract = contract
+                        if let selectedContractID {
+                            if selectedContractID.wrappedValue == contract.persistentModelID {
+                                selectedContractID.wrappedValue = nil
+                            } else {
+                                selectedContractID.wrappedValue = contract.persistentModelID
+                            }
+                        } else {
+                            selectedContract = contract
+                        }
                     } label: {
-                        ContractRow(contract: contract, showsCustomer: true)
+                        ContractRow(
+                            contract: contract,
+                            showsCustomer: true,
+                            isSelected: selectedContractID?.wrappedValue == contract.persistentModelID,
+                            showsChevron: selectedContractID == nil
+                        )
                     }
                     .buttonStyle(.plain)
                     .listRowBackground(Color.clear)
@@ -96,6 +110,43 @@ struct AllContractsScreen: View {
         .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(mbLoc("Contracts"))), for: .scrollContent)
         .navigationDestination(item: $selectedContract) { contract in
             ContractDetailScreen(contract: contract)
+        }
+        .toolbar {
+            if !isTabRoot {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button { showingNewContract = true } label: {
+                            Label(mbLoc("New contract"), systemImage: "doc.text.fill")
+                        }
+                        Divider()
+                        Button { showingNewEstimate = true } label: {
+                            Label(mbLoc("New estimate"), systemImage: "doc.text.magnifyingglass")
+                        }
+                        Button { showingNewInvoice = true } label: {
+                            Label(mbLoc("New invoice"), systemImage: "banknote")
+                        }
+                        Divider()
+                        Button { showingScanReceipt = true } label: {
+                            Label(mbLoc("Scan receipt"), systemImage: "doc.viewfinder")
+                        }
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add")
+                }
+            }
+        }
+        .navigationDestination(isPresented: $showingNewContract) {
+            ContractFormScreen()
+        }
+        .navigationDestination(isPresented: $showingNewEstimate) {
+            PickCustomerThenScreen(title: "New estimate") { EstimateFormScreen(customer: $0) }
+        }
+        .navigationDestination(isPresented: $showingNewInvoice) {
+            PickCustomerThenScreen(title: "New invoice") { InvoiceFormScreen(customer: $0) }
+        }
+        .navigationDestination(isPresented: $showingScanReceipt) {
+            AllReceiptsScreen(autoScan: true)
         }
         .modifier(ContractsTabRootChrome(
             isTabRoot: isTabRoot,

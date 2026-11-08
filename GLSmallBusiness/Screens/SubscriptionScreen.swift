@@ -54,6 +54,8 @@ struct SubscriptionScreen: View {
                     // and backup are free for everyone (law 88; QA 2026-10-03 F75).
                     mbLoc("Unlimited customers, estimates, invoices, jobs, and receipts"),
                     mbLoc("More than 2 employees and 2 subcontractors"),
+                    mbLoc("Connected banks & live Plaid money tracking"),
+                    mbLoc("Bring Your Own Key AI (Claude, ChatGPT, Gemini, Meta Muse)"),
                 ],
                 // The degrade-don't-punish promise is part of the pitch (owner pick 4(c): the
                 // first sentence is the truth about everything not listed).

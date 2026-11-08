@@ -56,4 +56,10 @@ struct SubscriptionStandingTests {
                                       purchaseDate: .now, expirationDate: .now, isUpgraded: false, jws: "ai")
         #expect(!GLPurchaseHistory.summarize([other], entitlingProductIDs: ids).hasEverSubscribed)
     }
+
+    @Test func isPaidMemberReflectsSubscribedVipAndDemoStanding() {
+        let sub = SubscriptionManager.shared
+        let expected = sub.isSubscribed || sub.serverEntitled || sub.isVip
+        #expect(sub.isPaidMember == expected)
+    }
 }

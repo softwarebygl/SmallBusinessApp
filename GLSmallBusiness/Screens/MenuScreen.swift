@@ -24,6 +24,7 @@ struct MenuScreen: View {
     @Environment(\.openURL) private var openURL
     @Environment(GoldLifeAuth.self) private var auth
     @State private var mailUnavailable = false
+    @State private var showingPaywall = false
     /// Read for the Gold Life ID card's member words (2026-10-03 audit F74).
     @State private var subscription = SubscriptionManager.shared
 
@@ -168,9 +169,31 @@ struct MenuScreen: View {
                 }
 
                 Section("Payments") {
-                    MoneyMenuRow(isSampleMode: DemoMode.isActive || UserDemoMode.shared.isDemoActive)
+                    if subscription.isPaidMember {
+                        MoneyMenuRow(isSampleMode: DemoMode.isActive || UserDemoMode.shared.isDemoActive)
+                            .accessibilityIdentifier("menu.connectedBanksAndMoney")
+                            .mbMoneyHostEnvironment()
+                    } else {
+                        NavigationLink {
+                            MoneyLockedScreen(ownsStack: false)
+                        } label: {
+                            HStack {
+                                GLMenuRow("Connected Banks & Money", systemImage: "building.columns.fill")
+                                Spacer()
+                                HStack(spacing: 3) {
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 8))
+                                    Text("PRO")
+                                        .font(.system(size: 9, weight: .bold))
+                                }
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Capsule().fill(GLTheme.accent.opacity(0.18)))
+                                .foregroundStyle(GLTheme.accent)
+                            }
+                        }
                         .accessibilityIdentifier("menu.connectedBanksAndMoney")
-                        .mbMoneyHostEnvironment()
+                    }
                     NavigationLink {
                         StripeConnectScreen()
                     } label: {
@@ -240,6 +263,9 @@ struct MenuScreen: View {
         } message: {
             Text("Email me any time at support@softwarebygl.com \u{2014} I read every message.")
         }
+        .environment(\.glaiIsBYOKEntitled, subscription.isPaidMember)
+        .environment(\.glaiOnUpgrade, { showingPaywall = true })
+        .paywallSheet(isPresented: $showingPaywall, context: .byok)
     }
 }
 
