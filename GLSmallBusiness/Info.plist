@@ -40,6 +40,8 @@
 	<string>Used to import a contact into a customer, employee, or subcontractor, and to save them back to your phone’s contacts.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Used to lock the app and to protect sensitive details — your Tax IDs (SSN/EIN), tax documents (W-9, 1099), and your saved signature — before they’re shown, exported, or added to a document.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Used only if you turn on Share my approximate location, to tell your AI your city, region, and country. Never your exact position.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Used to dictate what you ask the assistant, so you can talk instead of type. Your voice is turned into text on this iPhone.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
