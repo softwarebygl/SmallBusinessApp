@@ -1047,7 +1047,6 @@ private struct ContactsEmptyStateScreen: View {
                 } label: {
                     Text(buttonTitle)
                         .font(.headline)
-                        .padding(.horizontal, 20)
                         .padding(.vertical, 8)
                 }
                 .buttonStyle(.borderedProminent)
@@ -1061,6 +1060,7 @@ private struct ContactsEmptyStateScreen: View {
         .navigationTitle(GLScript.padded(title))
         .toolbarTitleDisplayMode(.large)
         .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(title)), for: .scrollContent)
+        .mbSystemBanners()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { onAdd() } label: { Image(systemName: "plus") }

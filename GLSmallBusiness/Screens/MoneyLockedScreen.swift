@@ -95,11 +95,10 @@ struct MoneyLockedScreen: View {
                             .font(.subheadline)
                             .foregroundStyle(GLTheme.textSecondary)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, 8)
                     }
                 }
                 .padding(.vertical, 22)
-                .padding(.horizontal, 14)
+                .padding(.horizontal, GLLayout.rowContentPadding)
                 .frame(maxWidth: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 28, style: .continuous)
@@ -173,9 +172,9 @@ struct MoneyLockedScreen: View {
         .glScreenGutter()
         .glReadableWidth()
         .glFormBackground()
-        .navigationTitle(GLScript.padded(mbLoc("Money")))
+        .navigationTitle(GLScript.padded(mbLoc("Connected Banks & Money")))
         .toolbarTitleDisplayMode(.large)
-        .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(mbLoc("Money"))), for: .scrollContent)
+        .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(mbLoc("Connected Banks & Money"))), for: .scrollContent)
         .paywallSheet(isPresented: $showingPaywall, context: .money)
         .alert(restoreAlert?.title ?? "", isPresented: Binding(
             get: { restoreAlert != nil },
@@ -208,7 +207,8 @@ struct MoneyLockedScreen: View {
 
             Spacer(minLength: 0)
         }
-        .padding(12)
+        .padding(.horizontal, GLLayout.rowContentPadding)
+        .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)

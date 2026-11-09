@@ -64,10 +64,10 @@ struct AssistantPaywallIntakeHelpTests {
 
     @Test func theAssistantPresentsItsOwnPaywallAndNeverPopsItOnItsOwn() throws {
         let screen = try #require(GLSource.file("Screens/AssistantScreen.swift"))
-        #expect(screen.contains(".paywallSheet(isPresented: $showingPaywall, context: .assistant)"))
+        #expect(screen.contains(".paywallSheet(isPresented: $showingPaywall, context: .byok)"))
         // Upgrade is the only way to it: no automatic presentation off an error or a retry.
-        #expect(screen.components(separatedBy: "showingPaywall = true").count == 2,
-                "only onUpgrade may open the paywall")
+        #expect(screen.components(separatedBy: "showingPaywall = true").count == 3,
+                "only onUpgrade and glaiOnUpgrade may open the paywall")
         #expect(!screen.contains("messages.count"))
     }
 

@@ -27007,6 +27007,196 @@
           }
         }
       }
+    },
+    "Add a subcontractor to track jobs and 1099 payments.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregue un subcontratista para rastrear trabajos y pagos 1099."
+          }
+        }
+      }
+    },
+    "Add an employee to track hours, jobs, and paychecks.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregue un empleado para rastrear horas, trabajos y nóminas."
+          }
+        }
+      }
+    },
+    "Add your first customer to start tracking jobs and contracts.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregue su primer cliente para comenzar a rastrear trabajos y contratos."
+          }
+        }
+      }
+    },
+    "Automate your cash flow with live bank sync, automatic expense classification, and recurring subscription tracking.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatice su flujo de caja con sincronización bancaria en vivo, clasificación automática de gastos y seguimiento de suscripciones recurrentes."
+          }
+        }
+      }
+    },
+    "Automatic income and expense tagging linked directly to your customer jobs, contracts, and taxes.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etiquetado automático de ingresos y gastos vinculado directamente a los trabajos, contratos e impuestos de sus clientes."
+          }
+        }
+      }
+    },
+    "Bring Your Own Key AI (Claude, ChatGPT, Gemini, Meta Muse)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IA con clave propia (Claude, ChatGPT, Gemini, Meta Muse)"
+          }
+        }
+      }
+    },
+    "Connected banks & live Plaid money tracking": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bancos conectados y seguimiento de dinero en vivo con Plaid"
+          }
+        }
+      }
+    },
+    "Couldn’t Restore Purchases": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron restaurar las compras"
+          }
+        }
+      }
+    },
+    "Detect active recurring vendor charges and identify unneeded subscriptions to reduce overhead.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detecte cobros recurrentes de proveedores e identifique suscripciones innecesarias para reducir gastos generales."
+          }
+        }
+      }
+    },
+    "Live Bank Connections": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexiones bancarias en vivo"
+          }
+        }
+      }
+    },
+    "PRO": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRO"
+          }
+        }
+      }
+    },
+    "PRO FEATURE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FUNCIÓN PRO"
+          }
+        }
+      }
+    },
+    "Purchases Restored": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compras restauradas"
+          }
+        }
+      }
+    },
+    "Securely link 10,000+ financial institutions via Plaid to stream real-time account balances and transactions.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vincule de forma segura más de 10,000 instituciones financieras mediante Plaid para transmitir saldos y transacciones en tiempo real."
+          }
+        }
+      }
+    },
+    "Show Calendar": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar calendario"
+          }
+        }
+      }
+    },
+    "Smart Categorization": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Categorización inteligente"
+          }
+        }
+      }
+    },
+    "Subscription Management": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestión de suscripciones"
+          }
+        }
+      }
+    },
+    "Unlock Money — Upgrade to Pro": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquee Dinero — Actualice a Pro"
+          }
+        }
+      }
+    },
+    "Your subscriptions and purchases have been refreshed.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sus suscripciones y compras se han actualizado."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

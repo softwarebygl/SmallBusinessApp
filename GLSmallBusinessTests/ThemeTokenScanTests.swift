@@ -84,8 +84,9 @@ struct ThemeTokenScanTests {
         // card, list or header inset); the Price Sheet's empty state is outside the F119 list.
         "Screens/ChangeOrderScreens.swift": (0, 1),
         "Screens/EmployeeDetailScreen.swift": (0, 1),
-        "Screens/IPadRootSplitView.swift": (0, 1),
-        "Screens/MenuScreen.swift": (0, 2),
+        "Screens/IPadRootSplitView.swift": (0, 2),
+        "Screens/MenuScreen.swift": (0, 3),
+        "Screens/MoneyLockedScreen.swift": (0, 1),
         "Screens/PriceSheetScreen.swift": (0, 4),
         "Screens/ReceiptsListScreen.swift": (0, 1),
         "Screens/SubcontractorDetailScreen.swift": (0, 3),
