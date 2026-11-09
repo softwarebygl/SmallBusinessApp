@@ -145,7 +145,7 @@ struct MenuScreen: View {
                 })
             },
             customSections: {
-                Section("Business") {
+                GLMenuSection("Business") {
                     NavigationLink {
                         MyCompanyDetailScreen()
                     } label: {
@@ -160,7 +160,7 @@ struct MenuScreen: View {
                     }
                 }
 
-                Section("Reports") {
+                GLMenuSection("Reports") {
                     NavigationLink {
                         StatsScreen()
                     } label: {
@@ -168,7 +168,7 @@ struct MenuScreen: View {
                     }
                 }
 
-                Section("Payments") {
+                GLMenuSection("Payments") {
                     if subscription.isPaidMember {
                         MoneyMenuRow(isSampleMode: DemoMode.isActive || UserDemoMode.shared.isDemoActive)
                             .accessibilityIdentifier("menu.connectedBanksAndMoney")

@@ -14,30 +14,12 @@
 //
 
 import SwiftUI
-
-private struct MBFitOrScroll: ViewModifier {
-    var alignment: Alignment
-
-    func body(content: Content) -> some View {
-        GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                content
-                    // minWidth/minHeight, not fixed: short content fills the
-                    // screen and pins to `alignment` (both axes); tall content
-                    // overflows and the ScrollView takes over.
-                    .frame(minWidth: proxy.size.width, minHeight: proxy.size.height, alignment: alignment)
-            }
-            .scrollBounceBehavior(.basedOnSize)
-        }
-    }
-}
+import GoldLifeUI
 
 extension View {
     /// Fill the screen and pin to `alignment` when the content fits; scroll when
-    /// it doesn't. The preventative replacement for a bare
-    /// `.frame(maxHeight: .infinity, alignment:)` on any surface whose content
-    /// can grow at large Dynamic Type sizes.
+    /// it doesn't. Delegates to the canonical `GoldLifeUI.glFitOrScroll`.
     func mbFitOrScroll(alignment: Alignment = .center) -> some View {
-        modifier(MBFitOrScroll(alignment: alignment))
+        glFitOrScroll(alignment: alignment)
     }
 }
