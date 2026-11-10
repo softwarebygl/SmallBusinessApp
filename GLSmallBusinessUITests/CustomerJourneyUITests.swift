@@ -82,4 +82,36 @@ final class CustomerJourneyUITests: GLUITestCase {
         XCTAssertEqual(app.state, .runningForeground, "Deleting a customer must never crash the app.")
         XCTAssertTrue(app.row("Nguyen, Sofia").waitForNonExistence(timeout: 5), "The deleted customer should leave the list.")
     }
+
+    func testAddressAutoFillKeyboardAvoidanceAndPersistence() {
+        app.openContacts("Customers")
+        let addButton = app.buttons["Add Customer"]
+        XCTAssertTrue(addButton.waitForExistence(timeout: 5))
+        addButton.tap()
+
+        let streetField = app.textFields["Street"]
+        app.scrollUntilHittable(streetField)
+        XCTAssertTrue(streetField.waitForExistence(timeout: 5))
+        XCTAssertTrue(streetField.tapForKeyboardFocus())
+        streetField.typeText("201 Sunnyland Ext")
+
+        // Wait for MapKit suggestions and automatic scroll
+        sleep(2)
+
+        let shot1 = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        shot1.name = "AddressAutoFill-KeyboardUp"
+        shot1.lifetime = .keepAlways
+        add(shot1)
+
+        // Drag down on the form to dismiss the keyboard immediately via .scrollDismissesKeyboard(.immediately)
+        let topPoint = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
+        let bottomPoint = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6))
+        topPoint.press(forDuration: 0.05, thenDragTo: bottomPoint)
+        sleep(1)
+
+        let shot2 = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        shot2.name = "AddressAutoFill-KeyboardDismissed"
+        shot2.lifetime = .keepAlways
+        add(shot2)
+    }
 }

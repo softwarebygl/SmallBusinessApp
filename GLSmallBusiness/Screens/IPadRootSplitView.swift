@@ -170,76 +170,33 @@ struct IPadRootSplitView: View {
         allContracts.first { $0.persistentModelID == selectedContractID }
     }
 
-    private var isCurrentContactsListEmpty: Bool {
-        switch router.contactsKind {
-        case .customers:
-            return customers.isEmpty
-        case .employees:
-            return employees.isEmpty
-        case .subcontractors:
-            return subcontractors.isEmpty
-        }
-    }
-
-    private var shouldUseTwoColumnLayout: Bool {
-        if section == nil {
-            return true
-        }
-        if section == .money {
-            if !subscription.isPaidMember { return true }
-            if bankAccounts.isEmpty { return true }
-        }
-        if section == .contacts && isCurrentContactsListEmpty {
-            return true
-        }
-        return false
-    }
-
     private var splitViewID: String {
-        if shouldUseTwoColumnLayout {
-            return "two-column-\(section?.rawValue ?? "none")-\(router.contactsKind.rawValue)"
-        } else {
-            return section == .contacts
-                ? "contacts-\(router.contactsKind.rawValue)-\(detailResetCount)"
-                : "section-\(section?.rawValue ?? "none")"
-        }
+        section == .contacts
+            ? "contacts-\(router.contactsKind.rawValue)-\(detailResetCount)"
+            : "section-\(section?.rawValue ?? "none")"
     }
 
     @ViewBuilder
     var body: some View {
-        Group {
-            if shouldUseTwoColumnLayout {
-                NavigationSplitView {
-                    sidebar
-                        .glMinimalBackButtons()
-                        .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 320)
-                } detail: {
-                    twoColumnDetail
-                        .glMinimalBackButtons()
-                        .glAmbientBackground { PrimaryBackground() }
-                }
-            } else {
-                NavigationSplitView(columnVisibility: MyAIChatFullScreen.columnVisibilityBinding($fullScreen)) {
-                    // Each column is its own navigation controller, so each one pins its
-                    // own back buttons (GoldLifeUI ruling S6).
-                    sidebar
-                        .glMinimalBackButtons()
-                        // The sidebar is navigation, not content: keep it narrow so the
-                        // working column and the detail get the screen (TestFlight ACnrc:
-                        // "the right screen should definitely not be the majority").
-                        .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 320)
-                } content: {
-                    content
-                        .glMinimalBackButtons()
-                        .navigationSplitViewColumnWidth(min: 280, ideal: 340, max: 440)
-                } detail: {
-                    // The detail column takes everything the other two leave: the chat
-                    // transcript (Sentinel) or the selected record.
-                    detail
-                }
-                .glAIChatFullScreenSplit($fullScreen)
-            }
+        NavigationSplitView(columnVisibility: MyAIChatFullScreen.columnVisibilityBinding($fullScreen)) {
+            // Each column is its own navigation controller, so each one pins its
+            // own back buttons (GoldLifeUI ruling S6).
+            sidebar
+                .glMinimalBackButtons()
+                // The sidebar is navigation, not content: keep it narrow so the
+                // working column and the detail get the screen (TestFlight ACnrc:
+                // "the right screen should definitely not be the majority").
+                .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 320)
+        } content: {
+            content
+                .glMinimalBackButtons()
+                .navigationSplitViewColumnWidth(min: 280, ideal: 340, max: 440)
+        } detail: {
+            // The detail column takes everything the other two leave: the chat
+            // transcript (Sentinel) or the selected record.
+            detail
         }
+        .glAIChatFullScreenSplit($fullScreen)
         // The SPLIT VIEW's identity is the section + segment. A segment flip must reset
         // the detail column's pushed screens — QA-reproduced: an employee's Log Hours
         // form stayed up (Save live) over the Customers segment, and Back landed on a
@@ -320,56 +277,6 @@ struct IPadRootSplitView: View {
         .onChange(of: subcontractors.count) { _, _ in autoSelectFirstPersonIfNeeded() }
         .onChange(of: router.contactsKind) { _, _ in autoSelectFirstPersonIfNeeded() }
         .onChange(of: bankTransactions.count) { _, _ in autoSelectFirstTransactionIfNeeded() }
-    }
-
-    @ViewBuilder
-    private var twoColumnDetail: some View {
-        NavigationStack {
-            Group {
-                switch section {
-                case .money:
-                    if !subscription.isPaidMember {
-                        MoneyLockedScreen(ownsStack: false)
-                    } else {
-                        ConnectedBanksAndMoneyScreen(isSampleMode: DemoMode.isActive)
-                            .mbMoneyHostEnvironment()
-                    }
-                case .contacts:
-                    ContactsEmptyStateScreen(
-                        kind: router.contactsKind,
-                        onAdd: {
-                            switch router.contactsKind {
-                            case .customers: showingAddCustomer = true
-                            case .employees: showingAddEmployee = true
-                            case .subcontractors: showingAddSubcontractor = true
-                            }
-                        }
-                    )
-                    .navigationDestination(isPresented: $showingAddCustomer) {
-                        CustomerFormScreen { saved in
-                            selectedCustomerID = saved.persistentModelID
-                        }
-                    }
-                    .navigationDestination(isPresented: $showingAddEmployee) {
-                        EmployeeFormScreen { saved in
-                            selectedEmployeeID = saved.persistentModelID
-                        }
-                    }
-                    .navigationDestination(isPresented: $showingAddSubcontractor) {
-                        SubcontractorFormScreen { saved in
-                            selectedSubcontractorID = saved.persistentModelID
-                        }
-                    }
-                case .contracts:
-                    AllContractsScreen(selectedContractID: $selectedContractID)
-                case .assistant:
-                    AssistantScreen(ownsStack: false)
-                case nil:
-                    BrandPlaceholder(text: mbLoc("Select a section"), systemImage: "square.grid.2x2")
-                }
-            }
-            .glMinimalBackButtons()
-        }
     }
 
     private func autoSelectFirstPersonIfNeeded() {
@@ -510,17 +417,13 @@ struct IPadRootSplitView: View {
         case .contracts:
             AllContractsScreen(selectedContractID: $selectedContractID)
         case .money:
-            if subscription.isPaidMember {
-                MoneyListColumn(
-                    selectedTransactionID: $selectedTransactionSyncID,
-                    selectedSubscriptionID: $selectedSubscriptionSyncID,
-                    segment: $moneySegment,
-                    searchText: $moneySearch
-                )
-                .mbMoneyHostEnvironment()
-            } else {
-                MoneyLockedScreen(ownsStack: false)
-            }
+            MoneyListColumn(
+                selectedTransactionID: $selectedTransactionSyncID,
+                selectedSubscriptionID: $selectedSubscriptionSyncID,
+                segment: $moneySegment,
+                searchText: $moneySearch
+            )
+            .mbMoneyHostEnvironment()
         case .assistant:
             SentinelChatListColumn(selectedSessionID: $selectedChatSessionID)
         case nil:
@@ -642,7 +545,7 @@ struct IPadRootSplitView: View {
                     )
                     .mbMoneyHostEnvironment()
                 } else {
-                    BrandPlaceholder(text: mbLoc("Money features are available to Pro members"), systemImage: "dollarsign.circle")
+                    MoneyLockedScreen(ownsStack: false)
                 }
             case .assistant:
                 if let sessionID = selectedChatSessionID {
@@ -1019,85 +922,5 @@ private struct DetailRootIdentity: ViewModifier {
             // The next person's root can appear before this one disappears: clear only our own.
             .onDisappear { if visible == id { visible = nil } }
             .id(id)
-    }
-}
-
-/// Wide, full-width empty state when the active Contacts segment has no records.
-/// Eliminates the crushed 300pt middle column and the empty 3rd window on iPad.
-private struct ContactsEmptyStateScreen: View {
-    let kind: ContactsKind
-    let onAdd: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ContactsSegmentPicker(host: kind)
-                .padding(.horizontal, GLTheme.gutter)
-                .padding(.top, 16)
-                .padding(.bottom, 8)
-
-            Spacer()
-
-            ContentUnavailableView {
-                Label(title, systemImage: icon)
-            } description: {
-                Text(description)
-            } actions: {
-                Button {
-                    onAdd()
-                } label: {
-                    Text(buttonTitle)
-                        .font(.headline)
-                        .padding(.vertical, 8)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(GLTheme.accent)
-                .padding(.top, 8)
-            }
-
-            Spacer()
-        }
-        .containerBackground(for: .navigation) { PrimaryBackground() }
-        .navigationTitle(GLScript.padded(title))
-        .toolbarTitleDisplayMode(.large)
-        .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(title)), for: .scrollContent)
-        .mbSystemBanners()
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { onAdd() } label: { Image(systemName: "plus") }
-                    .accessibilityLabel(buttonTitle)
-            }
-        }
-    }
-
-    private var title: String {
-        switch kind {
-        case .customers: mbLoc("Customers")
-        case .employees: mbLoc("Employees")
-        case .subcontractors: mbLoc("Subcontractors")
-        }
-    }
-
-    private var icon: String {
-        switch kind {
-        case .customers: "person.2"
-        case .employees: "person.text.rectangle"
-        case .subcontractors: "hammer"
-        }
-    }
-
-    private var description: String {
-        switch kind {
-        case .customers: mbLoc("Add your first customer to start tracking jobs and contracts.")
-        case .employees: mbLoc("Add an employee to track hours, jobs, and paychecks.")
-        case .subcontractors: mbLoc("Add a subcontractor to track jobs and 1099 payments.")
-        }
-    }
-
-    private var buttonTitle: String {
-        switch kind {
-        case .customers: mbLoc("Add Customer")
-        case .employees: mbLoc("Add Employee")
-        case .subcontractors: mbLoc("Add Subcontractor")
-        }
     }
 }

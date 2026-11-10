@@ -168,10 +168,11 @@ struct MoneyLockedScreen: View {
             }
             .padding(.horizontal, GLLayout.rowCardInset)
             .padding(.bottom, 32)
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
         }
-        .glScreenGutter()
-        .glReadableWidth()
-        .glFormBackground()
+        .scrollContentBackground(.hidden)
+        .background { PrimaryBackground() }
         .navigationTitle(GLScript.padded(mbLoc("Connected Banks & Money")))
         .toolbarTitleDisplayMode(.large)
         .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(mbLoc("Connected Banks & Money"))), for: .scrollContent)
