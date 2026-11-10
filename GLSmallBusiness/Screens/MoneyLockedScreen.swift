@@ -176,6 +176,7 @@ struct MoneyLockedScreen: View {
         .navigationTitle(GLScript.padded(mbLoc("Connected Banks & Money")))
         .toolbarTitleDisplayMode(.large)
         .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(mbLoc("Connected Banks & Money"))), for: .scrollContent)
+        .mbSystemBanners()
         .paywallSheet(isPresented: $showingPaywall, context: .money)
         .alert(restoreAlert?.title ?? "", isPresented: Binding(
             get: { restoreAlert != nil },

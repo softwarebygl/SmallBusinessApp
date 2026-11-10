@@ -116,7 +116,8 @@ final class MBAssistantSession {
             connectionStore: .shared,
             chatService: .shared,
             spendTracker: .shared,
-            reliability: .shared
+            reliability: .shared,
+            serverFallback: serverTransport
         )
         self.directTransport = direct
         let configuration = GLAIConversationController.Configuration(
