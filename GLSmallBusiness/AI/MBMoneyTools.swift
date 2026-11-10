@@ -26,6 +26,13 @@ struct MBListBankTransactionsTool: GLAIReadOnlyTool {
 
     func run(_ call: GLAIToolCall, context: GLAIToolContext) async -> GLAIToolOutcome {
         guard context.isStillCurrent, let store = env.context() else { return MBToolFailure.unavailable }
+        guard (env.subscription() ?? SubscriptionManager.shared).isMoneyEntitled else {
+            return .result([
+                "ok": .bool(false),
+                "error": .string("money_not_entitled"),
+                "message": .string("Connected Banks & Money is not enabled on this account.")
+            ])
+        }
         let args = MBArguments(json: call.arguments)
 
         let accountId = args.string("account_id")
@@ -101,6 +108,14 @@ struct MBClassifyTransactionTool: GLAITool {
 
     func run(_ call: GLAIToolCall, context: GLAIToolContext) async -> GLAIToolOutcome {
         guard context.isStillCurrent, let store = env.context() else { return MBToolFailure.unavailable }
+        let subscription = env.subscription() ?? SubscriptionManager.shared
+        if !subscription.isLapsed && !subscription.isMoneyEntitled {
+            return .result([
+                "ok": .bool(false),
+                "error": .string("money_not_entitled"),
+                "message": .string("Connected Banks & Money is not enabled on this account.")
+            ])
+        }
         let args = MBArguments(json: call.arguments)
 
         guard let idString = args.string("transaction_id"), let syncID = UUID(uuidString: idString) else {
@@ -112,7 +127,7 @@ struct MBClassifyTransactionTool: GLAITool {
         }
 
         do {
-            try DomainGate.requireWritable(.classifyTransaction, env.subscription())
+            try DomainGate.requireWritable(.classifyTransaction, subscription)
         } catch {
             return MBToolFailure.unexpected(error)
         }
@@ -227,7 +242,16 @@ struct MBSetMerchantRuleTool: GLAITool {
 
     func run(_ call: GLAIToolCall, context: GLAIToolContext) async -> GLAIToolOutcome {
         guard context.isStillCurrent, let store = env.context() else { return MBToolFailure.unavailable }
+        let subscription = env.subscription() ?? SubscriptionManager.shared
+        if !subscription.isLapsed && !subscription.isMoneyEntitled {
+            return .result([
+                "ok": .bool(false),
+                "error": .string("money_not_entitled"),
+                "message": .string("Connected Banks & Money is not enabled on this account.")
+            ])
+        }
         let args = MBArguments(json: call.arguments)
+        let remove = args.bool("remove") ?? false
 
         guard let merchant = args.string("merchant") else {
             return MBToolFailure.invalid("merchant is required.")
@@ -237,10 +261,8 @@ struct MBSetMerchantRuleTool: GLAITool {
             return MBToolFailure.invalid("merchant could not be normalized to a valid pattern.")
         }
 
-        let remove = args.bool("remove") ?? false
-
         do {
-            try DomainGate.requireWritable(remove ? .deleteRule : .saveRule, env.subscription())
+            try DomainGate.requireWritable(remove ? .deleteRule : .saveRule, subscription)
         } catch {
             return MBToolFailure.unexpected(error)
         }
@@ -460,6 +482,13 @@ struct MBListSubscriptionsTool: GLAIReadOnlyTool {
 
     func run(_ call: GLAIToolCall, context: GLAIToolContext) async -> GLAIToolOutcome {
         guard context.isStillCurrent, let store = env.context() else { return MBToolFailure.unavailable }
+        guard (env.subscription() ?? SubscriptionManager.shared).isMoneyEntitled else {
+            return .result([
+                "ok": .bool(false),
+                "error": .string("money_not_entitled"),
+                "message": .string("Connected Banks & Money is not enabled on this account.")
+            ])
+        }
         let args = MBArguments(json: call.arguments)
 
         let accountId = args.string("account_id")
@@ -533,6 +562,14 @@ struct MBUpdateSubscriptionTool: GLAITool {
 
     func run(_ call: GLAIToolCall, context: GLAIToolContext) async -> GLAIToolOutcome {
         guard context.isStillCurrent, let store = env.context() else { return MBToolFailure.unavailable }
+        let subscription = env.subscription() ?? SubscriptionManager.shared
+        if !subscription.isLapsed && !subscription.isMoneyEntitled {
+            return .result([
+                "ok": .bool(false),
+                "error": .string("money_not_entitled"),
+                "message": .string("Connected Banks & Money is not enabled on this account.")
+            ])
+        }
         let args = MBArguments(json: call.arguments)
 
         guard let idString = args.string("subscription_id"), let syncID = UUID(uuidString: idString) else {
@@ -546,7 +583,7 @@ struct MBUpdateSubscriptionTool: GLAITool {
         }
 
         do {
-            try DomainGate.requireWritable(.updateSubscription, env.subscription())
+            try DomainGate.requireWritable(.updateSubscription, subscription)
         } catch {
             return MBToolFailure.unexpected(error)
         }

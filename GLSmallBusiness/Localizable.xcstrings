@@ -5861,6 +5861,16 @@
         }
       }
     },
+    "Complimentary": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cortesía"
+          }
+        }
+      }
+    },
     "Compliance Documents": {
       "localizations": {
         "es": {
@@ -23770,6 +23780,16 @@
         }
       }
     },
+    "Unlimited Business & AI": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Negocios y AI ilimitados"
+          }
+        }
+      }
+    },
     "Unlimited customers, estimates, invoices, jobs, and receipts": {
       "extractionState": "migrated",
       "localizations": {
@@ -27178,12 +27198,97 @@
         }
       }
     },
+    "Subscribe to connect live bank feeds via Plaid, track automated income and expenses, and manage subscriptions.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscribe to connect live bank feeds via Plaid, track automated income and expenses, and manage subscriptions."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suscríbase para conectar cuentas bancarias en vivo con Plaid, registrar ingresos y gastos automáticamente y gestionar suscripciones."
+          }
+        }
+      }
+    },
+    "Subscribe to connect your own Claude, ChatGPT, Gemini, and Meta Muse keys. Apple Intelligence is built-in and free.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscribe to connect your own Claude, ChatGPT, Gemini, and Meta Muse keys. Apple Intelligence is built-in and free."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suscríbase para conectar sus propias claves de Claude, ChatGPT, Gemini y Meta Muse. Apple Intelligence está integrado y es gratis."
+          }
+        }
+      }
+    },
+    "Unlock Bring Your Own Key AI": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock Bring Your Own Key AI"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquee IA con su propia clave"
+          }
+        }
+      }
+    },
+    "Unlock Connected Banks & Money": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock Connected Banks & Money"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquee Bancos y dinero conectados"
+          }
+        }
+      }
+    },
     "Unlock Money — Upgrade to Pro": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "Desbloquee Dinero — Actualice a Pro"
+          }
+        }
+      }
+    },
+    "Your complimentary plan includes Unlimited Business & Sentinel AI. Subscribe to unlock Connected Banks & Money.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your complimentary plan includes Unlimited Business & Sentinel AI. Subscribe to unlock Connected Banks & Money."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Su plan de cortesía incluye Negocio Ilimitado y Sentinel AI. Suscríbase para desbloquear Bancos y dinero conectados."
           }
         }
       }

@@ -86,8 +86,8 @@ extension GLSubscription {
         set { }
     }
 
-    /// Whether this user is an active paid member entitled to premium-only features
-    /// (e.g. Connected Banks & Money, BYOK Cloud AI models in Sentinel).
+    /// Whether this user has Business Pro / BYOK access (`isSubscribed || serverEntitled`).
+    /// Connected Banks & Money (Plaid) gates separately on `isMoneyEntitled`.
     public var isPaidMember: Bool {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("-forceLocked") {

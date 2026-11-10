@@ -12,6 +12,7 @@ import GoldLifeUI
 import GoldLifeID
 import GoldLifeCloud
 import GoldLifeAI
+import GoldLifeMoney
 import StytchCore
 import GoogleSignIn
 #if canImport(UIKit)
@@ -162,6 +163,10 @@ struct GLSmallBusinessApp: App {
         // GoldLifeCloud's one road. Unset = GoldLifeUI makes no request at all.
         GLRemoteData.fetchData = { try await GLCloudTransport.fetchPublicData(from: $0) }
         GLAISystemBannersConfig.bannerBuilder = { AnyView(MBSystemBannerInset()) }
+        GLCloudPlaidClient.setEntitlementJWSProvider {
+            let sub = await MainActor.run { SubscriptionManager.shared }
+            return await sub.entitlementJWS()
+        }
         // Before anything reads a preference: the law-26 key renames.
         DefaultsMigration.runIfNeeded()
         // Law 13 (owner ruling 2026-09-26): My Business's step in the fleet's one sign-out

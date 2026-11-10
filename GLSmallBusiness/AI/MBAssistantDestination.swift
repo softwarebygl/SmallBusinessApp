@@ -229,6 +229,18 @@ struct MBAssistantDestinationView: View {
     let destination: MBAssistantDestination
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(SubscriptionManager.self) private var envSubscription: SubscriptionManager?
+
+    private var subscription: SubscriptionManager { envSubscription ?? .shared }
+
+    static func showsMoneyLockedScreen(for target: MBOpenTarget, isMoneyEntitled: Bool) -> Bool {
+        switch target {
+        case .money, .subscriptions, .connectedBanks:
+            return !isMoneyEntitled
+        default:
+            return false
+        }
+    }
 
     var body: some View {
         switch destination {
@@ -331,14 +343,26 @@ struct MBAssistantDestinationView: View {
                 )
             case .deviceInfo: SettingsScreen()
             case .money:
-                MoneyScreen(initialSegment: .transactions, ownsStack: false)
-                    .mbMoneyHostEnvironment()
+                if Self.showsMoneyLockedScreen(for: target, isMoneyEntitled: subscription.isMoneyEntitled) {
+                    MoneyLockedScreen(ownsStack: false)
+                } else {
+                    MoneyScreen(initialSegment: .transactions, ownsStack: false)
+                        .mbMoneyHostEnvironment()
+                }
             case .subscriptions:
-                MoneyScreen(initialSegment: .subscriptions, ownsStack: false)
-                    .mbMoneyHostEnvironment()
+                if Self.showsMoneyLockedScreen(for: target, isMoneyEntitled: subscription.isMoneyEntitled) {
+                    MoneyLockedScreen(ownsStack: false)
+                } else {
+                    MoneyScreen(initialSegment: .subscriptions, ownsStack: false)
+                        .mbMoneyHostEnvironment()
+                }
             case .connectedBanks:
-                ConnectedBanksAndMoneyScreen(isSampleMode: DemoMode.isActive || UserDemoMode.shared.isDemoActive)
-                    .mbMoneyHostEnvironment()
+                if Self.showsMoneyLockedScreen(for: target, isMoneyEntitled: subscription.isMoneyEntitled) {
+                    MoneyLockedScreen(ownsStack: false)
+                } else {
+                    ConnectedBanksAndMoneyScreen(isSampleMode: DemoMode.isActive || UserDemoMode.shared.isDemoActive)
+                        .mbMoneyHostEnvironment()
+                }
             // Presented as sheets (`isSheet`), never pushed; the host draws them itself.
             case .privacyPolicy, .termsOfUse: gone(mbLoc("Screen"), "this screen")
             }

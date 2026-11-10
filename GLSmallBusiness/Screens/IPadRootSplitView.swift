@@ -298,7 +298,7 @@ struct IPadRootSplitView: View {
     }
 
     private func autoSelectFirstTransactionIfNeeded() {
-        guard section == .money, subscription.isPaidMember else { return }
+        guard section == .money, subscription.isMoneyEntitled else { return }
         if selectedTransactionSyncID == nil, let first = bankTransactions.first {
             selectedTransactionSyncID = first.syncID
         }
@@ -317,7 +317,7 @@ struct IPadRootSplitView: View {
                             .font(.glBody.weight(section == item ? .semibold : .regular))
                             .foregroundStyle(GLTheme.textPrimary)
                         Spacer()
-                        if item == .money && !subscription.isPaidMember {
+                        if item == .money && !subscription.isMoneyEntitled {
                             HStack(spacing: 3) {
                                 Image(systemName: "lock.fill")
                                     .font(.system(size: 8))
@@ -417,13 +417,19 @@ struct IPadRootSplitView: View {
         case .contracts:
             AllContractsScreen(selectedContractID: $selectedContractID)
         case .money:
-            MoneyListColumn(
-                selectedTransactionID: $selectedTransactionSyncID,
-                selectedSubscriptionID: $selectedSubscriptionSyncID,
-                segment: $moneySegment,
-                searchText: $moneySearch
-            )
-            .mbMoneyHostEnvironment()
+            if subscription.isMoneyEntitled {
+                MoneyListColumn(
+                    selectedTransactionID: $selectedTransactionSyncID,
+                    selectedSubscriptionID: $selectedSubscriptionSyncID,
+                    segment: $moneySegment,
+                    searchText: $moneySearch
+                )
+                .mbMoneyHostEnvironment()
+            } else if horizontalSizeClass == .compact {
+                MoneyLockedScreen(ownsStack: false)
+            } else {
+                BrandPlaceholder(text: mbLoc("Connected Banks & Money"), systemImage: "lock.fill")
+            }
         case .assistant:
             SentinelChatListColumn(selectedSessionID: $selectedChatSessionID)
         case nil:
@@ -537,7 +543,7 @@ struct IPadRootSplitView: View {
                     CalendarScreen(showsMenuButton: false, ownsStack: false, primaryBackground: true)
                 }
             case .money:
-                if subscription.isPaidMember {
+                if subscription.isMoneyEntitled {
                     MoneyDetailPane(
                         selectedTransactionID: selectedTransactionSyncID,
                         selectedSubscriptionID: selectedSubscriptionSyncID,

@@ -59,7 +59,7 @@ struct RootTabView: View {
                 AllContractsScreen(isTabRoot: true)
             }
             Tab(mbLoc("Money"), systemImage: "dollarsign.circle", value: ScreenTab.money) {
-                if subscription.isPaidMember {
+                if subscription.isMoneyEntitled {
                     MoneyScreen(onMenuTap: { showingMenu = true })
                         .mbMoneyHostEnvironment()
                         .sheet(isPresented: $showingMenu) {

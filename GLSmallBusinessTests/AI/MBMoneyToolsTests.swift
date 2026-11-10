@@ -13,6 +13,7 @@ import SwiftData
 import Testing
 import GoldLifeAI
 import GoldLifeMoney
+import GoldLifeUI
 @testable import GLSmallBusiness
 
 @Suite(.serialized)
@@ -204,7 +205,7 @@ struct MBMoneyToolsTests {
         let activeOnly = MBWriteHarness.output(
             await MBWriteHarness.run(world.box, "list_subscriptions", [:])
         )
-        #expect((activeOnly["subscriptions"]?.arrayValue ?? []).isEmpty)
+        #expect((activeOnly["subscriptions"]?.arrayValue ?? []).isEmpty == true)
 
         let withInactive = MBWriteHarness.output(
             await MBWriteHarness.run(world.box, "list_subscriptions", ["include_inactive": true])
@@ -215,6 +216,93 @@ struct MBMoneyToolsTests {
         _ = await MBWriteHarness.undoLatest(updateOutcome)
         #expect(sub.isBusinessOverride == false)
         #expect(sub.isActive == true)
+    }
+
+    @Test func moneyToolsRefuseWhenMoneyNotEntitledForCompedUser() async throws {
+        let world = try MBWriteWorld()
+        let sub = SubscriptionManager.shared
+        let priorEntitled = sub.serverEntitled
+        let priorMoneyEntitled = sub.serverMoneyEntitled
+        let priorSource = sub.serverSource
+        defer {
+            sub.setTestEntitlement(serverSource: priorSource, serverEntitled: priorEntitled, serverMoneyEntitled: priorMoneyEntitled)
+        }
+
+        // Comped user: writable Pro access, but moneyEntitled is false
+        sub.setTestEntitlement(serverSource: "comp", serverEntitled: true, serverMoneyEntitled: false)
+
+        // 1. list_bank_transactions
+        let listTxns = await MBWriteHarness.run(world.box, "list_bank_transactions", [:], state: .neverSubscribed)
+        let listTxnsOut = MBWriteHarness.output(listTxns)
+        #expect(listTxnsOut["ok"]?.boolValue == false)
+        #expect(listTxnsOut["error"]?.stringValue == "money_not_entitled")
+
+        // 2. classify_transaction
+        let classify = await MBWriteHarness.run(
+            world.box,
+            "classify_transaction",
+            ["transaction_id": .string(UUID().uuidString), "is_business": true],
+            state: .neverSubscribed
+        )
+        let classifyOut = MBWriteHarness.output(classify)
+        #expect(classifyOut["ok"]?.boolValue == false)
+        #expect(classifyOut["error"]?.stringValue == "money_not_entitled")
+
+        // 3. set_merchant_rule
+        let rule = await MBWriteHarness.run(
+            world.box,
+            "set_merchant_rule",
+            ["merchant": "Target", "is_business": false],
+            state: .neverSubscribed
+        )
+        let ruleOut = MBWriteHarness.output(rule)
+        #expect(ruleOut["ok"]?.boolValue == false)
+        #expect(ruleOut["error"]?.stringValue == "money_not_entitled")
+
+        // 4. list_subscriptions
+        let listSubs = await MBWriteHarness.run(world.box, "list_subscriptions", [:], state: .neverSubscribed)
+        let listSubsOut = MBWriteHarness.output(listSubs)
+        #expect(listSubsOut["ok"]?.boolValue == false)
+        #expect(listSubsOut["error"]?.stringValue == "money_not_entitled")
+
+        // 5. update_subscription
+        let updateSub = await MBWriteHarness.run(
+            world.box,
+            "update_subscription",
+            ["subscription_id": .string(UUID().uuidString), "is_business": false],
+            state: .neverSubscribed
+        )
+        let updateSubOut = MBWriteHarness.output(updateSub)
+        #expect(updateSubOut["ok"]?.boolValue == false)
+        #expect(updateSubOut["error"]?.stringValue == "money_not_entitled")
+
+        // 6. Empty/invalid arguments still return money_not_entitled (not invalid_arguments) for unentitled accounts
+        for tool in ["classify_transaction", "set_merchant_rule", "update_subscription"] {
+            let emptyOutcome = await MBWriteHarness.run(world.box, tool, [:], state: .neverSubscribed)
+            let emptyOut = MBWriteHarness.output(emptyOutcome)
+            #expect(emptyOut["ok"]?.boolValue == false)
+            #expect(emptyOut["error"]?.stringValue == "money_not_entitled")
+        }
+
+        // 7. Offline comped user (isLapsed == false, isMoneyEntitled == false, isConnected == false)
+        // still gets deterministic money_not_entitled rather than read_only_offline (Step 9A)
+        let network = NetworkMonitor.shared
+        let wasConnected = network.isConnected
+        defer { network.isConnected = wasConnected }
+        for tool in ["classify_transaction", "set_merchant_rule", "update_subscription"] {
+            let offlineUnentitledOutcome = try await DomainState.neverSubscribed.runAsync {
+                network.isConnected = false
+                let executor = try #require(world.box.online.executor(named: tool))
+                let ctx = GLAIToolContext(turnId: "turn", step: 0, onScreen: nil, accountEpoch: 1, currentEpoch: { 1 })
+                return await executor.run(
+                    GLAIToolCall(id: "call", name: tool, arguments: [:], turnId: "turn"),
+                    context: ctx
+                )
+            }
+            let offlineUnentitledOut = MBWriteHarness.output(offlineUnentitledOutcome)
+            #expect(offlineUnentitledOut["ok"]?.boolValue == false)
+            #expect(offlineUnentitledOut["error"]?.stringValue == "money_not_entitled")
+        }
     }
 
     @Test func mapMoneyOperationCoversEveryGoldLifeMoneyOperationTag() {

@@ -365,4 +365,35 @@ struct MBHandoffToolTests {
         #expect(outcome.output["cancelled"]?.boolValue == true)
         #expect(presenter.presentation == nil)
     }
+
+    @Test func moneyDestinationsShowLockedScreenWhenMoneyIsNotEntitled() {
+        let sub = SubscriptionManager.shared
+        let priorIsSubscribed = sub.isSubscribed
+        let priorEntitled = sub.serverEntitled
+        let priorMoneyEntitled = sub.serverMoneyEntitled
+        let priorSource = sub.serverSource
+        let priorDemo = UserDemoMode.shared.isDemoActive
+        defer {
+            UserDemoMode.shared.isDemoActive = priorDemo
+            sub.isSubscribed = priorIsSubscribed
+            sub.setTestEntitlement(serverSource: priorSource, serverEntitled: priorEntitled, serverMoneyEntitled: priorMoneyEntitled)
+        }
+
+        UserDemoMode.shared.isDemoActive = false
+
+        // Comped family account (Pro active, Money locked): all 3 Money open targets route to MoneyLockedScreen
+        sub.isSubscribed = false
+        sub.setTestEntitlement(serverSource: "comp", serverEntitled: true, serverMoneyEntitled: false)
+        #expect(MBAssistantDestinationView.showsMoneyLockedScreen(for: .money, isMoneyEntitled: sub.isMoneyEntitled))
+        #expect(MBAssistantDestinationView.showsMoneyLockedScreen(for: .subscriptions, isMoneyEntitled: sub.isMoneyEntitled))
+        #expect(MBAssistantDestinationView.showsMoneyLockedScreen(for: .connectedBanks, isMoneyEntitled: sub.isMoneyEntitled))
+        #expect(!MBAssistantDestinationView.showsMoneyLockedScreen(for: .contracts, isMoneyEntitled: sub.isMoneyEntitled))
+        #expect(!MBAssistantDestinationView.showsMoneyLockedScreen(for: .stats, isMoneyEntitled: sub.isMoneyEntitled))
+
+        // Studio Owner or StoreKit subscriber: Money targets render unlocked screens
+        sub.setTestEntitlement(serverSource: "owner", serverEntitled: true, serverMoneyEntitled: true)
+        #expect(!MBAssistantDestinationView.showsMoneyLockedScreen(for: .money, isMoneyEntitled: sub.isMoneyEntitled))
+        #expect(!MBAssistantDestinationView.showsMoneyLockedScreen(for: .subscriptions, isMoneyEntitled: sub.isMoneyEntitled))
+        #expect(!MBAssistantDestinationView.showsMoneyLockedScreen(for: .connectedBanks, isMoneyEntitled: sub.isMoneyEntitled))
+    }
 }

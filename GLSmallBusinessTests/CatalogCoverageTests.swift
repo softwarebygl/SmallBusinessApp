@@ -63,7 +63,7 @@ struct CatalogCoverageTests {
     }
 
     private static func sources() -> [URL] {
-        let folders = ["Screens", "UIComponents"]
+        let folders = ["Screens", "UIComponents", "AccessControl"]
         return folders.flatMap { folder -> [URL] in
             let dir = appRoot.appendingPathComponent(folder)
             let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []

@@ -18,7 +18,6 @@
 import GoldLifeUI
 import SwiftUI
 import StoreKit
-import GoldLifeUI
 
 struct SubscriptionScreen: View {
     @Environment(SubscriptionManager.self) private var subscription
@@ -67,7 +66,7 @@ struct SubscriptionScreen: View {
         .contentMargins(.top, GLScript.titleClearance(for: GLScript.padded(mbLoc("Subscription"))), for: .scrollContent)   // breathing room below the large title's descenders
         .navigationTitle(GLScript.padded(mbLoc("Subscription")))
         .toolbarTitleDisplayMode(.large)
-        .paywallSheet(isPresented: $showingPaywall, context: .upgrade)
+        .paywallSheet(isPresented: $showingPaywall, context: subscription.isVip ? .money : .upgrade)
         .manageSubscriptionsSheet(isPresented: $managingSubscription)
         .offerCodeRedemption(isPresented: $redeemingCode) { result in
             if case .failure(let error) = result {
@@ -98,7 +97,10 @@ struct SubscriptionScreen: View {
     /// non-subscriber is on no plan at all, so the card is headed by the app;
     /// a lapsed account is headed by the plan it HAD.
     private var planTitle: String {
-        if subscription.isVip || subscription.isSubscribed || subscription.isLapsed { return mbLoc("Unlimited") }
+        if subscription.isSubscribed || subscription.isLapsed { return mbLoc("Unlimited") }
+        if subscription.isVip {
+            return subscription.isMoneyEntitled ? mbLoc("Unlimited") : mbLoc("Unlimited Business & AI")
+        }
         return "My Business"
     }
 
@@ -106,15 +108,15 @@ struct SubscriptionScreen: View {
         // While the cold-launch entitlement check is still running, say
         // nothing — "Not subscribed" would flash a lie at every subscriber.
         guard subscription.statusKnown || subscription.isVip else { return "—" }
-        if subscription.isVip { return mbLoc("Lifetime") }
         if subscription.isSubscribed { return mbLoc("Active") }
+        if subscription.isVip {
+            return subscription.isMoneyEntitled ? mbLoc("Lifetime") : mbLoc("Complimentary")
+        }
         if subscription.isLapsed { return mbLoc("Subscription ended") }
         return mbLoc("Not subscribed")
     }
 
     private var statusDetail: String {
-        if subscription.isVip { return mbLoc("You have unlimited lifetime access.") }
-        guard subscription.statusKnown else { return mbLoc("Checking your subscription…") }
         if subscription.isSubscribed {
             if let date = renewal.expirationDate {
                 // Three states, not two (GoldLifeUI): auto-renew UNKNOWN must not assert "Renews".
@@ -123,6 +125,13 @@ struct SubscriptionScreen: View {
             }
             return Self.text(GLSubscriptionStatusCopy.renewalTerms())
         }
+        if subscription.isVip {
+            if subscription.isMoneyEntitled {
+                return mbLoc("You have unlimited lifetime access.")
+            }
+            return mbLoc("Your complimentary plan includes Unlimited Business & Sentinel AI. Subscribe to unlock Connected Banks & Money.")
+        }
+        guard subscription.statusKnown else { return mbLoc("Checking your subscription…") }
         // The lapse, said plainly: lapsed is 100% read-only (Apple 5.1.1(v) —
         // the data stays readable; nothing new can be added or changed).
         if subscription.isLapsed {
@@ -136,13 +145,13 @@ struct SubscriptionScreen: View {
     /// currency abroad) or a hardcoded period: the term the person is ON, by
     /// product id, never `products.first`.
     private var priceLine: String? {
-        if subscription.isVip { return nil }
         if subscription.isSubscribed {
             guard let id = renewal.activeProductID,
                   let product = subscription.products.first(where: { $0.id == id }) else { return nil }
             return pricePerPeriod(product)
         }
-        guard subscription.statusKnown, !subscription.isSubscribed,
+        if subscription.isVip && subscription.isMoneyEntitled { return nil }
+        guard subscription.statusKnown || subscription.isVip, !subscription.isSubscribed,
               let entry = subscription.products.first(where: { $0.id == SubscriptionManager.monthlyID }) else { return nil }
         return Self.text(GLSubscriptionStatusCopy.plansStartAt(monthlyPrice: entry.displayPrice))
     }
@@ -173,13 +182,13 @@ struct SubscriptionScreen: View {
             // Subscribe on cold launch. The buy runs through the ONE paywall,
             // so the compliant point-of-purchase disclosure stays in a single
             // place.
-            if subscription.statusKnown && !subscription.isSubscribed && !subscription.isVip {
+            if subscription.statusKnown && !subscription.isSubscribed && (!subscription.isVip || !subscription.isMoneyEntitled) {
                 Button {
                     showingPaywall = true
                 } label: {
                     // "Reactivate" for somebody coming back — the fleet's word,
                     // already on the lapsed banner and the paywall.
-                    Text(subscription.isLapsed ? mbLoc("Reactivate") : mbLoc("Subscribe"))
+                    Text(subscription.isVip ? mbLoc("Unlock Money — Upgrade to Pro") : (subscription.isLapsed ? mbLoc("Reactivate") : mbLoc("Subscribe")))
                         .fontWeight(.semibold).frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)

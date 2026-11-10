@@ -169,7 +169,7 @@ struct MenuScreen: View {
                 }
 
                 GLMenuSection("Payments") {
-                    if subscription.isPaidMember {
+                    if subscription.isMoneyEntitled {
                         MoneyMenuRow(isSampleMode: DemoMode.isActive || UserDemoMode.shared.isDemoActive)
                             .accessibilityIdentifier("menu.connectedBanksAndMoney")
                             .mbMoneyHostEnvironment()
